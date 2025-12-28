@@ -5,24 +5,27 @@
   <meta charset="utf-8"/>
   <title>Selección de Asientos</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <!-- Estilos (sube styles.css a tu repo) -->
   ./styles.css
   <style>
+    /* Pequeños estilos locales */
     .hint{margin-top:8px; color:#6b7280; font-size:.9rem;}
     .feedback{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:12px; margin-top:12px;}
     .feedback h4{margin:0 0 6px 0;}
     .nums{display:flex; gap:8px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700;}
+    /* Panel edición control interno */
     .edit-panel{background:var(--card); border-radius:12px; box-shadow:var(--shadow); padding:10px; margin-top:10px;}
     .edit-panel .sel{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
     .edit-panel .tag{border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151;}
-    .edit-panel .tag.src{background:#fef3c7; color:#92400e;}
-    .edit-panel .tag.dst{background:#dbeafe; color:#1e40af;}
+    .edit-panel .tag.src{background:#fef3c7; color:#92400e;} /* amber */
+    .edit-panel .tag.dst{background:#dbeafe; color:#1e40af;} /* blue */
     .hidden{display:none !important;}
     .seat.mine{outline:3px solid #6366f1;}
   </style>
 </head>
 <body>
-  <!-- Cabecera con logo -->
+  <!-- Cabecera con logo (cargado del backend) -->
   <header class="hero" aria-label="Cabecera">
     <img id="heroLogo" src="" alt="Logo de la empresa"/>
   </header>
@@ -176,7 +179,57 @@
   <!-- Snackbar -->
   <div id="snackbar" class="snackbar" role="status" aria-live="assertive" aria-atomic="true"></div>
 
-  ./api.js</script>
+  <!-- ========================= -->
+  <!-- api.js — Cliente Frontend -->
+  <!-- ========================= -->
+  <script>
+    // api.js — Cliente Frontend para Apps Script (ContentService)
+    // Configuración
+    const BASE_URL = 'https://script.google.com/macros/s/AKfycbz6WeyWOfRGGW35sUUyQesTbUoITSNNLCXMhft-saHaHYwDwHWUa6kMT5Cof1GkuFL2/exec';
+    const API_KEY = null; // opcional: si implementas apiKey en el backend
+
+    // Utilidades
+    const QS = (params = {}) =>
+      '?' + Object.entries(params)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&');
+
+    async function parseResponse(res) {
+      const text = await res.text();
+      try { return JSON.parse(text); } catch { return text; }
+    }
+    function withCommonParams(extra = {}) { const base = { api: '1', ...extra }; if (API_KEY) base.apiKey = API_KEY; return base; }
+    function getUrl(action, extraParams = {}) { const params = withCommonParams({ action, ...extraParams }); return BASE_URL + QS(params); }
+    function postOptions(payloadObj) {
+      return {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payloadObj || {}),
+      };
+    }
+
+    // Endpoints (GET)
+    async function apiPing()        { const res = await fetch(getUrl('ping'),        { method: 'GET' }); if (!res.ok) throw new Error(`GET ping: ${res.status}`);        return parseResponse(res); }
+    async function apiGetSeats()    { const res = await fetch(getUrl('seats'),       { method: 'GET' }); if (!res.ok) throw new Error(`GET seats: ${res.status}`);       return parseResponse(res); }
+    async function apiGetSeatsByCi(ci) { const res = await fetch(getUrl('seatsByCi', { ci }), { method: 'GET' }); if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`); return parseResponse(res); }
+    async function apiGetLogo()     { const res = await fetch(getUrl('logo'),        { method: 'GET' }); if (!res.ok) throw new Error(`GET logo: ${res.status}`);        return parseResponse(res); }
+    async function apiExportPdf()   { const res = await fetch(getUrl('exportPdf'),   { method: 'GET' }); if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`);   return parseResponse(res); }
+
+    // Endpoints (POST)
+    async function apiReserve(pairs)                 { const res = await fetch(getUrl('reserve'), postOptions({ pairs }));                      if (!res.ok) throw new Error(`POST reserve: ${res.status}`); return parseResponse(res); }
+    async function apiMove(sourceCode, targetCode)   { const res = await fetch(getUrl('move'),    postOptions({ sourceCode, targetCode }));    if (!res.ok) throw new Error(`POST move: ${res.status}`);    return parseResponse(res); }
+    async function apiFree(code)                     { const res = await fetch(getUrl('free'),    postOptions({ code }));                       if (!res.ok) throw new Error(`POST free: ${res.status}`);    return parseResponse(res); }
+    async function apiLogin(user, pass)              { const res = await fetch(getUrl('login'),   postOptions({ user, pass }));                 if (!res.ok) throw new Error(`POST login: ${res.status}`);   return parseResponse(res); }
+
+    // Namespace global opcional para debug en consola
+    window.API = { apiPing, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLogin };
+  </script>
+
+  <!-- ========================= -->
+  <!-- App logic (frontend)      -->
+  <!-- ========================= -->
   <script>
     /* ===== Navegación ===== */
     function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
@@ -223,12 +276,12 @@
       return (code||'').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase();
     }
 
-    /* ===== Datos ===== */
+    /* ===== Datos (via API) ===== */
     async function refreshSeats(targetId, onDone){
       const gridEl = targetId ? document.getElementById(targetId) : null;
       if(gridEl) gridEl.setAttribute('aria-busy','true');
       try{
-        const resp = await apiGetSeats();
+        const resp = await API.apiGetSeats();
         const rows = resp.rows || [];
         SEATS = {};
         rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
@@ -353,7 +406,7 @@
         const pairs = [{ asiento: normalize(only), pasajero: nombre, ci }];
         showLoading('Reservando…');
         try{
-          const resp = await apiReserve(pairs);
+          const resp = await API.apiReserve(pairs);
           hideLoading();
           showReserveFeedback([normalize(only)]);
           refreshSeats('grid-select');
@@ -396,7 +449,7 @@
       }
       showLoading('Reservando…');
       try{
-        const resp = await apiReserve(pairs);
+        const resp = await API.apiReserve(pairs);
         const reserved = pairs.map(p => normalize(p.asiento));
         showReserveFeedback(reserved);
         refreshSeats('grid-select');
@@ -424,10 +477,10 @@
       showLoading('Buscando…');
 
       try{
-        const respSeats = await apiGetSeatsByCi(ci);
+        const respSeats = await API.apiGetSeatsByCi(ci);
         LAST_FOUND_CODES = (respSeats.seats || []).map(s => normalize(s));
 
-        const respRows = await apiGetSeats();
+        const respRows = await API.apiGetSeats();
         const rows = respRows.rows || [];
         SEATS = {}; rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
 
@@ -488,7 +541,7 @@
       const p = document.getElementById('ctlPass').value.trim();
       showLoading('Verificando…');
       try{
-        const resp = await apiLogin(u,p);
+        const resp = await API.apiLogin(u,p);
         if(resp && resp.ok){
           CONTROL_AUTH = true;
           showLoading('Cargando ocupación…');
@@ -517,7 +570,7 @@
       let seatNumber = 1;
 
       for(let row=1; row<=maxRow; row++){
-        const labels = ['A','B','C','D']; // 2+2
+        const labels = ['A','B','C','D'];
         for(const letter of labels){
           const code = `${row}${letter}`;
           const norm = normalize(code);
@@ -624,7 +677,7 @@
       }
       showLoading('Moviendo pasajero…');
       try{
-        const resp = await apiMove(EDIT_SRC.code, EDIT_DST.code);
+        const resp = await API.apiMove(EDIT_SRC.code, EDIT_DST.code);
         toast(resp && resp.message ? resp.message : 'Movimiento realizado');
         clearEditSelections();
         refreshSeats(null, renderControlBoard);
@@ -640,7 +693,7 @@
       }
       showLoading('Liberando asiento…');
       try{
-        const resp = await apiFree(EDIT_SRC.code);
+        const resp = await API.apiFree(EDIT_SRC.code);
         toast(resp && resp.message ? resp.message : 'Asiento liberado');
         clearEditSelections();
         refreshSeats(null, renderControlBoard);
@@ -654,7 +707,7 @@
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
       showLoading('Generando PDF…');
       try{
-        const resp = await apiExportPdf();
+        const resp = await API.apiExportPdf();
         if(resp && resp.url){
           const newWin = window.open(resp.url, '_blank');
           if(!newWin){
@@ -674,7 +727,7 @@
     (async function init(){
       // Logo desde backend
       try{
-        const payload = await apiGetLogo();
+        const payload = await API.apiGetLogo();
         const img = document.getElementById('heroLogo');
         if(payload && payload.dataUrl){ img.src = payload.dataUrl; }
         else if(payload && payload.publicUrl){ img.src = payload.publicUrl; }
