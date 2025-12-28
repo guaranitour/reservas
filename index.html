@@ -5,16 +5,126 @@
   <meta charset="utf-8"/>
   <title>Selección de Asientos</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-  <!-- Estilos (sube styles.css a tu repo) -->
-  ./styles.css
+
+  <!-- ===== CSS embebido (mobile-first) ===== -->
   <style>
-    /* Pequeños estilos locales */
+    :root{
+      --bg:#f7f9fc; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+      --primary:#2c7be5; --success:#10b981; --shadow:0 8px 20px rgba(17,24,39,.08);
+    }
+    html,body{height:100%;}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system, Segoe UI, Roboto, Ubuntu,'Helvetica Neue', Arial,'Noto Sans',sans-serif;
+      color:var(--text);
+      background:var(--bg);
+    }
+
+    /* Hero */
+    .hero{position:relative; width:100%; background:var(--card); box-shadow:var(--shadow); font-size:0; line-height:0;}
+    .hero img{width:100%; height:auto; display:block; vertical-align:top; object-fit:contain;}
+
+    /* Contenedor principal */
+    .app{padding:clamp(12px,3vw,20px);}
+    .view{display:none;}
+    .view.active{display:block; animation:fadeIn .4s ease both;}
+    @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+
+    /* Inicio centrado */
+    .home-center{min-height:calc(100dvh - 160px); display:grid; place-items:center;}
+    .cards{display:grid; grid-template-columns:1fr; gap:14px; max-width:480px; width:100%;}
+    .card{
+      background:var(--card); border-radius:14px; box-shadow:var(--shadow);
+      padding:18px; display:flex; flex-direction:column; gap:8px;
+      cursor:pointer; transition:transform .15s ease, box-shadow .2s ease; text-align:center;
+    }
+    .card:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(17,24,39,.12);}
+    .card h2{margin:0; font-size:1.15rem;}
+    .card p{margin:0; color:var(--muted);}
+
+    /* Formularios */
+    .form{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px; margin-bottom:12px;}
+    .form-row{display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
+    label{font-weight:600;}
+    input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem; background:#fff; color:var(--text);}
+    .actions{display:flex; gap:8px; flex-wrap:wrap;}
+    .btn{border:none; border-radius:10px; padding:12px 14px; font-weight:600; cursor:pointer;}
+    .btn.primary{background:var(--primary); color:white;}
+    .btn.ghost{background:transparent; border:1px solid #e5e7eb; color:var(--text);}
+    .btn.success{background:var(--success); color:white;}
+    .btn.danger{background:#ef4444; color:white;}
+
+    /* Leyenda */
+    .legend{display:flex; gap:8px; margin:8px 0 12px; flex-wrap:wrap;}
+    .badge{display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:6px 10px; font-size:.875rem;}
+    .badge.libre{background:#d1fae5; color:#065f46;}
+    .badge.ocupado{background:#fee2e2; color:#7f1d1d;}
+    .badge.seleccionado{background:#dbeafe; color:#1e40af;}
+    .badge.inexistente{background:#e5e7eb; color:#374151;}
+
+    /* Grid de asientos (croquis) */
+    .grid{display:flex; flex-direction:column; gap:8px;}
+    .row{display:grid; grid-template-columns:1fr 24px 1fr; gap:8px; align-items:center;}
+    .block{display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;}
+    .aisle{width:24px; height:24px;}
+    .seat{
+      border:none; border-radius:12px; padding:12px; font-weight:700; box-shadow:var(--shadow);
+      transition:transform .1s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+    }
+    .seat.libre{background:#e6fffa; color:#0f766e;}
+    .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;}
+    .seat.seleccionado{background:#dbeafe; color:#1e40af; transform:scale(1.02);}
+    .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
+    .seat:active{transform:scale(0.98);}
+
+    /* Control interno - tablero */
+    .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
+    .control-actions{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; margin-bottom:12px;}
+    .control-grid{display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:10px; margin-top:14px;}
+    @media (min-width: 960px){ .control-grid{grid-template-columns:repeat(3, minmax(0, 1fr));} }
+    .item{display:flex; align-items:center; justify-content:flex-start; gap:10px; border:1px solid #e5e7eb; border-radius:12px; padding:10px; transition:box-shadow .2s ease, transform .1s ease, outline-color .2s ease;}
+    .item .num{min-width:40px; text-align:center; font-weight:700; border-radius:999px; padding:6px 10px;}
+    .item .label{font-weight:600;}
+    .item.occupied{background:#fee2e2; outline:2px solid #fecaca;}
+    .item.occupied .num{background:#fecaca; color:#7f1d1d;}
+    .item.occupied .label{color:#7f1d1d;}
+    .item.free{background:#d1fae5; outline:2px solid #a7f3d0;}
+    .item.free .num{background:#a7f3d0; color:#065f46;}
+    .item.free .label{color:#065f46;}
+    .item.pick-source{outline:3px solid #f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.20) inset;}
+    .item.pick-target{outline:3px solid #2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.20) inset;}
+
+    /* Snackbar */
+    .snackbar{position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#111827; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:var(--shadow); opacity:0; pointer-events:none;}
+    .snackbar.show{opacity:1; transition:opacity .2s ease;}
+
+    /* Overlay de carga */
+    .overlay{position:fixed; inset:0; background:rgba(17,24,39,.28); display:grid; place-items:center; opacity:0; pointer-events:none; transition:opacity .15s ease;}
+    .overlay.show{opacity:1; pointer-events:auto;}
+    .loader{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 18px; display:flex; align-items:center; gap:12px;}
+    .spinner{width:20px; height:20px; border-radius:50%; border:3px solid #c7d2fe; border-top-color:#3b82f6; animation:spin .9s linear infinite; -webkit-animation:spin .9s linear infinite; will-change:transform;}
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @-webkit-keyframes spin { to { -webkit-transform: rotate(360deg); transform: rotate(360deg); } }
+    .loader-text{font-weight:600; color:#111827;}
+
+    /* Accesibilidad: reducir movimiento */
+    @media (prefers-reduced-motion: reduce){
+      .view.active{animation:none}
+      .spinner{animation:none; -webkit-animation:none}
+    }
+
+    /* Desktop extras */
+    @media (min-width: 720px){
+      .cards{grid-template-columns:repeat(2, 1fr);}
+      .assign-row{grid-template-columns:140px 1fr 1fr;} /* asiento, nombre, CI */
+    }
+
+    /* Extras locales */
     .hint{margin-top:8px; color:#6b7280; font-size:.9rem;}
     .feedback{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:12px; margin-top:12px;}
     .feedback h4{margin:0 0 6px 0;}
     .nums{display:flex; gap:8px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700;}
-    /* Panel edición control interno */
     .edit-panel{background:var(--card); border-radius:12px; box-shadow:var(--shadow); padding:10px; margin-top:10px;}
     .edit-panel .sel{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
     .edit-panel .tag{border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151;}
@@ -25,13 +135,13 @@
   </style>
 </head>
 <body>
-  <!-- Cabecera con logo (cargado del backend) -->
+  <!-- Cabecera con logo (desde backend) -->
   <header class="hero" aria-label="Cabecera">
     <img id="heroLogo" src="" alt="Logo de la empresa"/>
   </header>
 
   <main id="app" class="app">
-    <!-- Inicio -->
+    <!-- ===== Inicio ===== -->
     <section id="view-home" class="view active" aria-label="Inicio">
       <div class="home-center">
         <div class="cards">
@@ -51,7 +161,7 @@
       </div>
     </section>
 
-    <!-- Selección -->
+    <!-- ===== Selección ===== -->
     <section id="view-select" class="view" aria-label="Seleccionar asiento">
       <form id="selectForm" class="form" onsubmit="event.preventDefault(); startSelection();">
         <div class="form-row">
@@ -97,7 +207,7 @@
       </div>
     </section>
 
-    <!-- Buscar por CI -->
+    <!-- ===== Buscar por CI ===== -->
     <section id="view-find" class="view" aria-label="Ver mi asiento">
       <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
         <div class="form-row">
@@ -121,7 +231,7 @@
       <div id="grid-find" class="grid" aria-live="polite" aria-busy="true"></div>
     </section>
 
-    <!-- Control interno -->
+    <!-- ===== Control interno ===== -->
     <section id="view-control" class="view" aria-label="Control interno">
       <form id="controlForm" class="form" onsubmit="event.preventDefault(); doControlLogin();">
         <div class="form-row">
@@ -179,18 +289,15 @@
   <!-- Snackbar -->
   <div id="snackbar" class="snackbar" role="status" aria-live="assertive" aria-atomic="true"></div>
 
-  <!-- ========================= -->
-  <!-- api.js — Cliente Frontend -->
-  <!-- ========================= -->
+  <!-- ===== api.js (embebido) ===== -->
   <script>
-    // api.js — Cliente Frontend para Apps Script (ContentService)
-    // Configuración
+    // Configurar tu BASE_URL de Apps Script (Web App /exec)
     const BASE_URL = 'https://script.google.com/macros/s/AKfycbz6WeyWOfRGGW35sUUyQesTbUoITSNNLCXMhft-saHaHYwDwHWUa6kMT5Cof1GkuFL2/exec';
-    const API_KEY = null; // opcional: si implementas apiKey en el backend
+    const API_KEY = null; // opcional (si agregas apiKey en el backend)
 
-    // Utilidades
     const QS = (params = {}) =>
-      '?' + Object.entries(params)
+      '?' +
+      Object.entries(params)
         .filter(([, v]) => v !== undefined && v !== null && v !== '')
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
         .join('&');
@@ -199,37 +306,42 @@
       const text = await res.text();
       try { return JSON.parse(text); } catch { return text; }
     }
-    function withCommonParams(extra = {}) { const base = { api: '1', ...extra }; if (API_KEY) base.apiKey = API_KEY; return base; }
-    function getUrl(action, extraParams = {}) { const params = withCommonParams({ action, ...extraParams }); return BASE_URL + QS(params); }
+    function withCommonParams(extra = {}) {
+      const base = { api: '1', ...extra };
+      if (API_KEY) base.apiKey = API_KEY;
+      return base;
+    }
+    function getUrl(action, extraParams = {}) {
+      const params = withCommonParams({ action, ...extraParams });
+      return BASE_URL + QS(params);
+    }
     function postOptions(payloadObj) {
       return {
         method: 'POST',
-        redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        redirect: 'follow', // seguir 302/301 típico de Web Apps
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // simple request (evita preflight)
         body: JSON.stringify(payloadObj || {}),
       };
     }
 
     // Endpoints (GET)
-    async function apiPing()        { const res = await fetch(getUrl('ping'),        { method: 'GET' }); if (!res.ok) throw new Error(`GET ping: ${res.status}`);        return parseResponse(res); }
-    async function apiGetSeats()    { const res = await fetch(getUrl('seats'),       { method: 'GET' }); if (!res.ok) throw new Error(`GET seats: ${res.status}`);       return parseResponse(res); }
-    async function apiGetSeatsByCi(ci) { const res = await fetch(getUrl('seatsByCi', { ci }), { method: 'GET' }); if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`); return parseResponse(res); }
-    async function apiGetLogo()     { const res = await fetch(getUrl('logo'),        { method: 'GET' }); if (!res.ok) throw new Error(`GET logo: ${res.status}`);        return parseResponse(res); }
-    async function apiExportPdf()   { const res = await fetch(getUrl('exportPdf'),   { method: 'GET' }); if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`);   return parseResponse(res); }
+    async function apiPing()        { const res = await fetch(getUrl('ping'));        if (!res.ok) throw new Error(`GET ping: ${res.status}`);        return parseResponse(res); }
+    async function apiGetSeats()    { const res = await fetch(getUrl('seats'));       if (!res.ok) throw new Error(`GET seats: ${res.status}`);       return parseResponse(res); }
+    async function apiGetSeatsByCi(ci) { const res = await fetch(getUrl('seatsByCi', { ci })); if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`); return parseResponse(res); }
+    async function apiGetLogo()     { const res = await fetch(getUrl('logo'));        if (!res.ok) throw new Error(`GET logo: ${res.status}`);        return parseResponse(res); }
+    async function apiExportPdf()   { const res = await fetch(getUrl('exportPdf'));   if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`);   return parseResponse(res); }
 
     // Endpoints (POST)
-    async function apiReserve(pairs)                 { const res = await fetch(getUrl('reserve'), postOptions({ pairs }));                      if (!res.ok) throw new Error(`POST reserve: ${res.status}`); return parseResponse(res); }
-    async function apiMove(sourceCode, targetCode)   { const res = await fetch(getUrl('move'),    postOptions({ sourceCode, targetCode }));    if (!res.ok) throw new Error(`POST move: ${res.status}`);    return parseResponse(res); }
-    async function apiFree(code)                     { const res = await fetch(getUrl('free'),    postOptions({ code }));                       if (!res.ok) throw new Error(`POST free: ${res.status}`);    return parseResponse(res); }
-    async function apiLogin(user, pass)              { const res = await fetch(getUrl('login'),   postOptions({ user, pass }));                 if (!res.ok) throw new Error(`POST login: ${res.status}`);   return parseResponse(res); }
+    async function apiReserve(pairs)               { const res = await fetch(getUrl('reserve'), postOptions({ pairs }));                  if (!res.ok) throw new Error(`POST reserve: ${res.status}`); return parseResponse(res); }
+    async function apiMove(sourceCode,targetCode)  { const res = await fetch(getUrl('move'),    postOptions({ sourceCode, targetCode })); if (!res.ok) throw new Error(`POST move: ${res.status}`);    return parseResponse(res); }
+    async function apiFree(code)                   { const res = await fetch(getUrl('free'),    postOptions({ code }));                    if (!res.ok) throw new Error(`POST free: ${res.status}`);    return parseResponse(res); }
+    async function apiLogin(user,pass)             { const res = await fetch(getUrl('login'),   postOptions({ user, pass }));              if (!res.ok) throw new Error(`POST login: ${res.status}`);   return parseResponse(res); }
 
-    // Namespace global opcional para debug en consola
+    // Namespace opcional para debug
     window.API = { apiPing, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLogin };
   </script>
 
-  <!-- ========================= -->
-  <!-- App logic (frontend)      -->
-  <!-- ========================= -->
+  <!-- ===== Lógica de la app ===== -->
   <script>
     /* ===== Navegación ===== */
     function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
@@ -316,6 +428,7 @@
     function buildGrid(targetId){
       const grid = document.getElementById(targetId || 'grid-select');
       if(!grid) return;
+
       grid.innerHTML = '';
       grid.removeAttribute('aria-busy');
       selected = new Set();
@@ -570,16 +683,16 @@
       let seatNumber = 1;
 
       for(let row=1; row<=maxRow; row++){
-        const labels = ['A','B','C','D'];
+        const labels = ['A','B','C','D']; // 2+2
         for(const letter of labels){
           const code = `${row}${letter}`;
           const norm = normalize(code);
-          const klass = computeClassFor(code);
+          const klass = computeClassFor(code); // libre/ocupado/inexistente
           const isNum = (klass === 'libre' || klass === 'ocupado');
-          if(!isNum) continue;
+          if(!isNum) continue; // inhabilitado no figura
 
           const data = SEATS[norm] || {};
-          const estado = (data.estado || '').toLowerCase().trim();
+          const estado = (data.estado || '').toLowerCase().trim(); // 'libre'/'ocupado'
           const item = document.createElement('div');
           item.className = `item ${estado === 'ocupado' ? 'occupied' : 'free'}`;
           item.setAttribute('data-num', seatNumber);
@@ -605,6 +718,7 @@
       document.getElementById('controlBoard').classList.add('hidden');
       document.getElementById('controlGrid').innerHTML = '';
       const fb = document.getElementById('pdfLinkFallback'); fb.classList.add('hidden'); fb.innerHTML = '';
+      // Reset edición
       CONTROL_EDIT = false; EDIT_SRC = null; EDIT_DST = null;
       document.getElementById('editPanel').classList.add('hidden');
       document.getElementById('btnEditMode').classList.remove('danger');
@@ -637,6 +751,7 @@
       const code   = item.getAttribute('data-code');
 
       if(status === 'ocupado'){
+        // Seleccionar origen
         if(EDIT_SRC && EDIT_SRC.num === num){
           EDIT_SRC = null; item.classList.remove('pick-source');
         }else{
@@ -645,6 +760,7 @@
           item.classList.add('pick-source');
         }
       }else if(status === 'libre'){
+        // Seleccionar destino
         if(EDIT_DST && EDIT_DST.num === num){
           EDIT_DST = null; item.classList.remove('pick-target');
         }else{
@@ -679,6 +795,7 @@
       try{
         const resp = await API.apiMove(EDIT_SRC.code, EDIT_DST.code);
         toast(resp && resp.message ? resp.message : 'Movimiento realizado');
+        // Reset y refresco
         clearEditSelections();
         refreshSeats(null, renderControlBoard);
       }catch(err){
