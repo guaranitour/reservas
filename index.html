@@ -4,7 +4,9 @@
 <head>
   <meta charset="utf-8"/>
   <title>Selección de Asientos</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <!-- viewport con safe area para iOS -->
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+
   <!-- ===== CSS embebido (mobile-first) ===== -->
   <style>
     :root{
@@ -15,9 +17,12 @@
       --brandB: rgba(16,185,129,.08);
       /* Tamaño del logo (mobile-only) */
       --logo-w-ideal: 84vw;
-      --logo-w-max: 360px; /* ajustá si querés más/menos grande */
+      --logo-w-max: 360px;
+      /* Safe area para iPhone con notch */
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
     html,body{height:100%;}
+    html{ scroll-padding-bottom: calc(72px + var(--safe-bottom)); } /* evita que la action-bar tape el contenido al hacer scrollIntoView */
     body{
       margin:0;
       font-family: system-ui,-apple-system, Segoe UI, Roboto, Ubuntu,'Helvetica Neue', Arial,'Noto Sans',sans-serif;
@@ -44,7 +49,7 @@
       backdrop-filter: saturate(160%) blur(8px);
       -webkit-backdrop-filter: saturate(160%) blur(8px);
       box-shadow:0 8px 24px rgba(17,24,39,.12);
-      max-width:92vw; overflow:hidden; /* clave para evitar desborde */
+      max-width:92vw; overflow:hidden;
     }
     .brand-chip img{
       width: min(var(--logo-w-ideal), var(--logo-w-max));
@@ -77,7 +82,7 @@
     label{font-weight:600;}
     input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem; background:#fff; color:var(--text);}
     .actions{display:flex; gap:8px; flex-wrap:wrap;}
-    .btn{border:none; border-radius:10px; padding:12px 14px; font-weight:600; cursor:pointer;}
+    .btn{border:none; border-radius:10px; padding:12px 14px; font-weight:600; cursor:pointer; min-height:44px;} /* tap target cómodo */
     .btn.primary{background:var(--primary); color:white;}
     .btn.ghost{background:transparent; border:1px solid #e5e7eb; color:var(--text);}
     .btn.success{background:var(--success); color:white;}
@@ -104,8 +109,8 @@
     .seat{
       border:none; border-radius:12px; padding:12px; font-weight:700; box-shadow:var(--shadow);
       transition:transform .1s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
-      width:100%; /* ancho sólido para no expandir */
-      position:relative; overflow:hidden;
+      width:100%;
+      position:relative; overflow:hidden; min-height:48px; /* tap target público */
     }
     .seat.libre{background:#e6fffa; color:#0f766e;}
     .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;}
@@ -113,59 +118,52 @@
     .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
     .seat:active{transform:scale(0.98);}
 
-    /* Resaltado de “mis asientos” (buscar por CI): borde + pulso */
+    /* Resaltado “mis asientos” (buscar por CI): borde + pulso */
     .seat.mine{
-      outline:3px solid #6366f1; /* violeta */
+      outline:3px solid #6366f1;
       box-shadow:0 0 0 3px rgba(99,102,241,.15) inset;
     }
     .seat.mine::after{
-      content:"";
-      position:absolute; inset:0; border-radius:12px;
+      content:""; position:absolute; inset:0; border-radius:12px;
       box-shadow:0 0 0 0 rgba(99,102,241,.25);
       animation:pulse 1.8s ease-in-out infinite;
     }
-    @keyframes pulse{
-      0%{ box-shadow:0 0 0 0 rgba(99,102,241,.25); }
-      70%{ box-shadow:0 0 0 10px rgba(99,102,241,0); }
-      100%{ box-shadow:0 0 0 0 rgba(99,102,241,0); }
-    }
+    @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(99,102,241,.25);} 70%{box-shadow:0 0 0 10px rgba(99,102,241,0);} 100%{box-shadow:0 0 0 0 rgba(99,102,241,0);} }
 
-    /* Chips de números y más espacio para el botón “Ver croquis” */
+    /* Chips números + espacio “Ver croquis” */
     .nums{display:flex; gap:10px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
-    #findFeedback .actions{margin-top:14px;} /* más aire para que no quede encimado */
+    #findFeedback .actions{margin-top:14px;}
+    #findFeedback{ margin-bottom: 16px; } /* separa panel de resultados */
+    #grid-find{    margin-top: 8px; }     /* separa el croquis en buscar por CI */
 
-    /* (ya añadido antes) separaciones en buscar por CI */
-    #findFeedback{ margin-bottom: 16px; }
-    #grid-find{    margin-top: 8px; }
-
-    /* ===== NUEVO: Diseño cómodo para asignación múltiple ===== */
+    /* ===== Asignación múltiple (cómodo en móvil) ===== */
     .assign{ margin-top: 12px; }
-    .assign-list{
-      display:flex; flex-direction:column; gap:12px;
-    }
+    .assign-list{ display:flex; flex-direction:column; gap:16px; }
     .assign-row{
       background:var(--card); border-radius:12px; box-shadow:var(--shadow);
-      padding:14px; display:grid; gap:10px;
+      padding:16px; display:grid; gap:10px; scroll-margin-bottom:12px;
     }
-    .assign-title{
-      font-size:1rem; font-weight:800; color:var(--text);
+    .assign-title{ font-size:1rem; font-weight:800; color:var(--text); }
+    .assign-grid{ display:grid; grid-template-columns:1fr; gap:10px; }
+    @media (min-width:560px){ .assign-grid{ grid-template-columns:1fr 1fr; } }
+    .field{ display:flex; flex-direction:column; gap:6px; }
+    .field-label{ font-weight:600; font-size:.9rem; color:var(--muted); }
+    .assign .actions{ margin-top: 16px; gap: 10px; }
+
+    /* Barra de acciones sticky al fondo (Volver / Confirmar) */
+    .assign .action-bar{
+      position: sticky; bottom: 0; z-index: 30;
+      padding: 12px;
+      padding-bottom: calc(12px + var(--safe-bottom));
+      border-top: 1px solid rgba(17,24,39,.08);
+      background: rgba(255,255,255,.92);
+      backdrop-filter: saturate(140%) blur(8px);
+      -webkit-backdrop-filter: saturate(140%) blur(8px);
+      box-shadow: 0 -8px 24px rgba(17,24,39,.08);
     }
-    .assign-grid{
-      display:grid; grid-template-columns:1fr; gap:10px;
-    }
-    @media (min-width:560px){
-      .assign-grid{ grid-template-columns:1fr 1fr; }
-    }
-    .field{
-      display:flex; flex-direction:column; gap:6px;
-    }
-    .field-label{
-      font-weight:600; font-size:.9rem; color:var(--muted);
-    }
-    .assign .actions{
-      margin-top: 14px; gap: 10px;
-    }
+    .assign .action-bar .actions{ gap: 10px; }
+    .assign .action-bar .btn{ flex: 1; min-height: 44px; }
 
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
@@ -182,13 +180,9 @@
       -webkit-backdrop-filter: saturate(140%) blur(8px);
       box-shadow:0 8px 24px rgba(17,24,39,.10);
       transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
-      margin-bottom: 20px; /* más aire para que no quede al ras */
+      margin-bottom: 20px;
     }
-    .control-toolbar.scrolled{
-      transform: translateY(2px);
-      box-shadow:0 12px 28px rgba(17,24,39,.16);
-      background: rgba(255,255,255,.82);
-    }
+    .control-toolbar.scrolled{ transform: translateY(2px); box-shadow:0 12px 28px rgba(17,24,39,.16); background: rgba(255,255,255,.82); }
     .control-actions{display:flex; gap:8px; flex-wrap:wrap;}
     .sel-tags{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
     .sel-tags .tag{border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151;}
@@ -213,27 +207,19 @@
     }
     .hidden{display:none !important;}
 
-    /* (ya añadido antes) estilos exclusivos del croquis de Control para mostrar el primer nombre */
+    /* Croquis de Control: número + primer nombre */
     #controlCroquis .seat{
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      min-height: 56px; /* permite dos líneas (número + nombre) */
+      min-height: 56px; /* dos líneas: número + nombre */
     }
-    #controlCroquis .seat .num{
-      font-size: 1rem; line-height: 1; font-weight: 800;
-    }
+    #controlCroquis .seat .num{ font-size: 1rem; line-height: 1; font-weight: 800; }
     #controlCroquis .seat .occ-name{
       margin-top: 4px;
       font-size: .75rem; line-height: 1.1; font-weight: 600;
-      color:#374151;
-      letter-spacing: .2px;
-      max-width: 100%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      color:#374151; letter-spacing: .2px;
+      max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    #controlCroquis .seat.ocupado .occ-name{
-      color:#7f1d1d; /* combina con color de ocupado */
-    }
+    #controlCroquis .seat.ocupado .occ-name{ color:#7f1d1d; }
   </style>
 </head>
 <body>
@@ -270,11 +256,15 @@
       <form id="selectForm" class="form" onsubmit="event.preventDefault(); startSelection();">
         <div class="form-row">
           <label for="nombrePrincipal">Nombre del pasajero</label>
-          <input id="nombrePrincipal" type="text" placeholder="Nombre y Apellido" required/>
+          <input id="nombrePrincipal" type="text"
+                 placeholder="Nombre y Apellido" required
+                 autocomplete="name" autocapitalize="words" enterkeyhint="next"/>
         </div>
         <div class="form-row">
           <label for="ciPrincipal">CI del pasajero</label>
-          <input id="ciPrincipal" type="text" placeholder="Ej.: 12345678" inputmode="numeric" required/>
+          <input id="ciPrincipal" type="text"
+                 placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*"
+                 required autocomplete="off" enterkeyhint="done"/>
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Reservar</button>
@@ -292,16 +282,19 @@
 
       <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
 
-      <!-- ===== NUEVO: sección de asignación con tarjetas y grid ===== -->
+      <!-- Asignación múltiple -->
       <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
         <h3>Asignar nombres a tus asientos</h3>
         <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
 
         <div id="assignList" class="assign-list"></div>
 
-        <div class="actions">
-          <button type="button" class="btn ghost" onclick="backToSelect()">Volver (cambiar asientos)</button>
-          <button type="button" class="btn success" onclick="confirmReservation()">Confirmar reserva</button>
+        <!-- Barra sticky -->
+        <div class="action-bar">
+          <div class="actions">
+            <button type="button" class="btn ghost" onclick="backToSelect()">Volver</button>
+            <button type="button" class="btn success" onclick="confirmReservation()">Confirmar reserva</button>
+          </div>
         </div>
       </section>
 
@@ -319,7 +312,9 @@
       <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
         <div class="form-row">
           <label for="ciSearch">CI del pasajero</label>
-          <input id="ciSearch" type="text" placeholder="Ej.: 12345678" inputmode="numeric" required/>
+          <input id="ciSearch" type="text"
+                 placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*"
+                 required autocomplete="off" enterkeyhint="search"/>
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Buscar</button>
@@ -437,7 +432,6 @@
     function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function goHome(){ showView('view-home'); }
 
-    /* Al entrar a Selección: animación de carga (Cargando asientos…) */
     function goSelect(){
       showView('view-select');
       showLoading('Cargando asientos…');
@@ -462,6 +456,9 @@
     /* Edición (control) */
     let CONTROL_EDIT = false; let EDIT_SRC = null; let EDIT_DST = null;
 
+    /* Protección doble tap en reserva */
+    let BUSY = false;
+
     /* UI helpers */
     function toast(msg){ const bar = document.getElementById('snackbar'); bar.textContent = msg; bar.classList.add('show'); setTimeout(() => bar.classList.remove('show'), 2800); }
     function showLoading(msg){ const ov = document.getElementById('overlay'); ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
@@ -469,14 +466,13 @@
 
     /* Util */
     function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
-
-    /* (ya añadido antes) tomar primer nombre con capitalización simple */
     function firstName(full){
       const t = (full || '').trim();
       if(!t) return '';
       const name = t.split(/\s+/)[0];
       return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
     }
+    function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
     /* Datos */
     async function refreshSeats(targetId, onDone){
@@ -565,7 +561,7 @@
         grid.appendChild(rowEl);
       }
 
-      // Si hay resaltados, hacemos scroll suave al primero (sin perder el resto)
+      // scroll al primer resaltado
       if(HIGHLIGHT_CODES.size){
         const first = grid.querySelector('.seat.mine');
         if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
@@ -583,8 +579,8 @@
     function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
     function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
 
-    /* ===== NUEVO: render limpio de la lista de asignación ===== */
     async function startSelection(){
+      if(BUSY) return;
       if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
       const nombre = document.getElementById('nombrePrincipal').value.trim();
       const ci     = document.getElementById('ciPrincipal').value.trim();
@@ -594,9 +590,11 @@
         const only = Array.from(selected)[0];
         const onlyNorm = normalize(only);
         const pairs = [{ asiento: onlyNorm, pasajero: nombre, ci }];
+        BUSY = true;
         showLoading('Reservando…');
-        try{ await API.apiReserve(pairs); hideLoading(); showReserveFeedbackDetailed(pairs); refreshSeats('grid-select'); }
-        catch(err){ hideLoading(); toast('No se pudo reservar'); }
+        try{ await API.apiReserve(pairs); showReserveFeedbackDetailed(pairs); refreshSeats('grid-select'); }
+        catch(err){ toast('No se pudo reservar'); }
+        finally{ hideLoading(); BUSY = false; }
         return;
       }
 
@@ -612,11 +610,14 @@
 
         const nameWrap  = document.createElement('label'); nameWrap.className = 'field';
         const nameLabel = document.createElement('span');  nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
-        const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.value = i===0 ? nombre : ''; nameInput.className='assign-name';
+        const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.value = i===0 ? nombre : ''; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
 
         const ciWrap  = document.createElement('label'); ciWrap.className = 'field';
         const ciLabel = document.createElement('span');  ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
-        const ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.inputMode='numeric'; ciInput.required=true; ciInput.value = i===0 ? ci : ''; ciInput.className='assign-ci';
+        const ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.value = i===0 ? ci : ''; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
+
+        // limitar CI a dígitos
+        ciInput.addEventListener('input', e => onlyDigits(e.target));
 
         nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
         ciWrap.appendChild(ciLabel);     ciWrap.appendChild(ciInput);
@@ -631,6 +632,7 @@
     }
 
     async function confirmReservation(){
+      if(BUSY) return;
       const inputs = document.querySelectorAll('#assignList .assign-row');
       const pairs = [];
       for(let i=0;i<inputs.length;i++){
@@ -641,10 +643,18 @@
         if(!pasajero || !ci){ toast(`Faltan datos en ${codeNorm}`); return; }
         pairs.push({ asiento: codeNorm, pasajero, ci });
       }
+      BUSY = true;
       showLoading('Reservando…');
-      try{ await API.apiReserve(pairs); showReserveFeedbackDetailed(pairs); refreshSeats('grid-select'); document.getElementById('view-assign').classList.add('hidden'); }
-      catch(err){ toast('No se pudo reservar'); }
-      finally{ hideLoading(); }
+      try{
+        await API.apiReserve(pairs);
+        showReserveFeedbackDetailed(pairs);
+        refreshSeats('grid-select');
+        document.getElementById('view-assign').classList.add('hidden');
+      }catch(err){
+        toast('No se pudo reservar');
+      }finally{
+        hideLoading(); BUSY = false;
+      }
     }
 
     function showReserveFeedbackDetailed(pairs){
@@ -658,27 +668,23 @@
       panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'});
     }
 
-    /* Buscar por CI — resalta TODOS los asientos encontrados y separa chips */
+    /* Buscar por CI */
     async function findByCI(){
       const ci = document.getElementById('ciSearch').value.trim();
       if(!ci){ toast('Ingresá tu CI'); return; }
       showLoading('Buscando…');
       try{
-        // 1) Códigos por CI (normalizados y deduplicados)
         const respSeats = await API.apiGetSeatsByCi(ci);
         const rawCodes = (respSeats.seats || []).map(s => normalize(s));
         LAST_FOUND_CODES = Array.from(new Set(rawCodes));
 
-        // 2) Estado actual de asientos
         const respRows = await API.apiGetSeats();
         const rows = respRows.rows || [];
         SEATS = {}; rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
 
-        // 3) Números visibles para cada código
         const nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
 
-        // 4) Resaltar TODOS en el croquis
         HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
       }catch(err){
         toast('Error al buscar por CI');
@@ -705,12 +711,12 @@
       const list  = document.getElementById('findNums');
       const btn   = document.getElementById('btnShowCroquis');
 
-      list.innerHTML = ''; // limpia
+      list.innerHTML = '';
       if(nums.length){
         nums.forEach(n => {
           const pill = document.createElement('span');
           pill.className='pill';
-          pill.textContent = String(n); // asegura separación visual por chip
+          pill.textContent = String(n);
           list.appendChild(pill);
         });
         panel.classList.remove('hidden');
@@ -736,7 +742,7 @@
       document.getElementById('findFeedback').classList.add('hidden');
       document.getElementById('findNums').innerHTML = '';
       document.getElementById('grid-find').innerHTML = '';
-      HIGHLIGHT_CODES = new Set(); LAST_FOUND_CODES = [];
+      HIGHLIGHT_CODES = new Set(); LAST_FOUND_CODES = []; // pequeño typo corregido abajo en init
     }
 
     /* Control interno */
@@ -798,7 +804,6 @@
           const btn = document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
 
           if(isNum){
-            // número + primer nombre del ocupante (si está ocupado)
             const occFull = SEATS[norm]?.pasajero || '';
             const occName = (klass==='ocupado') ? firstName(occFull) : '';
 
@@ -836,7 +841,6 @@
       }
 
       board.scrollIntoView({behavior:'smooth'});
-      // Animación sticky (solo en sesión)
       attachStickyAnimation();
     }
 
@@ -850,7 +854,7 @@
 
     function hideControlBoard(){
       const board = document.getElementById('controlBoard');
-      board.hidden = true; // oculta por completo
+      board.hidden = true;
       document.getElementById('controlCroquis').innerHTML='';
       const fb=document.getElementById('pdfLinkFallback'); fb.classList.add('hidden'); fb.innerHTML='';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null;
@@ -904,7 +908,6 @@
       }
     }
 
-    /* Cancelación con opción “silenciosa” (para no mostrar toast cuando se hace automático) */
     function cancelEdit(silent=false){
       EDIT_SRC=null; EDIT_DST=null;
       document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
@@ -914,12 +917,12 @@
     }
 
     async function movePassenger(){
-      if(!EDIT_SRC || !EDIT_DST){ toast('Selecciona origen (ocupado) y destino (libre).'); return; }
       showLoading('Moviendo pasajero…');
+      if(!EDIT_SRC || !EDIT_DST){ hideLoading(); toast('Selecciona origen (ocupado) y destino (libre).'); return; }
       try{
         const resp=await API.apiMove(EDIT_SRC.code,EDIT_DST.code);
         toast(resp && resp.message ? resp.message : 'Movimiento realizado');
-        cancelEdit(true); // << silencioso: no mostrar “Edición cancelada”
+        cancelEdit(true);
         refreshSeatsWithSpinner(null, renderControlBoard);
       }catch(err){
         toast('No se pudo mover al pasajero');
@@ -927,12 +930,12 @@
     }
 
     async function freeSelectedSeat(){
-      if(!EDIT_SRC){ toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
       showLoading('Liberando asiento…');
+      if(!EDIT_SRC){ hideLoading(); toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
       try{
         const resp=await API.apiFree(EDIT_SRC.code);
         toast(resp && resp.message ? resp.message : 'Asiento liberado');
-        cancelEdit(true); // << silencioso
+        cancelEdit(true);
         refreshSeatsWithSpinner(null, renderControlBoard);
       }catch(err){
         toast('No se pudo liberar el asiento');
@@ -965,7 +968,15 @@
         if(payload && payload.dataUrl){ img.src = payload.dataUrl; }
         else if(payload && payload.publicUrl){ img.src = payload.publicUrl; }
       }catch(e){ /* noop */ }
+
+      // listeners para CI solo dígitos
+      document.getElementById('ciPrincipal')?.addEventListener('input', e => onlyDigits(e.target));
+      document.getElementById('ciSearch')?.addEventListener('input', e => onlyDigits(e.target));
+
       refreshSeats('grid-select');
+
+      // Fix pequeño por si se usó clearFindView antes (typo en variable)
+      LAST_FOUND_CODES = [];
     })();
   </script>
 </body>
