@@ -18,11 +18,12 @@
       /* Tamaño del logo (mobile-only) */
       --logo-w-ideal: 84vw;
       --logo-w-max: 360px;
-      /* Safe area para iPhone con notch */
+      /* Safe area y altura de la Bottom App Bar */
       --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --action-bar-h: 72px;
     }
     html,body{height:100%;}
-    html{ scroll-padding-bottom: calc(72px + var(--safe-bottom)); } /* evita que la action-bar tape el contenido al hacer scrollIntoView */
+    html{ scroll-padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); } /* evita que la action-bar tape scrollIntoView */
     body{
       margin:0;
       font-family: system-ui,-apple-system, Segoe UI, Roboto, Ubuntu,'Helvetica Neue', Arial,'Noto Sans',sans-serif;
@@ -46,8 +47,6 @@
       border-radius:16px;
       background: rgba(255,255,255,.55);
       border:1px solid rgba(255,255,255,.65);
-      backdrop-filter: saturate(160%) blur(8px);
-      -webkit-backdrop-filter: saturate(160%) blur(8px);
       box-shadow:0 8px 24px rgba(17,24,39,.12);
       max-width:92vw; overflow:hidden;
     }
@@ -134,11 +133,11 @@
     .nums{display:flex; gap:10px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
     #findFeedback .actions{margin-top:14px;}
-    #findFeedback{ margin-bottom: 16px; } /* separa panel de resultados */
-    #grid-find{    margin-top: 8px; }     /* separa el croquis en buscar por CI */
+    #findFeedback{ margin-bottom: 16px; }
+    #grid-find{    margin-top: 8px; }
 
-    /* ===== Asignación múltiple (cómodo en móvil) ===== */
-    .assign{ margin-top: 12px; }
+    /* ===== Asignación múltiple ===== */
+    .assign{ margin-top: 12px; padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); } /* reserva espacio para la bottom bar */
     .assign-list{ display:flex; flex-direction:column; gap:16px; }
     .assign-row{
       background:var(--card); border-radius:12px; box-shadow:var(--shadow);
@@ -149,35 +148,35 @@
     @media (min-width:560px){ .assign-grid{ grid-template-columns:1fr 1fr; } }
     .field{ display:flex; flex-direction:column; gap:6px; }
     .field-label{ font-weight:600; font-size:.9rem; color:var(--muted); }
-    .assign .actions{ margin-top: 16px; gap: 10px; }
 
-    /* Barra de acciones sticky al fondo (Volver / Confirmar) */
+    /* Bottom App Bar fija: integrada, sin blur */
     .assign .action-bar{
-      position: sticky; bottom: 0; z-index: 30;
-      padding: 12px;
-      padding-bottom: calc(12px + var(--safe-bottom));
-      border-top: 1px solid rgba(17,24,39,.08);
-      background: rgba(255,255,255,.92);
-      backdrop-filter: saturate(140%) blur(8px);
-      -webkit-backdrop-filter: saturate(140%) blur(8px);
-      box-shadow: 0 -8px 24px rgba(17,24,39,.08);
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+      height: var(--action-bar-h);
+      display: grid; place-items: center;
+      padding-bottom: var(--safe-bottom);
+      border-top: 1px solid #e5e7eb;           /* línea sutil */
+      background: var(--card);                  /* fondo sólido */
+      box-shadow: 0 -4px 16px rgba(17,24,39,.06); /* sombra suave, integrada */
     }
-    .assign .action-bar .actions{ gap: 10px; }
-    .assign .action-bar .btn{ flex: 1; min-height: 44px; }
+    .assign .action-bar .actions{
+      width: min(680px, 92vw);
+      display:flex; gap:10px;
+      padding: 0 12px;
+    }
+    .assign .action-bar .btn{ flex: 1; min-height: 44px; } /* botones cómodos */
 
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
     .control-title{margin:0 0 12px 0; font-size:1.1rem; font-weight:700;}
 
-    /* Toolbar sticky: edit-actions SOLO en modo edición */
+    /* Toolbar sticky (control) */
     .control-toolbar{
       position: sticky; top: 8px; z-index: 20;
       display:flex; flex-direction:column; gap:10px;
       padding:12px; border-radius:14px;
       background: rgba(255,255,255,.72);
       border:1px solid rgba(255,255,255,.80);
-      backdrop-filter: saturate(140%) blur(8px);
-      -webkit-backdrop-filter: saturate(140%) blur(8px);
       box-shadow:0 8px 24px rgba(17,24,39,.10);
       transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
       margin-bottom: 20px;
@@ -197,13 +196,12 @@
     .overlay{position:fixed; inset:0; background:rgba(17,24,39,.28); display:grid; place-items:center; opacity:0; pointer-events:none; transition:opacity .15s ease;}
     .overlay.show{opacity:1; pointer-events:auto;}
     .loader{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 18px; display:flex; align-items:center; gap:12px;}
-    .spinner{width:20px; height:20px; border-radius:50%; border:3px solid #c7d2fe; border-top-color:#3b82f6; animation:spin .9s linear infinite; -webkit-animation:spin .9s linear infinite; will-change:transform;}
+    .spinner{width:20px; height:20px; border-radius:50%; border:3px solid #c7d2fe; border-top-color:#3b82f6; animation:spin .9s linear infinite;}
     @keyframes spin { to { transform: rotate(360deg); } }
-    @-webkit-keyframes spin { to { -webkit-transform: rotate(360deg); transform: rotate(360deg); } }
     .loader-text{font-weight:600; color:#111827;}
     @media (prefers-reduced-motion: reduce){
       .view.active{animation:none}
-      .spinner{animation:none; -webkit-animation:none}
+      .spinner{animation:none}
     }
     .hidden{display:none !important;}
 
@@ -289,7 +287,7 @@
 
         <div id="assignList" class="assign-list"></div>
 
-        <!-- Barra sticky -->
+        <!-- Bottom App Bar fija -->
         <div class="action-bar">
           <div class="actions">
             <button type="button" class="btn ghost" onclick="backToSelect()">Volver</button>
@@ -443,8 +441,8 @@
     }
     function goControl(){
       showView('view-control');
-      CONTROL_AUTH = false; // fuerza estado no autenticado
-      hideControlBoard();   // fuerza ocultar el board
+      CONTROL_AUTH = false;
+      hideControlBoard();
     }
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
@@ -549,7 +547,7 @@
             btn.disabled = true;
           }
 
-          if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); } // resalta TODOS los encontrados
+          if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); }
           container.appendChild(btn);
         };
 
@@ -561,7 +559,6 @@
         grid.appendChild(rowEl);
       }
 
-      // scroll al primer resaltado
       if(HIGHLIGHT_CODES.size){
         const first = grid.querySelector('.seat.mine');
         if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
@@ -615,8 +612,6 @@
         const ciWrap  = document.createElement('label'); ciWrap.className = 'field';
         const ciLabel = document.createElement('span');  ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
         const ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.value = i===0 ? ci : ''; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
-
-        // limitar CI a dígitos
         ciInput.addEventListener('input', e => onlyDigits(e.target));
 
         nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
@@ -742,7 +737,7 @@
       document.getElementById('findFeedback').classList.add('hidden');
       document.getElementById('findNums').innerHTML = '';
       document.getElementById('grid-find').innerHTML = '';
-      HIGHLIGHT_CODES = new Set(); LAST_FOUND_CODES = []; // pequeño typo corregido abajo en init
+      HIGHLIGHT_CODES = new Set(); LAST_FOUND_CODES = [];
     }
 
     /* Control interno */
@@ -754,7 +749,7 @@
         if(resp && resp.ok){
           CONTROL_AUTH = true;
           showLoading('Cargando ocupación…');
-          await refreshSeats(null, renderControlBoard); // render solo tras login
+          await refreshSeats(null, renderControlBoard);
         }else{
           CONTROL_AUTH = false; hideControlBoard(); toast('Usuario o contraseña inválidos');
         }
@@ -765,7 +760,7 @@
 
     function doControlLogout(){
       CONTROL_AUTH=false;
-      hideControlBoard(); // oculta por completo
+      hideControlBoard();
       document.getElementById('ctlPass').value=''; toast('Sesión finalizada');
     }
 
@@ -776,7 +771,7 @@
       const croquis= document.getElementById('controlCroquis');
       const fb     = document.getElementById('pdfLinkFallback');
 
-      board.hidden = false; // mostrar solo en sesión
+      board.hidden = false;
       croquis.innerHTML = '';
       fb.classList.add('hidden'); fb.innerHTML = '';
 
@@ -974,11 +969,8 @@
       document.getElementById('ciSearch')?.addEventListener('input', e => onlyDigits(e.target));
 
       refreshSeats('grid-select');
-
-      // Fix pequeño por si se usó clearFindView antes (typo en variable)
       LAST_FOUND_CODES = [];
     })();
   </script>
 </body>
 </html>
-``
