@@ -11,10 +11,17 @@
     :root{
       --bg:#f7f9fc; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
       --primary:#2c7be5; --success:#10b981; --shadow:0 8px 20px rgba(17,24,39,.08);
-      /* Paleta suave para el fondo del header */
+
+      /* Paleta suave para fondo del header */
       --brandA: rgba(44,123,229,.10);  /* azul leve */
       --brandB: rgba(16,185,129,.08);  /* verde leve */
+
+      /* Tamaño del logo (ajustá estas 3 si querés) */
+      --logo-min: 64px;   /* mínimo */
+      --logo-ideal: 12vw; /* ideal responsive */
+      --logo-max: 160px;  /* máximo */
     }
+
     html,body{height:100%;}
     body{
       margin:0;
@@ -23,31 +30,33 @@
       background:var(--bg);
     }
 
-    /* ===== Cabecera nueva (logo más natural) ===== */
+    /* ===== Cabecera (logo natural, centrado y más grande) ===== */
     .hero{
-      position:relative; width:100%;
-      /* Fondo sutil en gradiente que desaparece hacia abajo */
-      background: linear-gradient(180deg, var(--brandA) 0%, var(--brandB) 40%, rgba(255,255,255,0) 100%);
-      box-shadow:none;
-      padding:clamp(10px,4vw,24px);
-      display:flex; align-items:center; justify-content:center;
+      width:100%;
+      /* Fondo sutil en gradiente */
+      background: linear-gradient(180deg, var(--brandA) 0%, var(--brandB) 45%, rgba(255,255,255,0) 100%);
+      padding:clamp(16px,4vw,28px);
+      /* Centrado perfecto con grid */
+      display:grid; place-items:center;
+      /* Altura mínima para que el logo respire */
+      min-height: clamp(96px, 22vw, 220px);
     }
     .brand-chip{
       display:inline-flex; align-items:center; justify-content:center;
-      padding:clamp(8px,2vw,14px) clamp(12px,3vw,18px);
-      border-radius:16px;
-      /* Efecto “glass” (frosted) para que el logo se sienta integrado */
+      padding:clamp(10px,2.6vw,18px) clamp(14px,3.4vw,24px);
+      border-radius:18px;
+      /* Efecto glass */
       background: rgba(255,255,255,.55);
       border:1px solid rgba(255,255,255,.65);
       backdrop-filter: saturate(160%) blur(8px);
       -webkit-backdrop-filter: saturate(160%) blur(8px);
-      box-shadow:0 6px 20px rgba(17,24,39,.12);
+      box-shadow:0 8px 24px rgba(17,24,39,.12);
     }
     .brand-chip img{
-      height:clamp(40px, 7vw, 80px);
+      height: clamp(var(--logo-min), var(--logo-ideal), var(--logo-max)); /* << tamaño del logo */
       width:auto; display:block; object-fit:contain;
-      /* Sombra suave del propio logo */
-      filter: drop-shadow(0 2px 6px rgba(17,24,39,.12));
+      /* “Levanta” el PNG con sombra suave del propio contorno */
+      filter: drop-shadow(0 3px 8px rgba(17,24,39,.14));
     }
 
     /* Contenedor principal */
@@ -121,17 +130,27 @@
     .item.pick-target{outline:3px solid #2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.20) inset;}
 
     /* Snackbar */
-    .snackbar{position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#111827; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:var(--shadow); opacity:0; pointer-events:none;}
+    .snackbar{position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
+      background:#111827; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:var(--shadow);
+      opacity:0; pointer-events:none;}
     .snackbar.show{opacity:1; transition:opacity .2s ease;}
 
     /* Overlay de carga */
-    .overlay{position:fixed; inset:0; background:rgba(17,24,39,.28);
-      display:grid; place-items:center; opacity:0; pointer-events:none; transition:opacity .15s ease;}
+    .overlay{
+      position:fixed; inset:0; background:rgba(17,24,39,.28);
+      display:grid; place-items:center; opacity:0; pointer-events:none;
+      transition:opacity .15s ease;
+    }
     .overlay.show{opacity:1; pointer-events:auto;}
-    .loader{background:var(--card); border-radius:14px; box-shadow:var(--shadow);
-      padding:16px 18px; display:flex; align-items:center; gap:12px;}
-    .spinner{width:20px; height:20px; border-radius:50%;
-      border:3px solid #c7d2fe; border-top-color:#3b82f6; animation:spin .9s linear infinite; -webkit-animation:spin .9s linear infinite; will-change:transform;}
+    .loader{
+      background:var(--card); border-radius:14px; box-shadow:var(--shadow);
+      padding:16px 18px; display:flex; align-items:center; gap:12px;
+    }
+    .spinner{
+      width:20px; height:20px; border-radius:50%;
+      border:3px solid #c7d2fe; border-top-color:#3b82f6;
+      animation:spin .9s linear infinite; -webkit-animation:spin .9s linear infinite; will-change:transform;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
     @-webkit-keyframes spin { to { -webkit-transform: rotate(360deg); transform: rotate(360deg); } }
     .loader-text{font-weight:600; color:#111827;}
@@ -145,7 +164,7 @@
     /* Desktop extras */
     @media (min-width: 720px){
       .cards{grid-template-columns:repeat(2, 1fr);}
-      .assign-row{grid-template-columns:140px 1fr 1fr;} /* asiento, nombre, CI */
+      .assign-row{grid-template-columns:140px 1fr 1fr;}
     }
 
     /* Extras locales */
@@ -157,14 +176,14 @@
     .edit-panel{background:var(--card); border-radius:12px; box-shadow:var(--shadow); padding:10px; margin-top:10px;}
     .edit-panel .sel{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
     .edit-panel .tag{border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151;}
-    .edit-panel .tag.src{background:#fef3c7; color:#92400e;} /* amber */
-    .edit-panel .tag.dst{background:#dbeafe; color:#1e40af;} /* blue */
+    .edit-panel .tag.src{background:#fef3c7; color:#92400e;}
+    .edit-panel .tag.dst{background:#dbeafe; color:#1e40af;}
     .hidden{display:none !important;}
     .seat.mine{outline:3px solid #6366f1;}
   </style>
 </head>
 <body>
-  <!-- Cabecera con logo (desde backend), ahora dentro de chip “glass” -->
+  <!-- Cabecera con logo (desde backend), dentro de chip “glass” y centrado -->
   <header class="hero" aria-label="Cabecera">
     <div class="brand-chip">
       <img id="heroLogo" src="" alt="Logo de la empresa"/>
@@ -325,59 +344,38 @@
 
   <!-- ===== api.js (embebido) ===== -->
   <script>
-    // Configurar tu BASE_URL de Apps Script (Web App /exec)
     const BASE_URL = 'https://script.google.com/macros/s/AKfycbz6WeyWOfRGGW35sUUyQesTbUoITSNNLCXMhft-saHaHYwDwHWUa6kMT5Cof1GkuFL2/exec';
-    const API_KEY = null; // opcional (si agregas apiKey en el backend)
+    const API_KEY = null;
 
     const QS = (params = {}) =>
-      '?' +
-      Object.entries(params)
+      '?' + Object.entries(params)
         .filter(([, v]) => v !== undefined && v !== null && v !== '')
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
         .join('&');
 
-    async function parseResponse(res) {
-      const text = await res.text();
-      try { return JSON.parse(text); } catch { return text; }
-    }
-    function withCommonParams(extra = {}) {
-      const base = { api: '1', ...extra };
-      if (API_KEY) base.apiKey = API_KEY;
-      return base;
-    }
-    function getUrl(action, extraParams = {}) {
-      const params = withCommonParams({ action, ...extraParams });
-      return BASE_URL + QS(params);
-    }
+    async function parseResponse(res) { const text = await res.text(); try { return JSON.parse(text); } catch { return text; } }
+    function withCommonParams(extra = {}) { const base = { api: '1', ...extra }; if (API_KEY) base.apiKey = API_KEY; return base; }
+    function getUrl(action, extraParams = {}) { const params = withCommonParams({ action, ...extraParams }); return BASE_URL + QS(params); }
     function postOptions(payloadObj) {
-      return {
-        method: 'POST',
-        redirect: 'follow', // seguir 302/301 típico de Web Apps
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // simple request (evita preflight)
-        body: JSON.stringify(payloadObj || {}),
-      };
+      return { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payloadObj || {}) };
     }
 
-    // Endpoints (GET)
     async function apiPing()        { const res = await fetch(getUrl('ping'));        if (!res.ok) throw new Error(`GET ping: ${res.status}`);        return parseResponse(res); }
     async function apiGetSeats()    { const res = await fetch(getUrl('seats'));       if (!res.ok) throw new Error(`GET seats: ${res.status}`);       return parseResponse(res); }
     async function apiGetSeatsByCi(ci) { const res = await fetch(getUrl('seatsByCi', { ci })); if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`); return parseResponse(res); }
     async function apiGetLogo()     { const res = await fetch(getUrl('logo'));        if (!res.ok) throw new Error(`GET logo: ${res.status}`);        return parseResponse(res); }
     async function apiExportPdf()   { const res = await fetch(getUrl('exportPdf'));   if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`);   return parseResponse(res); }
 
-    // Endpoints (POST)
     async function apiReserve(pairs)               { const res = await fetch(getUrl('reserve'), postOptions({ pairs }));                  if (!res.ok) throw new Error(`POST reserve: ${res.status}`); return parseResponse(res); }
     async function apiMove(sourceCode,targetCode)  { const res = await fetch(getUrl('move'),    postOptions({ sourceCode, targetCode })); if (!res.ok) throw new Error(`POST move: ${res.status}`);    return parseResponse(res); }
     async function apiFree(code)                   { const res = await fetch(getUrl('free'),    postOptions({ code }));                    if (!res.ok) throw new Error(`POST free: ${res.status}`);    return parseResponse(res); }
     async function apiLogin(user,pass)             { const res = await fetch(getUrl('login'),   postOptions({ user, pass }));              if (!res.ok) throw new Error(`POST login: ${res.status}`);   return parseResponse(res); }
 
-    // Namespace opcional para debug
     window.API = { apiPing, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLogin };
   </script>
 
   <!-- ===== Lógica de la app ===== -->
   <script>
-    /* ===== Navegación ===== */
     function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function goHome(){ showView('view-home'); }
     function goSelect(){ showView('view-select'); refreshSeats('grid-select'); }
@@ -385,44 +383,16 @@
     function goControl(){ showView('view-control'); hideControlBoard(); }
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
-    /* ===== Estado global ===== */
-    let SEATS    = {};          // code(normalizado) -> {estado, pasajero, ci}
-    let selected = new Set();   // selección de asientos
-    let NUM_LABELS = new Map(); // code(normalizado) -> número visible
-    let HIGHLIGHT_CODES = new Set();
-    let LAST_FOUND_CODES = [];
-    let CONTROL_AUTH = false;
+    let SEATS = {}; let selected = new Set(); let NUM_LABELS = new Map();
+    let HIGHLIGHT_CODES = new Set(); let LAST_FOUND_CODES = []; let CONTROL_AUTH = false;
+    let CONTROL_EDIT = false; let EDIT_SRC = null; let EDIT_DST = null;
 
-    /* Control interno (edición) */
-    let CONTROL_EDIT = false;
-    let EDIT_SRC = null;   // { num, code }
-    let EDIT_DST = null;   // { num, code }
+    function toast(msg){ const bar = document.getElementById('snackbar'); bar.textContent = msg; bar.classList.add('show'); setTimeout(() => bar.classList.remove('show'), 2800); }
+    function showLoading(msg){ const ov = document.getElementById('overlay'); ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
+    function hideLoading(){ const ov = document.getElementById('overlay'); ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); }
 
-    /* ===== UI helpers ===== */
-    function toast(msg){
-      const bar = document.getElementById('snackbar');
-      bar.textContent = msg;
-      bar.classList.add('show');
-      setTimeout(() => bar.classList.remove('show'), 2800);
-    }
-    function showLoading(msg){
-      const ov = document.getElementById('overlay');
-      ov.querySelector('.loader-text').textContent = msg || 'Cargando…';
-      ov.setAttribute('aria-hidden','false');
-      ov.classList.add('show');
-    }
-    function hideLoading(){
-      const ov = document.getElementById('overlay');
-      ov.classList.remove('show');
-      ov.setAttribute('aria-hidden','true');
-    }
+    function normalize(code){ return (code||'').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
 
-    /* ===== Util ===== */
-    function normalize(code){
-      return (code||'').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase();
-    }
-
-    /* ===== Datos (via API) ===== */
     async function refreshSeats(targetId, onDone){
       const gridEl = targetId ? document.getElementById(targetId) : null;
       if(gridEl) gridEl.setAttribute('aria-busy','true');
@@ -439,49 +409,31 @@
         if (typeof onDone === 'function') try { onDone(); } catch(e){}
       }
     }
-
-    /* Refresco con animación */
-    function refreshSeatsWithSpinner(targetId, onDone){
-      showLoading('Actualizando asientos…');
-      refreshSeats(targetId, () => { hideLoading(); if (typeof onDone === 'function') onDone(); });
-    }
+    function refreshSeatsWithSpinner(targetId, onDone){ showLoading('Actualizando asientos…'); refreshSeats(targetId, () => { hideLoading(); if (typeof onDone === 'function') onDone(); }); }
 
     function getMaxRow(){
       let maxRow = 0;
-      Object.keys(SEATS).forEach(code => {
-        const m = code.match(/^(\d+)[A-Z]$/);
-        if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; }
-      });
+      Object.keys(SEATS).forEach(code => { const m = code.match(/^(\d+)[A-Z]$/); if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } });
       return maxRow || 0;
     }
-
     function computeClassFor(code){
       const key = normalize(code);
       if(!SEATS.hasOwnProperty(key)) return 'inexistente';
       const st = (SEATS[key].estado || '').toLowerCase().trim();
-      if(st === 'ocupado')      return 'ocupado';
+      if(st === 'ocupado') return 'ocupado';
       if(st === 'inhabilitado') return 'inexistente';
       return 'libre';
     }
 
-    /* ===== Croquis 2+2 (selección) ===== */
     function buildGrid(targetId){
-      const grid = document.getElementById(targetId || 'grid-select');
-      if(!grid) return;
+      const grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
+      grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
 
-      grid.innerHTML = '';
-      grid.removeAttribute('aria-busy');
-      selected = new Set();
-      NUM_LABELS = new Map();
-
-      const maxRow = getMaxRow();
-      if(maxRow === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
+      const maxRow = getMaxRow(); if(maxRow === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
 
       let seatNumber = 1;
       for(let row=1; row<=maxRow; row++){
-        const labelsLeft  = ['A','B'];
-        const labelsRight = ['C','D'];
-
+        const labelsLeft  = ['A','B']; const labelsRight = ['C','D'];
         const rowEl = document.createElement('div'); rowEl.className = 'row';
         const left  = document.createElement('div'); left.className  = 'block';
         const right = document.createElement('div'); right.className = 'block';
@@ -534,7 +486,6 @@
       }
     }
 
-    /* ===== Selección ===== */
     function toggleSeat(code, el){
       const key = normalize(code);
       const isSel = selected.has(key);
@@ -542,10 +493,7 @@
       else { selected.add(key); el.classList.add('seleccionado'); }
       updateAssignVisibility();
     }
-    function updateAssignVisibility(){
-      if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); }
-      else { document.getElementById('view-assign').classList.add('hidden'); }
-    }
+    function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
     function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
 
     async function startSelection(){
@@ -558,12 +506,10 @@
         const only = Array.from(selected)[0];
         const onlyNorm = normalize(only);
         const pairs = [{ asiento: onlyNorm, pasajero: nombre, ci }];
-
         showLoading('Reservando…');
         try{
           const resp = await API.apiReserve(pairs);
           hideLoading();
-          // Feedback detallado
           showReserveFeedbackDetailed(pairs);
           refreshSeats('grid-select');
         }catch(err){
@@ -606,7 +552,6 @@
       showLoading('Reservando…');
       try{
         const resp = await API.apiReserve(pairs);
-        // Feedback detallado
         showReserveFeedbackDetailed(pairs);
         refreshSeats('grid-select');
         document.getElementById('view-assign').classList.add('hidden');
@@ -615,40 +560,32 @@
       }finally{ hideLoading(); }
     }
 
-    /* Feedback detallado de reserva: N° — Nombre (CI) */
     function showReserveFeedbackDetailed(pairs){
       const panel = document.getElementById('reserveFeedback');
       const nums  = document.getElementById('reserveNums');
       nums.innerHTML = '';
-
       (pairs || []).forEach(p => {
         const norm = normalize(p.asiento);
         const num  = NUM_LABELS.get(norm);
-        const pill = document.createElement('span');
-        pill.className = 'pill';
+        const pill = document.createElement('span'); pill.className = 'pill';
         const labelNum = (typeof num !== 'undefined') ? num : norm;
         pill.textContent = `${labelNum} — ${p.pasajero} (${p.ci})`;
         nums.appendChild(pill);
       });
-
       panel.classList.remove('hidden');
       panel.scrollIntoView({behavior:'smooth'});
     }
 
-    /* ===== Buscar por CI ===== */
     async function findByCI(){
       const ci = document.getElementById('ciSearch').value.trim();
       if(!ci){ toast('Ingresá tu CI'); return; }
       showLoading('Buscando…');
-
       try{
         const respSeats = await API.apiGetSeatsByCi(ci);
         LAST_FOUND_CODES = (respSeats.seats || []).map(s => normalize(s));
-
         const respRows = await API.apiGetSeats();
         const rows = respRows.rows || [];
         SEATS = {}; rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
-
         const nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
       }catch(err){
@@ -700,7 +637,6 @@
       HIGHLIGHT_CODES = new Set(); LAST_FOUND_CODES = [];
     }
 
-    /* ===== Control interno ===== */
     async function doControlLogin(){
       const u = document.getElementById('ctlUser').value.trim();
       const p = document.getElementById('ctlPass').value.trim();
@@ -718,11 +654,7 @@
         toast('Error de verificación');
       }finally{ hideLoading(); }
     }
-
-    function doControlLogout(){
-      CONTROL_AUTH = false; hideControlBoard(); document.getElementById('ctlPass').value = '';
-      toast('Sesión finalizada');
-    }
+    function doControlLogout(){ CONTROL_AUTH = false; hideControlBoard(); document.getElementById('ctlPass').value = ''; toast('Sesión finalizada'); }
 
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
@@ -731,147 +663,93 @@
       const fb    = document.getElementById('pdfLinkFallback');
       board.classList.remove('hidden'); grid.innerHTML = ''; fb.classList.add('hidden'); fb.innerHTML = '';
 
-      const maxRow = getMaxRow();
-      let seatNumber = 1;
-
+      const maxRow = getMaxRow(); let seatNumber = 1;
       for(let row=1; row<=maxRow; row++){
-        const labels = ['A','B','C','D']; // 2+2
+        const labels = ['A','B','C','D'];
         for(const letter of labels){
-          const code = `${row}${letter}`;
-          const norm = normalize(code);
-          const klass = computeClassFor(code); // libre/ocupado/inexistente
-          const isNum = (klass === 'libre' || klass === 'ocupado');
-          if(!isNum) continue; // inhabilitado no figura
-
-          const data = SEATS[norm] || {};
-          const estado = (data.estado || '').toLowerCase().trim(); // 'libre'/'ocupado'
+          const code = `${row}${letter}`; const norm = normalize(code);
+          const klass = computeClassFor(code); const isNum = (klass === 'libre' || klass === 'ocupado');
+          if(!isNum) continue;
+          const data = SEATS[norm] || {}; const estado = (data.estado || '').toLowerCase().trim();
           const item = document.createElement('div');
           item.className = `item ${estado === 'ocupado' ? 'occupied' : 'free'}`;
           item.setAttribute('data-num', seatNumber);
           item.setAttribute('data-code', code);
           item.setAttribute('data-status', estado || 'libre');
-
           const num = document.createElement('div'); num.className = 'num'; num.textContent = seatNumber;
-          const lab = document.createElement('div'); lab.className = 'label'; lab.textContent =
-            (estado === 'ocupado') ? (data.pasajero || 'Ocupado') : 'Libre';
-
+          const lab = document.createElement('div'); lab.className = 'label'; lab.textContent = (estado === 'ocupado') ? (data.pasajero || 'Ocupado') : 'Libre';
           item.appendChild(num); item.appendChild(lab);
           item.onclick = () => onControlItemClick(item);
           grid.appendChild(item);
-
           seatNumber++;
         }
       }
-
       board.scrollIntoView({behavior:'smooth'});
     }
-
     function hideControlBoard(){
       document.getElementById('controlBoard').classList.add('hidden');
       document.getElementById('controlGrid').innerHTML = '';
       const fb = document.getElementById('pdfLinkFallback'); fb.classList.add('hidden'); fb.innerHTML = '';
-      // Reset edición
       CONTROL_EDIT = false; EDIT_SRC = null; EDIT_DST = null;
       document.getElementById('editPanel').classList.add('hidden');
       document.getElementById('btnEditMode').classList.remove('danger');
       document.getElementById('btnEditMode').textContent = 'Modo edición';
     }
 
-    /* ===== Modo edición: mover/liberar ===== */
     function toggleControlEdit(){
       CONTROL_EDIT = !CONTROL_EDIT;
       const panel = document.getElementById('editPanel');
       const btn   = document.getElementById('btnEditMode');
-
       if(CONTROL_EDIT){
         panel.classList.remove('hidden');
         btn.classList.add('danger'); btn.textContent = 'Salir de edición';
-        EDIT_SRC = null; EDIT_DST = null;
-        updateEditTags();
-        toast('Modo edición activo: elige origen (ocupado) y destino (libre).');
+        EDIT_SRC = null; EDIT_DST = null; updateEditTags(); toast('Modo edición activo: elige origen (ocupado) y destino (libre).');
       }else{
         panel.classList.add('hidden');
         btn.classList.remove('danger'); btn.textContent = 'Modo edición';
         clearEditSelections();
       }
     }
-
     function onControlItemClick(item){
       if(!CONTROL_EDIT) return;
       const status = (item.getAttribute('data-status') || 'libre').toLowerCase().trim();
-      const num    = parseInt(item.getAttribute('data-num'),10);
-      const code   = item.getAttribute('data-code');
-
+      const num = parseInt(item.getAttribute('data-num'),10);
+      const code = item.getAttribute('data-code');
       if(status === 'ocupado'){
-        // Seleccionar origen
-        if(EDIT_SRC && EDIT_SRC.num === num){
-          EDIT_SRC = null; item.classList.remove('pick-source');
-        }else{
-          document.querySelectorAll('.item.pick-source').forEach(el => el.classList.remove('pick-source'));
-          EDIT_SRC = { num, code };
-          item.classList.add('pick-source');
-        }
+        if(EDIT_SRC && EDIT_SRC.num === num){ EDIT_SRC = null; item.classList.remove('pick-source'); }
+        else{ document.querySelectorAll('.item.pick-source').forEach(el => el.classList.remove('pick-source')); EDIT_SRC = { num, code }; item.classList.add('pick-source'); }
       }else if(status === 'libre'){
-        // Seleccionar destino
-        if(EDIT_DST && EDIT_DST.num === num){
-          EDIT_DST = null; item.classList.remove('pick-target');
-        }else{
-          document.querySelectorAll('.item.pick-target').forEach(el => el.classList.remove('pick-target'));
-          EDIT_DST = { num, code };
-          item.classList.add('pick-target');
-        }
+        if(EDIT_DST && EDIT_DST.num === num){ EDIT_DST = null; item.classList.remove('pick-target'); }
+        else{ document.querySelectorAll('.item.pick-target').forEach(el => el.classList.remove('pick-target')); EDIT_DST = { num, code }; item.classList.add('pick-target'); }
       }
       updateEditTags();
     }
-
     function updateEditTags(){
-      const tagSrc = document.getElementById('tagSrc');
-      const tagDst = document.getElementById('tagDst');
+      const tagSrc = document.getElementById('tagSrc'), tagDst = document.getElementById('tagDst');
       tagSrc.textContent = `Origen: ${EDIT_SRC ? `${EDIT_SRC.num} • ${EDIT_SRC.code}` : '—'}`;
       tagDst.textContent = `Destino: ${EDIT_DST ? `${EDIT_DST.num} • ${EDIT_DST.code}` : '—'}`;
     }
-
     function clearEditSelections(){
       EDIT_SRC = null; EDIT_DST = null;
       document.querySelectorAll('.item.pick-source').forEach(el => el.classList.remove('pick-source'));
       document.querySelectorAll('.item.pick-target').forEach(el => el.classList.remove('pick-target'));
       updateEditTags();
     }
-
     async function movePassenger(){
-      if(!EDIT_SRC || !EDIT_DST){
-        toast('Selecciona origen (ocupado) y destino (libre).');
-        return;
-      }
+      if(!EDIT_SRC || !EDIT_DST){ toast('Selecciona origen (ocupado) y destino (libre).'); return; }
       showLoading('Moviendo pasajero…');
-      try{
-        const resp = await API.apiMove(EDIT_SRC.code, EDIT_DST.code);
-        toast(resp && resp.message ? resp.message : 'Movimiento realizado');
-        // Reset y refresco
-        clearEditSelections();
-        refreshSeats(null, renderControlBoard);
-      }catch(err){
-        toast('No se pudo mover al pasajero');
-      }finally{ hideLoading(); }
+      try{ const resp = await API.apiMove(EDIT_SRC.code, EDIT_DST.code); toast(resp && resp.message ? resp.message : 'Movimiento realizado'); clearEditSelections(); refreshSeats(null, renderControlBoard); }
+      catch(err){ toast('No se pudo mover al pasajero'); }
+      finally{ hideLoading(); }
     }
-
     async function freeSelectedSeat(){
-      if(!EDIT_SRC){
-        toast('Selecciona primero un asiento ocupado (origen) para liberar.');
-        return;
-      }
+      if(!EDIT_SRC){ toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
       showLoading('Liberando asiento…');
-      try{
-        const resp = await API.apiFree(EDIT_SRC.code);
-        toast(resp && resp.message ? resp.message : 'Asiento liberado');
-        clearEditSelections();
-        refreshSeats(null, renderControlBoard);
-      }catch(err){
-        toast('No se pudo liberar el asiento');
-      }finally{ hideLoading(); }
+      try{ const resp = await API.apiFree(EDIT_SRC.code); toast(resp && resp.message ? resp.message : 'Asiento liberado'); clearEditSelections(); refreshSeats(null, renderControlBoard); }
+      catch(err){ toast('No se pudo liberar el asiento'); }
+      finally{ hideLoading(); }
     }
 
-    /* ===== Exportar PDF ===== */
     async function doExportPdf(){
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
       showLoading('Generando PDF…');
@@ -884,25 +762,18 @@
             fb.innerHTML = 'Tu PDF está listo: <a href="'+resp.url+'" target="_blank" rel="noopener">Abrir PDF</a>';
             fb.classList.remove('hidden');
           }else{ toast('PDF listo'); }
-        }else{
-          toast(resp && resp.message ? resp.message : 'No se pudo generar el PDF');
-        }
-      }catch(err){
-        toast('Error al generar PDF');
-      }finally{ hideLoading(); }
+        }else{ toast(resp && resp.message ? resp.message : 'No se pudo generar el PDF'); }
+      }catch(err){ toast('Error al generar PDF'); }
+      finally{ hideLoading(); }
     }
 
-    /* ===== Inicio ===== */
     (async function init(){
-      // Logo desde backend
       try{
         const payload = await API.apiGetLogo();
         const img = document.getElementById('heroLogo');
         if(payload && payload.dataUrl){ img.src = payload.dataUrl; }
         else if(payload && payload.publicUrl){ img.src = payload.publicUrl; }
       }catch(e){ /* noop */ }
-
-      // Croquis selección
       refreshSeats('grid-select');
     })();
   </script>
