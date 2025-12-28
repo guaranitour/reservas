@@ -108,13 +108,30 @@
       border:none; border-radius:12px; padding:12px; font-weight:700; box-shadow:var(--shadow);
       transition:transform .1s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
       width:100%; /* ancho sólido para no expandir */
+      position:relative; overflow:hidden;
     }
     .seat.libre{background:#e6fffa; color:#0f766e;}
     .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;}
     .seat.seleccionado{background:#dbeafe; color:#1e40af; transform:scale(1.02);}
     .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
     .seat:active{transform:scale(0.98);}
-    .seat.mine{outline:3px solid #6366f1;}
+
+    /* Resaltado de “mis asientos” (buscar por CI): borde + pulso */
+    .seat.mine{
+      outline:3px solid #6366f1; /* violeta */
+      box-shadow:0 0 0 3px rgba(99,102,241,.15) inset;
+    }
+    .seat.mine::after{
+      content:"";
+      position:absolute; inset:0; border-radius:12px;
+      box-shadow:0 0 0 0 rgba(99,102,241,.25);
+      animation:pulse 1.8s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%{ box-shadow:0 0 0 0 rgba(99,102,241,.25); }
+      70%{ box-shadow:0 0 0 10px rgba(99,102,241,0); }
+      100%{ box-shadow:0 0 0 0 rgba(99,102,241,0); }
+    }
 
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
@@ -161,6 +178,8 @@
       .view.active{animation:none}
       .spinner{animation:none; -webkit-animation:none}
     }
+
+    .hidden{display:none !important;}
   </style>
 </head>
 <body>
@@ -280,8 +299,8 @@
         <p class="hint">Acceso exclusivo para el staff.</p>
       </form>
 
-      <!-- Board: oculto hasta login -->
-      <div id="controlBoard" class="control-board hidden">
+      <!-- Board: OCULTO por defecto (hasta login OK) -->
+      <div id="controlBoard" class="control-board" hidden>
         <h4 class="control-title">Ocupación por número</h4>
 
         <!-- Toolbar sticky: edit-actions SOLO en modo edición -->
@@ -363,8 +382,11 @@
     function goHome(){ showView('view-home'); }
     function goSelect(){ showView('view-select'); refreshSeats('grid-select'); }
     function goFind(){ showView('view-find'); clearFindView(); }
-    function goControl(){ showView('view-control'); hideControlBoard(); } // <-- fuerza ocultar al entrar
-
+    function goControl(){
+      showView('view-control');
+      CONTROL_AUTH = false;         // fuerza estado no autenticado
+      hideControlBoard();           // fuerza ocultar el board
+    }
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
     /* Estado global */
@@ -416,10 +438,12 @@
       return 'libre';
     }
 
-    /* Croquis público 2+2 */
+    /* Croquis 2+2 (público y control usan la misma lógica de orden) */
     function buildGrid(targetId){
       const grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
-      grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
+      grid.innerHTML = ''; grid.removeAttribute('aria-busy');
+      selected = new Set(); // resetea selección
+      NUM_LABELS = new Map();
 
       const maxRow = getMaxRow(); if(maxRow === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
 
@@ -440,11 +464,13 @@
           if(isNum){
             btn.textContent = seatNumber; btn.setAttribute('data-code', code); btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             NUM_LABELS.set(norm, seatNumber); seatNumber++;
-            if(klass === 'libre'){ btn.onclick = () => toggleSeat(code, btn); } else { btn.disabled = true; }
+            if(targetId === 'grid-select'){ // público: permite elegir si está libre
+              if(klass === 'libre'){ btn.onclick = () => toggleSeat(code, btn); } else { btn.disabled = true; }
+            }
           }else{
             btn.innerHTML = '&nbsp;'; btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`); btn.disabled = true;
           }
-          if(HIGHLIGHT_CODES.has(norm)) btn.classList.add('mine');
+          if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); } // << resalta todos los encontrados
           container.appendChild(btn);
         };
 
@@ -456,13 +482,14 @@
         grid.appendChild(rowEl);
       }
 
+      // Si hay resaltados, hacemos scroll suave al primero (sin perder el resto)
       if(HIGHLIGHT_CODES.size){
         const first = grid.querySelector('.seat.mine');
         if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
       }
     }
 
-    /* Selección */
+    /* Selección (público) */
     function toggleSeat(code, el){
       const key = normalize(code);
       const isSel = selected.has(key);
@@ -532,36 +559,78 @@
       panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'});
     }
 
-    /* Buscar por CI */
+    /* Buscar por CI — resalta TODOS los asientos encontrados */
     async function findByCI(){
       const ci = document.getElementById('ciSearch').value.trim();
       if(!ci){ toast('Ingresá tu CI'); return; }
       showLoading('Buscando…');
+
       try{
-        const respSeats = await API.apiGetSeatsByCi(ci); LAST_FOUND_CODES = (respSeats.seats || []).map(s => normalize(s));
-        const respRows = await API.apiGetSeats(); const rows = respRows.rows || [];
+        // 1) Códigos por CI (normalizados y deduplicados)
+        const respSeats = await API.apiGetSeatsByCi(ci);
+        const rawCodes = (respSeats.seats || []).map(s => normalize(s));
+        LAST_FOUND_CODES = Array.from(new Set(rawCodes)); // <<< dedup
+
+        // 2) Estado actual de asientos
+        const respRows = await API.apiGetSeats();
+        const rows = respRows.rows || [];
         SEATS = {}; rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
-        const nums = computeNumbersForCodes(LAST_FOUND_CODES); renderFindFeedback(nums);
-      }catch(err){ toast('Error al buscar por CI'); }
-      finally{ hideLoading(); }
+
+        // 3) Números visibles
+        const nums = computeNumbersForCodes(LAST_FOUND_CODES);
+        renderFindFeedback(nums);
+
+        // 4) Resaltar TODOS en el croquis
+        HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
+      }catch(err){
+        toast('Error al buscar por CI');
+      }finally{ hideLoading(); }
     }
+
     function computeNumbersForCodes(codes){
-      NUM_LABELS = new Map(); const maxRow = getMaxRow(); let seatNumber = 1;
-      const isNum = k => (k === 'libre' || k === 'ocupado');
+      NUM_LABELS = new Map();
+      const maxRow = getMaxRow();
+      let seatNumber = 1;
+      const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
       for(let row=1; row<=maxRow; row++){
-        ['A','B','C','D'].forEach(letter => { const code=`${row}${letter}`, klass=computeClassFor(code), norm=normalize(code);
-          if(isNum(klass)){ NUM_LABELS.set(norm, seatNumber); seatNumber++; } });
+        const labels = ['A','B','C','D'];
+        for(const letter of labels){
+          const code = `${row}${letter}`; const klass = computeClassFor(code); const norm = normalize(code);
+          if(isNum(klass)){ NUM_LABELS.set(norm, seatNumber); seatNumber++; }
+        }
       }
       return codes.map(c => NUM_LABELS.get(c)).filter(n => typeof n !== 'undefined');
     }
+
     function renderFindFeedback(nums){
-      const panel = document.getElementById('findFeedback'); const list = document.getElementById('findNums'); const btn = document.getElementById('btnShowCroquis');
-      list.innerHTML=''; if(nums.length){ nums.forEach(n => { const pill=document.createElement('span'); pill.className='pill'; pill.textContent=n; list.appendChild(pill); });
-        panel.classList.remove('hidden'); btn.disabled=false; panel.scrollIntoView({behavior:'smooth'});
-      }else{ panel.classList.remove('hidden'); list.innerHTML='<span class="pill">Sin asientos</span>'; btn.disabled=true; }
+      const panel = document.getElementById('findFeedback');
+      const list  = document.getElementById('findNums');
+      const btn   = document.getElementById('btnShowCroquis');
+      list.innerHTML = '';
+      if(nums.length){
+        nums.forEach(n => { const pill = document.createElement('span'); pill.className='pill'; pill.textContent=n; list.appendChild(pill); });
+        panel.classList.remove('hidden'); btn.disabled = false; panel.scrollIntoView({behavior:'smooth'});
+      }else{
+        panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true;
+      }
     }
-    function showCroquisForCI(){ HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES); showLoading('Cargando croquis…'); refreshSeats('grid-find', () => { hideLoading(); document.getElementById('grid-find').scrollIntoView({behavior:'smooth'}); }); }
-    function clearFindView(){ document.getElementById('findFeedback').classList.add('hidden'); document.getElementById('findNums').innerHTML=''; document.getElementById('grid-find').innerHTML=''; HIGHLIGHT_CODES=new Set(); LAST_FOUND_CODES=[]; }
+
+    function showCroquisForCI(){
+      // HIGHLIGHT_CODES ya contiene TODOS los códigos encontrados
+      showLoading('Cargando croquis…');
+      refreshSeats('grid-find', () => {
+        hideLoading();
+        document.getElementById('grid-find').scrollIntoView({behavior:'smooth'});
+        toast(`Resaltados: ${HIGHLIGHT_CODES.size}`);
+      });
+    }
+
+    function clearFindView(){
+      document.getElementById('findFeedback').classList.add('hidden');
+      document.getElementById('findNums').innerHTML = '';
+      document.getElementById('grid-find').innerHTML = '';
+      HIGHLIGHT_CODES = new Set(); LAST_FOUND_CODES = [];
+    }
 
     /* Control interno */
     async function doControlLogin(){
@@ -572,24 +641,36 @@
         if(resp && resp.ok){
           CONTROL_AUTH = true;
           showLoading('Cargando ocupación…');
-          await refreshSeats(null, renderControlBoard); // render sólo tras login OK
+          await refreshSeats(null, renderControlBoard); // render solo tras login
         }else{
-          CONTROL_AUTH = false; toast('Usuario o contraseña inválidos');
+          CONTROL_AUTH = false; hideControlBoard(); toast('Usuario o contraseña inválidos');
         }
       }catch(err){
-        toast('Error de verificación');
+        CONTROL_AUTH = false; hideControlBoard(); toast('Error de verificación');
       }finally{ hideLoading(); }
     }
-    function doControlLogout(){ CONTROL_AUTH=false; hideControlBoard(); document.getElementById('ctlPass').value=''; toast('Sesión finalizada'); }
+
+    function doControlLogout(){
+      CONTROL_AUTH=false;
+      hideControlBoard(); // oculta por completo
+      document.getElementById('ctlPass').value=''; toast('Sesión finalizada');
+    }
 
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
-      const board = document.getElementById('controlBoard'); const croquis = document.getElementById('controlCroquis'); const fb = document.getElementById('pdfLinkFallback');
-      board.classList.remove('hidden');    // <-- ahora sí se muestra
-      croquis.innerHTML=''; fb.classList.add('hidden'); fb.innerHTML='';
-      CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
+      const board  = document.getElementById('controlBoard');
+      const croquis= document.getElementById('controlCroquis');
+      const fb     = document.getElementById('pdfLinkFallback');
 
-      const maxRow = getMaxRow(); if(maxRow===0){ croquis.innerHTML='<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
+      board.hidden = false; // <<< mostrar solo en sesión
+      croquis.innerHTML = '';
+      fb.classList.add('hidden'); fb.innerHTML = '';
+
+      CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null;
+      updateEditTags(); syncToolbarUI();
+
+      const maxRow = getMaxRow();
+      if(maxRow === 0){ croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
       NUM_LABELS = new Map(); let seatNumber = 1;
 
       for(let row=1; row<=maxRow; row++){
@@ -599,7 +680,8 @@
         const right=document.createElement('div'); right.className='block';
 
         const renderSeat=(letter, container)=>{
-          const code=`${row}${letter}`; const klass=computeClassFor(code); const isNum=(klass==='libre'||klass==='ocupado'); const norm=normalize(code);
+          const code=`${row}${letter}`; const klass=computeClassFor(code);
+          const isNum=(klass==='libre'||klass==='ocupado'); const norm=normalize(code);
           const btn=document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
           if(isNum){
             btn.textContent=seatNumber; btn.setAttribute('data-code',code); btn.setAttribute('data-status',klass); btn.setAttribute('data-num',seatNumber);
@@ -622,7 +704,7 @@
 
       board.scrollIntoView({behavior:'smooth'});
 
-      // Animación sticky: se adjunta SOLO tras login
+      // Animación sticky (solo en sesión)
       attachStickyAnimation();
     }
 
@@ -636,7 +718,7 @@
 
     function hideControlBoard(){
       const board = document.getElementById('controlBoard');
-      board.classList.add('hidden'); // <-- se oculta al entrar y al logout
+      board.hidden = true; // <<< oculta por completo
       document.getElementById('controlCroquis').innerHTML='';
       const fb=document.getElementById('pdfLinkFallback'); fb.classList.add('hidden'); fb.innerHTML='';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null;
@@ -744,3 +826,4 @@
   </script>
 </body>
 </html>
+``
