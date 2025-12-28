@@ -280,6 +280,7 @@
         <p class="hint">Acceso exclusivo para el staff.</p>
       </form>
 
+      <!-- Board: oculto hasta login -->
       <div id="controlBoard" class="control-board hidden">
         <h4 class="control-title">Ocupación por número</h4>
 
@@ -291,7 +292,7 @@
             <button id="btnEditMode" type="button" class="btn success" onclick="toggleControlEdit()">Modo edición</button>
           </div>
 
-          <!-- Etiquetas de selección (mantengo nombres que te gustaban) -->
+          <!-- Etiquetas de selección -->
           <div class="sel-tags">
             <span class="tag src" id="tagSrc">Origen: —</span>
             <span class="tag dst" id="tagDst">Destino: —</span>
@@ -362,7 +363,8 @@
     function goHome(){ showView('view-home'); }
     function goSelect(){ showView('view-select'); refreshSeats('grid-select'); }
     function goFind(){ showView('view-find'); clearFindView(); }
-    function goControl(){ showView('view-control'); hideControlBoard(); }
+    function goControl(){ showView('view-control'); hideControlBoard(); } // <-- fuerza ocultar al entrar
+
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
     /* Estado global */
@@ -567,17 +569,25 @@
       showLoading('Verificando…');
       try{
         const resp = await API.apiLogin(u,p);
-        if(resp && resp.ok){ CONTROL_AUTH = true; showLoading('Cargando ocupación…'); await refreshSeats(null, renderControlBoard); }
-        else{ CONTROL_AUTH = false; toast('Usuario o contraseña inválidos'); }
-      }catch(err){ toast('Error de verificación'); }
-      finally{ hideLoading(); }
+        if(resp && resp.ok){
+          CONTROL_AUTH = true;
+          showLoading('Cargando ocupación…');
+          await refreshSeats(null, renderControlBoard); // render sólo tras login OK
+        }else{
+          CONTROL_AUTH = false; toast('Usuario o contraseña inválidos');
+        }
+      }catch(err){
+        toast('Error de verificación');
+      }finally{ hideLoading(); }
     }
     function doControlLogout(){ CONTROL_AUTH=false; hideControlBoard(); document.getElementById('ctlPass').value=''; toast('Sesión finalizada'); }
 
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
       const board = document.getElementById('controlBoard'); const croquis = document.getElementById('controlCroquis'); const fb = document.getElementById('pdfLinkFallback');
-      board.classList.remove('hidden'); croquis.innerHTML=''; fb.classList.add('hidden'); fb.innerHTML='';
+      board.classList.remove('hidden');    // <-- ahora sí se muestra
+      croquis.innerHTML=''; fb.classList.add('hidden'); fb.innerHTML='';
+      CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
 
       const maxRow = getMaxRow(); if(maxRow===0){ croquis.innerHTML='<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
       NUM_LABELS = new Map(); let seatNumber = 1;
@@ -611,8 +621,9 @@
       }
 
       board.scrollIntoView({behavior:'smooth'});
-      attachStickyAnimation(); // animación suave del sticky
-      syncToolbarUI();         // estado inicial de toolbar
+
+      // Animación sticky: se adjunta SOLO tras login
+      attachStickyAnimation();
     }
 
     function attachStickyAnimation(){
@@ -624,7 +635,8 @@
     }
 
     function hideControlBoard(){
-      document.getElementById('controlBoard').classList.add('hidden');
+      const board = document.getElementById('controlBoard');
+      board.classList.add('hidden'); // <-- se oculta al entrar y al logout
       document.getElementById('controlCroquis').innerHTML='';
       const fb=document.getElementById('pdfLinkFallback'); fb.classList.add('hidden'); fb.innerHTML='';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null;
@@ -728,15 +740,6 @@
         else if(payload && payload.publicUrl){ img.src = payload.publicUrl; }
       }catch(e){ /* noop */ }
       refreshSeats('grid-select');
-    })();
-
-    /* Animación sticky del toolbar de control */
-    (function attachStickyAnimation(){
-      const toolbar = document.getElementById('controlToolbar');
-      if(!toolbar) return;
-      function onScroll(){ const y=window.scrollY; if(y>24){ toolbar.classList.add('scrolled'); } else { toolbar.classList.remove('scrolled'); } }
-      window.addEventListener('scroll', onScroll, { passive:true });
-      onScroll();
     })();
   </script>
 </body>
