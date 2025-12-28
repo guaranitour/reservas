@@ -135,9 +135,37 @@
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
     #findFeedback .actions{margin-top:14px;} /* más aire para que no quede encimado */
 
-    /* >>> NUEVO: separaciones cuando se muestra el croquis después de Buscar por CI <<< */
-    #findFeedback{ margin-bottom: 16px; }     /* espacio bajo el panel de resultados */
-    #grid-find{    margin-top: 8px; }         /* espacio arriba del croquis de búsqueda */
+    /* (ya añadido antes) separaciones en buscar por CI */
+    #findFeedback{ margin-bottom: 16px; }
+    #grid-find{    margin-top: 8px; }
+
+    /* ===== NUEVO: Diseño cómodo para asignación múltiple ===== */
+    .assign{ margin-top: 12px; }
+    .assign-list{
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .assign-row{
+      background:var(--card); border-radius:12px; box-shadow:var(--shadow);
+      padding:14px; display:grid; gap:10px;
+    }
+    .assign-title{
+      font-size:1rem; font-weight:800; color:var(--text);
+    }
+    .assign-grid{
+      display:grid; grid-template-columns:1fr; gap:10px;
+    }
+    @media (min-width:560px){
+      .assign-grid{ grid-template-columns:1fr 1fr; }
+    }
+    .field{
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .field-label{
+      font-weight:600; font-size:.9rem; color:var(--muted);
+    }
+    .assign .actions{
+      margin-top: 14px; gap: 10px;
+    }
 
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
@@ -185,11 +213,10 @@
     }
     .hidden{display:none !important;}
 
-    /* >>> NUEVO: estilos exclusivos del croquis de Control para mostrar el primer nombre <<< */
+    /* (ya añadido antes) estilos exclusivos del croquis de Control para mostrar el primer nombre */
     #controlCroquis .seat{
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      /* permite dos líneas (número + nombre) sin que se vea apretado */
-      min-height: 56px;
+      min-height: 56px; /* permite dos líneas (número + nombre) */
     }
     #controlCroquis .seat .num{
       font-size: 1rem; line-height: 1; font-weight: 800;
@@ -197,7 +224,7 @@
     #controlCroquis .seat .occ-name{
       margin-top: 4px;
       font-size: .75rem; line-height: 1.1; font-weight: 600;
-      color:#374151; /* gris oscuro por defecto */
+      color:#374151;
       letter-spacing: .2px;
       max-width: 100%;
       white-space: nowrap;
@@ -265,10 +292,13 @@
 
       <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
 
+      <!-- ===== NUEVO: sección de asignación con tarjetas y grid ===== -->
       <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
         <h3>Asignar nombres a tus asientos</h3>
         <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
+
         <div id="assignList" class="assign-list"></div>
+
         <div class="actions">
           <button type="button" class="btn ghost" onclick="backToSelect()">Volver (cambiar asientos)</button>
           <button type="button" class="btn success" onclick="confirmReservation()">Confirmar reserva</button>
@@ -440,7 +470,7 @@
     /* Util */
     function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
 
-    /* >>> NUEVO: tomar primer nombre con capitalización simple <<< */
+    /* (ya añadido antes) tomar primer nombre con capitalización simple */
     function firstName(full){
       const t = (full || '').trim();
       if(!t) return '';
@@ -553,6 +583,7 @@
     function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
     function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
 
+    /* ===== NUEVO: render limpio de la lista de asignación ===== */
     async function startSelection(){
       if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
       const nombre = document.getElementById('nombrePrincipal').value.trim();
@@ -574,11 +605,24 @@
 
       for(let i=0;i<codes.length;i++){
         const codeNorm = normalize(codes[i]); const num = NUM_LABELS.get(codeNorm) || '';
-        const row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
-        const title = document.createElement('div'); title.className = 'assign-title'; title.textContent = `Asiento ${num || codeNorm}`;
-        const name = document.createElement('input'); name.type='text'; name.placeholder='Nombre'; name.required=true; name.value = i===0 ? nombre : '';
-        const ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='CI'; ciInput.required=true; ciInput.value = i===0 ? ci : '';
-        row.appendChild(title); row.appendChild(name); row.appendChild(ciInput);
+
+        const row  = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
+        const title= document.createElement('div'); title.className = 'assign-title'; title.textContent = `Asiento ${num || codeNorm}`;
+        const grid = document.createElement('div'); grid.className  = 'assign-grid';
+
+        const nameWrap  = document.createElement('label'); nameWrap.className = 'field';
+        const nameLabel = document.createElement('span');  nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
+        const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.value = i===0 ? nombre : ''; nameInput.className='assign-name';
+
+        const ciWrap  = document.createElement('label'); ciWrap.className = 'field';
+        const ciLabel = document.createElement('span');  ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
+        const ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.inputMode='numeric'; ciInput.required=true; ciInput.value = i===0 ? ci : ''; ciInput.className='assign-ci';
+
+        nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
+        ciWrap.appendChild(ciLabel);     ciWrap.appendChild(ciInput);
+
+        grid.appendChild(nameWrap); grid.appendChild(ciWrap);
+        row.appendChild(title); row.appendChild(grid);
         assign.appendChild(row);
       }
 
@@ -592,8 +636,8 @@
       for(let i=0;i<inputs.length;i++){
         const row = inputs[i];
         const codeNorm = row.getAttribute('data-code');
-        const pasajero = row.querySelector('input[type="text"]').value.trim();
-        const ci = row.querySelectorAll('input')[1].value.trim();
+        const pasajero = row.querySelector('.assign-name').value.trim();
+        const ci       = row.querySelector('.assign-ci').value.trim();
         if(!pasajero || !ci){ toast(`Faltan datos en ${codeNorm}`); return; }
         pairs.push({ asiento: codeNorm, pasajero, ci });
       }
@@ -754,7 +798,7 @@
           const btn = document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
 
           if(isNum){
-            // >>> NUEVO: número + primer nombre del ocupante (si está ocupado)
+            // número + primer nombre del ocupante (si está ocupado)
             const occFull = SEATS[norm]?.pasajero || '';
             const occName = (klass==='ocupado') ? firstName(occFull) : '';
 
@@ -926,3 +970,4 @@
   </script>
 </body>
 </html>
+``
