@@ -18,7 +18,7 @@
       /* Tamaño del logo (mobile-only) */
       --logo-w-ideal: 84vw;
       --logo-w-max: 360px;
-      /* Safe area y altura de la Bottom App Bar */
+      /* Safe area y altura de la Bottom App Bar (solo botones) */
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --action-bar-h: 72px;
     }
@@ -149,22 +149,21 @@
     .field{ display:flex; flex-direction:column; gap:6px; }
     .field-label{ font-weight:600; font-size:.9rem; color:var(--muted); }
 
-    /* Bottom App Bar fija: integrada, sin blur */
+    /* Bottom App Bar solo botones (transparente, sin tarjeta) */
     .assign .action-bar{
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-      height: var(--action-bar-h);
+      height: calc(var(--action-bar-h) + var(--safe-bottom));
       display: grid; place-items: center;
-      padding-bottom: var(--safe-bottom);
-      border-top: 1px solid #e5e7eb;           /* línea sutil */
-      background: var(--card);                  /* fondo sólido */
-      box-shadow: 0 -4px 16px rgba(17,24,39,.06); /* sombra suave, integrada */
+      background: transparent; border: none; box-shadow: none;
+      pointer-events: none; /* el contenedor no bloquea toques/scroll del contenido */
     }
     .assign .action-bar .actions{
       width: min(680px, 92vw);
       display:flex; gap:10px;
-      padding: 0 12px;
+      padding: 0 12px var(--safe-bottom) 12px; /* respeta notch */
+      pointer-events: auto; /* los botones sí reciben clic */
     }
-    .assign .action-bar .btn{ flex: 1; min-height: 44px; } /* botones cómodos */
+    .assign .action-bar .btn{ flex: 1; min-height: 44px; }
 
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
@@ -287,7 +286,7 @@
 
         <div id="assignList" class="assign-list"></div>
 
-        <!-- Bottom App Bar fija -->
+        <!-- Bottom App Bar (solo botones) -->
         <div class="action-bar">
           <div class="actions">
             <button type="button" class="btn ghost" onclick="backToSelect()">Volver</button>
