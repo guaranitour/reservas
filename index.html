@@ -174,7 +174,8 @@
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Reservar</button>
-          <button type="button" class="btn ghost" onclick="refreshSeats('grid-select')">Actualizar</button>
+          <!-- AHORA con animación -->
+          <button type="button" class="btn ghost" onclick="refreshSeatsWithSpinner('grid-select')">Actualizar</button>
         </div>
         <p class="hint">Presiona “Actualizar” para ver reservas recientes.</p>
       </form>
@@ -198,6 +199,7 @@
         </div>
       </section>
 
+      <!-- AHORA mostrará número + nombre + CI -->
       <div id="reserveFeedback" class="feedback hidden">
         <h4>Reserva confirmada</h4>
         <div id="reserveNums" class="nums"></div>
@@ -252,7 +254,8 @@
       <div id="controlBoard" class="control-board hidden">
         <h4>Ocupación por número</h4>
         <div class="control-actions">
-          <button type="button" class="btn ghost" onclick="refreshSeats(null, renderControlBoard)">Actualizar</button>
+          <!-- AHORA con animación -->
+          <button type="button" class="btn ghost" onclick="refreshSeatsWithSpinner(null, renderControlBoard)">Actualizar</button>
           <button type="button" class="btn primary" onclick="doExportPdf()">Exportar PDF</button>
           <button type="button" class="btn ghost" onclick="doControlLogout()">Cerrar sesión</button>
           <button id="btnEditMode" type="button" class="btn success" onclick="toggleControlEdit()">Modo edición</button>
@@ -406,6 +409,12 @@
       }
     }
 
+    /* NUEVO: refresco con animación */
+    function refreshSeatsWithSpinner(targetId, onDone){
+      showLoading('Actualizando asientos…');
+      refreshSeats(targetId, () => { hideLoading(); if (typeof onDone === 'function') onDone(); });
+    }
+
     function getMaxRow(){
       let maxRow = 0;
       Object.keys(SEATS).forEach(code => {
@@ -516,12 +525,15 @@
 
       if(selected.size === 1){
         const only = Array.from(selected)[0];
-        const pairs = [{ asiento: normalize(only), pasajero: nombre, ci }];
+        const onlyNorm = normalize(only);
+        const pairs = [{ asiento: onlyNorm, pasajero: nombre, ci }];
+
         showLoading('Reservando…');
         try{
           const resp = await API.apiReserve(pairs);
           hideLoading();
-          showReserveFeedback([normalize(only)]);
+          // NUEVO: mostrar número + nombre + CI
+          showReserveFeedbackDetailed(pairs);
           refreshSeats('grid-select');
         }catch(err){
           hideLoading(); toast('No se pudo reservar');
@@ -533,7 +545,7 @@
       assign.innerHTML = '';
       const codes = Array.from(selected);
       for(let i=0;i<codes.length;i++){
-        const codeNorm = codes[i];
+        const codeNorm = normalize(codes[i]);
         const num = NUM_LABELS.get(codeNorm) || '';
         const row = document.createElement('div');
         row.className = 'assign-row';
@@ -563,8 +575,8 @@
       showLoading('Reservando…');
       try{
         const resp = await API.apiReserve(pairs);
-        const reserved = pairs.map(p => normalize(p.asiento));
-        showReserveFeedback(reserved);
+        // NUEVO: mostrar número + nombre + CI
+        showReserveFeedbackDetailed(pairs);
         refreshSeats('grid-select');
         document.getElementById('view-assign').classList.add('hidden');
       }catch(err){
@@ -572,15 +584,27 @@
       }finally{ hideLoading(); }
     }
 
-    function showReserveFeedback(codes){
+    /* ===== NUEVO: feedback detallado ===== */
+    function showReserveFeedbackDetailed(pairs){
       const panel = document.getElementById('reserveFeedback');
       const nums  = document.getElementById('reserveNums');
       nums.innerHTML = '';
-      const list = codes.map(c => NUM_LABELS.get(c)).filter(n => typeof n !== 'undefined');
-      if(list.length){
-        list.forEach(n => { const pill = document.createElement('span'); pill.className = 'pill'; pill.textContent = n; nums.appendChild(pill); });
-        panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'});
-      }else{ toast('Reserva realizada'); }
+
+      // Cada par: { asiento (norm), pasajero, ci }
+      // Buscar número visual en NUM_LABELS
+      (pairs || []).forEach(p => {
+        const norm = normalize(p.asiento);
+        const num  = NUM_LABELS.get(norm);
+        const pill = document.createElement('span');
+        pill.className = 'pill';
+        // Si aún no hay número, usar el código
+        const labelNum = (typeof num !== 'undefined') ? num : norm;
+        pill.textContent = `${labelNum} — ${p.pasajero} (${p.ci})`;
+        nums.appendChild(pill);
+      });
+
+      panel.classList.remove('hidden');
+      panel.scrollIntoView({behavior:'smooth'});
     }
 
     /* ===== Buscar por CI ===== */
