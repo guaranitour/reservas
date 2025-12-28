@@ -133,6 +133,11 @@
       100%{ box-shadow:0 0 0 0 rgba(99,102,241,0); }
     }
 
+    /* Chips de números y más espacio para el botón “Ver croquis” */
+    .nums{display:flex; gap:10px; flex-wrap:wrap;}
+    .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
+    #findFeedback .actions{margin-top:14px;} /* más aire para que no quede encimado */
+
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
     .control-title{margin:0 0 12px 0; font-size:1.1rem; font-weight:700;}
@@ -273,7 +278,7 @@
       <div id="findFeedback" class="feedback hidden">
         <h4>Asientos para tu CI</h4>
         <div id="findNums" class="nums"></div>
-        <div class="actions" style="margin-top:8px;">
+        <div class="actions">
           <button id="btnShowCroquis" type="button" class="btn primary" onclick="showCroquisForCI()">Ver croquis</button>
         </div>
       </div>
@@ -380,13 +385,25 @@
     /* Navegación */
     function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function goHome(){ showView('view-home'); }
-    function goSelect(){ showView('view-select'); refreshSeats('grid-select'); }
-    function goFind(){ showView('view-find'); clearFindView(); }
+
+    /* Al entrar a Selección: animación de carga (Cargando asientos…) */
+    function goSelect(){
+      showView('view-select');
+      showLoading('Cargando asientos…');
+      refreshSeats('grid-select', () => hideLoading());
+    }
+
+    function goFind(){
+      showView('view-find');
+      clearFindView();
+    }
+
     function goControl(){
       showView('view-control');
       CONTROL_AUTH = false;         // fuerza estado no autenticado
       hideControlBoard();           // fuerza ocultar el board
     }
+
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
     /* Estado global */
@@ -438,7 +455,7 @@
       return 'libre';
     }
 
-    /* Croquis 2+2 (público y control usan la misma lógica de orden) */
+    /* Croquis 2+2 (público y find) */
     function buildGrid(targetId){
       const grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy');
@@ -470,7 +487,7 @@
           }else{
             btn.innerHTML = '&nbsp;'; btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`); btn.disabled = true;
           }
-          if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); } // << resalta todos los encontrados
+          if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); } // resalta TODOS los encontrados
           container.appendChild(btn);
         };
 
@@ -559,7 +576,7 @@
       panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'});
     }
 
-    /* Buscar por CI — resalta TODOS los asientos encontrados */
+    /* Buscar por CI — resalta TODOS los asientos encontrados y separa chips */
     async function findByCI(){
       const ci = document.getElementById('ciSearch').value.trim();
       if(!ci){ toast('Ingresá tu CI'); return; }
@@ -569,14 +586,14 @@
         // 1) Códigos por CI (normalizados y deduplicados)
         const respSeats = await API.apiGetSeatsByCi(ci);
         const rawCodes = (respSeats.seats || []).map(s => normalize(s));
-        LAST_FOUND_CODES = Array.from(new Set(rawCodes)); // <<< dedup
+        LAST_FOUND_CODES = Array.from(new Set(rawCodes));
 
         // 2) Estado actual de asientos
         const respRows = await API.apiGetSeats();
         const rows = respRows.rows || [];
         SEATS = {}; rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
 
-        // 3) Números visibles
+        // 3) Números visibles para cada código
         const nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
 
@@ -593,8 +610,7 @@
       let seatNumber = 1;
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
       for(let row=1; row<=maxRow; row++){
-        const labels = ['A','B','C','D'];
-        for(const letter of labels){
+        for(const letter of ['A','B','C','D']){
           const code = `${row}${letter}`; const klass = computeClassFor(code); const norm = normalize(code);
           if(isNum(klass)){ NUM_LABELS.set(norm, seatNumber); seatNumber++; }
         }
@@ -606,17 +622,25 @@
       const panel = document.getElementById('findFeedback');
       const list  = document.getElementById('findNums');
       const btn   = document.getElementById('btnShowCroquis');
-      list.innerHTML = '';
+      list.innerHTML = '';             // limpia
       if(nums.length){
-        nums.forEach(n => { const pill = document.createElement('span'); pill.className='pill'; pill.textContent=n; list.appendChild(pill); });
-        panel.classList.remove('hidden'); btn.disabled = false; panel.scrollIntoView({behavior:'smooth'});
+        nums.forEach(n => {
+          const pill = document.createElement('span');
+          pill.className='pill';
+          pill.textContent = String(n); // asegura separación visual por chip
+          list.appendChild(pill);
+        });
+        panel.classList.remove('hidden');
+        btn.disabled = false;
+        panel.scrollIntoView({behavior:'smooth'});
       }else{
-        panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true;
+        panel.classList.remove('hidden');
+        list.innerHTML = '<span class="pill">Sin asientos</span>';
+        btn.disabled = true;
       }
     }
 
     function showCroquisForCI(){
-      // HIGHLIGHT_CODES ya contiene TODOS los códigos encontrados
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', () => {
         hideLoading();
@@ -662,7 +686,7 @@
       const croquis= document.getElementById('controlCroquis');
       const fb     = document.getElementById('pdfLinkFallback');
 
-      board.hidden = false; // <<< mostrar solo en sesión
+      board.hidden = false; // mostrar solo en sesión
       croquis.innerHTML = '';
       fb.classList.add('hidden'); fb.innerHTML = '';
 
@@ -718,7 +742,7 @@
 
     function hideControlBoard(){
       const board = document.getElementById('controlBoard');
-      board.hidden = true; // <<< oculta por completo
+      board.hidden = true; // oculta por completo
       document.getElementById('controlCroquis').innerHTML='';
       const fb=document.getElementById('pdfLinkFallback'); fb.classList.add('hidden'); fb.innerHTML='';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null;
@@ -771,28 +795,39 @@
       }
     }
 
-    function cancelEdit(){
+    /* Cancelación con opción “silenciosa” (para no mostrar toast cuando se hace automático) */
+    function cancelEdit(silent=false){
       EDIT_SRC=null; EDIT_DST=null;
       document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
       document.querySelectorAll('#controlCroquis .seat.pick-target').forEach(el=>el.classList.remove('pick-target'));
       updateEditTags(); syncToolbarUI();
-      toast('Edición cancelada.');
+      if(!silent) toast('Edición cancelada.');
     }
 
     async function movePassenger(){
       if(!EDIT_SRC || !EDIT_DST){ toast('Selecciona origen (ocupado) y destino (libre).'); return; }
       showLoading('Moviendo pasajero…');
-      try{ const resp=await API.apiMove(EDIT_SRC.code,EDIT_DST.code); toast(resp && resp.message ? resp.message : 'Movimiento realizado'); cancelEdit(); refreshSeatsWithSpinner(null, renderControlBoard); }
-      catch(err){ toast('No se pudo mover al pasajero'); }
-      finally{ hideLoading(); }
+      try{
+        const resp=await API.apiMove(EDIT_SRC.code,EDIT_DST.code);
+        toast(resp && resp.message ? resp.message : 'Movimiento realizado');
+        cancelEdit(true); // << silencioso: no mostrar “Edición cancelada”
+        refreshSeatsWithSpinner(null, renderControlBoard);
+      }catch(err){
+        toast('No se pudo mover al pasajero');
+      }finally{ hideLoading(); }
     }
 
     async function freeSelectedSeat(){
       if(!EDIT_SRC){ toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
       showLoading('Liberando asiento…');
-      try{ const resp=await API.apiFree(EDIT_SRC.code); toast(resp && resp.message ? resp.message : 'Asiento liberado'); cancelEdit(); refreshSeatsWithSpinner(null, renderControlBoard); }
-      catch(err){ toast('No se pudo liberar el asiento'); }
-      finally{ hideLoading(); }
+      try{
+        const resp=await API.apiFree(EDIT_SRC.code);
+        toast(resp && resp.message ? resp.message : 'Asiento liberado');
+        cancelEdit(true); // << silencioso
+        refreshSeatsWithSpinner(null, renderControlBoard);
+      }catch(err){
+        toast('No se pudo liberar el asiento');
+      }finally{ hideLoading(); }
     }
 
     /* Exportar PDF */
@@ -826,4 +861,3 @@
   </script>
 </body>
 </html>
-``
