@@ -1,6 +1,6 @@
 
 // api.js — cliente para Apps Script (ContentService)
-const BASE_URL = 'https://script.google.com/macros/s/AKfycbxDW5qcev7kMJWsgRcNdTubsmRpxOICwHRpM7CAWW_5b2GL0079HNPpVmAGFkCbT_70/exec; // <-- pega aquí tu URL /exec
+const BASE_URL = 'https://script.google.com/macros/s/AKfycbxDW5qcev7kMJWsgRcNdTubsmRpxOICwHRpM7CAWW_5b2GL0079HNPpVmAGFkCbT_70/exec'; // <-- pega aquí tu URL /exec
 
 // --- GET helpers ---
 async function apiGetSeats() {
