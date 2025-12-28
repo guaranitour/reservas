@@ -5,22 +5,18 @@
   <meta charset="utf-8"/>
   <title>Selección de Asientos</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
-
-  <!-- ===== CSS embebido (mobile-only) ===== -->
+  <!-- ===== CSS embebido (mobile-first) ===== -->
   <style>
     :root{
       --bg:#f7f9fc; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
       --primary:#2c7be5; --success:#10b981; --shadow:0 8px 20px rgba(17,24,39,.08);
-
       /* Fondo suave del header */
       --brandA: rgba(44,123,229,.10);
       --brandB: rgba(16,185,129,.08);
-
       /* Tamaño del logo (mobile-only) */
       --logo-w-ideal: 84vw;
-      --logo-w-max:   360px; /* ajustá si querés más/menos grande */
+      --logo-w-max: 360px; /* ajustá si querés más/menos grande */
     }
-
     html,body{height:100%;}
     body{
       margin:0;
@@ -104,6 +100,7 @@
     }
     .block{display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;}
     .aisle{width:20px; height:20px;}
+
     .seat{
       border:none; border-radius:12px; padding:12px; font-weight:700; box-shadow:var(--shadow);
       transition:transform .1s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
@@ -138,6 +135,10 @@
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
     #findFeedback .actions{margin-top:14px;} /* más aire para que no quede encimado */
 
+    /* >>> NUEVO: separaciones cuando se muestra el croquis después de Buscar por CI <<< */
+    #findFeedback{ margin-bottom: 16px; }     /* espacio bajo el panel de resultados */
+    #grid-find{    margin-top: 8px; }         /* espacio arriba del croquis de búsqueda */
+
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
     .control-title{margin:0 0 12px 0; font-size:1.1rem; font-weight:700;}
@@ -153,7 +154,7 @@
       -webkit-backdrop-filter: saturate(140%) blur(8px);
       box-shadow:0 8px 24px rgba(17,24,39,.10);
       transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
-      margin-bottom: 20px;  /* más aire para que no quede al ras */
+      margin-bottom: 20px; /* más aire para que no quede al ras */
     }
     .control-toolbar.scrolled{
       transform: translateY(2px);
@@ -178,13 +179,34 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     @-webkit-keyframes spin { to { -webkit-transform: rotate(360deg); transform: rotate(360deg); } }
     .loader-text{font-weight:600; color:#111827;}
-
     @media (prefers-reduced-motion: reduce){
       .view.active{animation:none}
       .spinner{animation:none; -webkit-animation:none}
     }
-
     .hidden{display:none !important;}
+
+    /* >>> NUEVO: estilos exclusivos del croquis de Control para mostrar el primer nombre <<< */
+    #controlCroquis .seat{
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      /* permite dos líneas (número + nombre) sin que se vea apretado */
+      min-height: 56px;
+    }
+    #controlCroquis .seat .num{
+      font-size: 1rem; line-height: 1; font-weight: 800;
+    }
+    #controlCroquis .seat .occ-name{
+      margin-top: 4px;
+      font-size: .75rem; line-height: 1.1; font-weight: 600;
+      color:#374151; /* gris oscuro por defecto */
+      letter-spacing: .2px;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #controlCroquis .seat.ocupado .occ-name{
+      color:#7f1d1d; /* combina con color de ocupado */
+    }
   </style>
 </head>
 <body>
@@ -311,7 +333,7 @@
         <!-- Toolbar sticky: edit-actions SOLO en modo edición -->
         <div id="controlToolbar" class="control-toolbar">
           <div class="control-actions">
-            <button type="button" class="btn ghost"   onclick="refreshSeatsWithSpinner(null, renderControlBoard)">Actualizar</button>
+            <button type="button" class="btn ghost" onclick="refreshSeatsWithSpinner(null, renderControlBoard)">Actualizar</button>
             <button type="button" class="btn primary" onclick="doExportPdf()">Exportar PDF</button>
             <button id="btnEditMode" type="button" class="btn success" onclick="toggleControlEdit()">Modo edición</button>
           </div>
@@ -324,15 +346,14 @@
 
           <!-- Botones de edición: SOLO visibles en modo edición -->
           <div class="edit-actions">
-            <button id="btnMove"   type="button" class="btn primary" onclick="movePassenger()"   disabled>Mover</button>
-            <button id="btnFree"   type="button" class="btn danger"  onclick="freeSelectedSeat()" disabled>Liberar</button>
-            <button id="btnCancel" type="button" class="btn ghost"   onclick="cancelEdit()"       disabled>Cancelar</button>
+            <button id="btnMove" type="button" class="btn primary" onclick="movePassenger()" disabled>Mover</button>
+            <button id="btnFree" type="button" class="btn danger" onclick="freeSelectedSeat()" disabled>Liberar</button>
+            <button id="btnCancel" type="button" class="btn ghost" onclick="cancelEdit()" disabled>Cancelar</button>
           </div>
         </div>
 
         <!-- Croquis 2+2 para control (incluye inhabilitados) -->
         <div id="controlCroquis" class="grid" aria-live="polite"></div>
-
         <div id="pdfLinkFallback" class="hint hidden"></div>
       </div>
     </section>
@@ -363,19 +384,19 @@
     async function parseResponse(res) { const text = await res.text(); try { return JSON.parse(text); } catch { return text; } }
     function withCommonParams(extra = {}) { const base = { api: '1', ...extra }; if (API_KEY) base.apiKey = API_KEY; return base; }
     function getUrl(action, extraParams = {}) { const params = withCommonParams({ action, ...extraParams }); return BASE_URL + QS(params); }
+
     function postOptions(payloadObj) {
       return { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payloadObj || {}) };
     }
 
-    async function apiGetSeats()    { const res = await fetch(getUrl('seats'));       if (!res.ok) throw new Error(`GET seats: ${res.status}`);       return parseResponse(res); }
-    async function apiGetSeatsByCi(ci) { const res = await fetch(getUrl('seatsByCi', { ci })); if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`); return parseResponse(res); }
-    async function apiGetLogo()     { const res = await fetch(getUrl('logo'));        if (!res.ok) throw new Error(`GET logo: ${res.status}`);        return parseResponse(res); }
-    async function apiExportPdf()   { const res = await fetch(getUrl('exportPdf'));   if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`);   return parseResponse(res); }
-
-    async function apiReserve(pairs)               { const res = await fetch(getUrl('reserve'), postOptions({ pairs }));                  if (!res.ok) throw new Error(`POST reserve: ${res.status}`); return parseResponse(res); }
-    async function apiMove(sourceCode,targetCode)  { const res = await fetch(getUrl('move'),    postOptions({ sourceCode, targetCode })); if (!res.ok) throw new Error(`POST move: ${res.status}`);    return parseResponse(res); }
-    async function apiFree(code)                   { const res = await fetch(getUrl('free'),    postOptions({ code }));                    if (!res.ok) throw new Error(`POST free: ${res.status}`);    return parseResponse(res); }
-    async function apiLogin(user,pass)             { const res = await fetch(getUrl('login'),   postOptions({ user, pass }));              if (!res.ok) throw new Error(`POST login: ${res.status}`);   return parseResponse(res); }
+    async function apiGetSeats()            { const res = await fetch(getUrl('seats'));                if (!res.ok) throw new Error(`GET seats: ${res.status}`);         return parseResponse(res); }
+    async function apiGetSeatsByCi(ci)      { const res = await fetch(getUrl('seatsByCi', { ci }));    if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`);      return parseResponse(res); }
+    async function apiGetLogo()             { const res = await fetch(getUrl('logo'));                 if (!res.ok) throw new Error(`GET logo: ${res.status}`);           return parseResponse(res); }
+    async function apiExportPdf()           { const res = await fetch(getUrl('exportPdf'));            if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`);      return parseResponse(res); }
+    async function apiReserve(pairs)        { const res = await fetch(getUrl('reserve'), postOptions({ pairs })); if (!res.ok) throw new Error(`POST reserve: ${res.status}`); return parseResponse(res); }
+    async function apiMove(sourceCode,targetCode){ const res = await fetch(getUrl('move'), postOptions({ sourceCode, targetCode })); if (!res.ok) throw new Error(`POST move: ${res.status}`); return parseResponse(res); }
+    async function apiFree(code)            { const res = await fetch(getUrl('free'), postOptions({ code }));     if (!res.ok) throw new Error(`POST free: ${res.status}`);       return parseResponse(res); }
+    async function apiLogin(user,pass)      { const res = await fetch(getUrl('login'), postOptions({ user, pass })); if (!res.ok) throw new Error(`POST login: ${res.status}`);  return parseResponse(res); }
 
     window.API = { apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLogin };
   </script>
@@ -392,18 +413,15 @@
       showLoading('Cargando asientos…');
       refreshSeats('grid-select', () => hideLoading());
     }
-
     function goFind(){
       showView('view-find');
       clearFindView();
     }
-
     function goControl(){
       showView('view-control');
-      CONTROL_AUTH = false;         // fuerza estado no autenticado
-      hideControlBoard();           // fuerza ocultar el board
+      CONTROL_AUTH = false; // fuerza estado no autenticado
+      hideControlBoard();   // fuerza ocultar el board
     }
-
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
     /* Estado global */
@@ -420,7 +438,15 @@
     function hideLoading(){ const ov = document.getElementById('overlay'); ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); }
 
     /* Util */
-    function normalize(code){ return (code||'').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
+    function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
+
+    /* >>> NUEVO: tomar primer nombre con capitalización simple <<< */
+    function firstName(full){
+      const t = (full || '').trim();
+      if(!t) return '';
+      const name = t.split(/\s+/)[0];
+      return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    }
 
     /* Datos */
     async function refreshSeats(targetId, onDone){
@@ -430,7 +456,9 @@
         const resp = await API.apiGetSeats();
         const rows = resp.rows || [];
         SEATS = {};
-        rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
+        rows.forEach(r => {
+          SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' };
+        });
         if(gridEl){ buildGrid(targetId); }
       }catch(err){
         toast('Error al cargar asientos');
@@ -440,7 +468,6 @@
       }
     }
     function refreshSeatsWithSpinner(targetId, onDone){ showLoading('Actualizando asientos…'); refreshSeats(targetId, () => { hideLoading(); if (typeof onDone === 'function') onDone(); }); }
-
     function getMaxRow(){
       let maxRow = 0;
       Object.keys(SEATS).forEach(code => { const m = code.match(/^(\d+)[A-Z]$/); if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } });
@@ -459,41 +486,50 @@
     function buildGrid(targetId){
       const grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy');
+
       selected = new Set(); // resetea selección
       NUM_LABELS = new Map();
 
       const maxRow = getMaxRow(); if(maxRow === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
-
       let seatNumber = 1;
+
       for(let row=1; row<=maxRow; row++){
-        const labelsLeft  = ['A','B'];
+        const labelsLeft = ['A','B'];
         const labelsRight = ['C','D'];
+
         const rowEl = document.createElement('div'); rowEl.className = 'row';
         const left  = document.createElement('div'); left.className  = 'block';
         const right = document.createElement('div'); right.className = 'block';
 
         const renderSeat = (letter, container)=>{
-          const code  = `${row}${letter}`;
+          const code = `${row}${letter}`;
           const klass = computeClassFor(code);
-          const btn   = document.createElement('button'); btn.type='button'; btn.className = `seat ${klass}`;
+          const btn = document.createElement('button'); btn.type='button'; btn.className = `seat ${klass}`;
           const isNum = (klass === 'libre' || klass === 'ocupado');
-          const norm  = normalize(code);
+          const norm = normalize(code);
+
           if(isNum){
-            btn.textContent = seatNumber; btn.setAttribute('data-code', code); btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
+            btn.textContent = seatNumber;
+            btn.setAttribute('data-code', code);
+            btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             NUM_LABELS.set(norm, seatNumber); seatNumber++;
+
             if(targetId === 'grid-select'){ // público: permite elegir si está libre
               if(klass === 'libre'){ btn.onclick = () => toggleSeat(code, btn); } else { btn.disabled = true; }
             }
           }else{
-            btn.innerHTML = '&nbsp;'; btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`); btn.disabled = true;
+            btn.innerHTML = ' ';
+            btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
+            btn.disabled = true;
           }
+
           if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); } // resalta TODOS los encontrados
           container.appendChild(btn);
         };
 
-        labelsLeft.forEach(l => renderSeat(l, left));
+        ['A','B'].forEach(l => renderSeat(l, left));
         const aisle = document.createElement('div'); aisle.className = 'aisle';
-        labelsRight.forEach(l => renderSeat(l, right));
+        ['C','D'].forEach(l => renderSeat(l, right));
 
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
@@ -511,7 +547,7 @@
       const key = normalize(code);
       const isSel = selected.has(key);
       if(isSel){ selected.delete(key); el.classList.remove('seleccionado'); }
-      else { selected.add(key); el.classList.add('seleccionado'); }
+      else     { selected.add(key);    el.classList.add('seleccionado'); }
       updateAssignVisibility();
     }
     function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
@@ -535,6 +571,7 @@
 
       const assign = document.getElementById('assignList'); assign.innerHTML = '';
       const codes = Array.from(selected);
+
       for(let i=0;i<codes.length;i++){
         const codeNorm = normalize(codes[i]); const num = NUM_LABELS.get(codeNorm) || '';
         const row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
@@ -544,6 +581,7 @@
         row.appendChild(title); row.appendChild(name); row.appendChild(ciInput);
         assign.appendChild(row);
       }
+
       document.getElementById('view-assign').classList.remove('hidden');
       document.getElementById('view-assign').scrollIntoView({behavior:'smooth'});
     }
@@ -555,7 +593,7 @@
         const row = inputs[i];
         const codeNorm = row.getAttribute('data-code');
         const pasajero = row.querySelector('input[type="text"]').value.trim();
-        const ci       = row.querySelectorAll('input')[1].value.trim();
+        const ci = row.querySelectorAll('input')[1].value.trim();
         if(!pasajero || !ci){ toast(`Faltan datos en ${codeNorm}`); return; }
         pairs.push({ asiento: codeNorm, pasajero, ci });
       }
@@ -568,7 +606,7 @@
     function showReserveFeedbackDetailed(pairs){
       const panel = document.getElementById('reserveFeedback'); const nums = document.getElementById('reserveNums'); nums.innerHTML = '';
       (pairs || []).forEach(p => {
-        const norm = normalize(p.asiento); const num  = NUM_LABELS.get(norm);
+        const norm = normalize(p.asiento); const num = NUM_LABELS.get(norm);
         const pill = document.createElement('span'); pill.className = 'pill';
         pill.textContent = `${(typeof num !== 'undefined') ? num : norm} — ${p.pasajero} (${p.ci})`;
         nums.appendChild(pill);
@@ -581,7 +619,6 @@
       const ci = document.getElementById('ciSearch').value.trim();
       if(!ci){ toast('Ingresá tu CI'); return; }
       showLoading('Buscando…');
-
       try{
         // 1) Códigos por CI (normalizados y deduplicados)
         const respSeats = await API.apiGetSeatsByCi(ci);
@@ -609,6 +646,7 @@
       const maxRow = getMaxRow();
       let seatNumber = 1;
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
+
       for(let row=1; row<=maxRow; row++){
         for(const letter of ['A','B','C','D']){
           const code = `${row}${letter}`; const klass = computeClassFor(code); const norm = normalize(code);
@@ -622,7 +660,8 @@
       const panel = document.getElementById('findFeedback');
       const list  = document.getElementById('findNums');
       const btn   = document.getElementById('btnShowCroquis');
-      list.innerHTML = '';             // limpia
+
+      list.innerHTML = ''; // limpia
       if(nums.length){
         nums.forEach(n => {
           const pill = document.createElement('span');
@@ -682,6 +721,7 @@
 
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
+
       const board  = document.getElementById('controlBoard');
       const croquis= document.getElementById('controlCroquis');
       const fb     = document.getElementById('pdfLinkFallback');
@@ -695,25 +735,50 @@
 
       const maxRow = getMaxRow();
       if(maxRow === 0){ croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
+
       NUM_LABELS = new Map(); let seatNumber = 1;
 
       for(let row=1; row<=maxRow; row++){
         const labelsLeft=['A','B'], labelsRight=['C','D'];
-        const rowEl=document.createElement('div'); rowEl.className='row';
-        const left=document.createElement('div'); left.className='block';
-        const right=document.createElement('div'); right.className='block';
+
+        const rowEl = document.createElement('div'); rowEl.className='row';
+        const left  = document.createElement('div'); left.className='block';
+        const right = document.createElement('div'); right.className='block';
 
         const renderSeat=(letter, container)=>{
-          const code=`${row}${letter}`; const klass=computeClassFor(code);
-          const isNum=(klass==='libre'||klass==='ocupado'); const norm=normalize(code);
-          const btn=document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
+          const code  = `${row}${letter}`;
+          const norm  = normalize(code);
+          const klass = computeClassFor(code);
+          const isNum = (klass==='libre' || klass==='ocupado');
+
+          const btn = document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
+
           if(isNum){
-            btn.textContent=seatNumber; btn.setAttribute('data-code',code); btn.setAttribute('data-status',klass); btn.setAttribute('data-num',seatNumber);
-            btn.setAttribute('aria-label',`Asiento ${code} (${seatNumber}) ${klass}`); NUM_LABELS.set(norm,seatNumber); seatNumber++;
+            // >>> NUEVO: número + primer nombre del ocupante (si está ocupado)
+            const occFull = SEATS[norm]?.pasajero || '';
+            const occName = (klass==='ocupado') ? firstName(occFull) : '';
+
+            btn.innerHTML =
+              `<span class="num">${seatNumber}</span>` +
+              (occName ? `<span class="occ-name">${occName}</span>` : '');
+
+            btn.setAttribute('data-code',code);
+            btn.setAttribute('data-status',klass);
+            btn.setAttribute('data-num',seatNumber);
+            btn.setAttribute(
+              'aria-label',
+              `Asiento ${code} (${seatNumber}) ${klass}` + (occName ? ` — Ocupa: ${occName}` : '')
+            );
+
+            NUM_LABELS.set(norm,seatNumber); seatNumber++;
           }else{
-            btn.innerHTML='&nbsp;'; btn.setAttribute('data-code',code); btn.setAttribute('data-status','inexistente');
-            btn.setAttribute('aria-label',`Asiento ${code} inhabilitado/no disponible`); btn.disabled=true;
+            btn.innerHTML=' ';
+            btn.setAttribute('data-code',code);
+            btn.setAttribute('data-status','inexistente');
+            btn.setAttribute('aria-label',`Asiento ${code} inhabilitado/no disponible`);
+            btn.disabled=true;
           }
+
           btn.onclick=()=> onControlSeatClick(btn);
           container.appendChild(btn);
         };
@@ -727,7 +792,6 @@
       }
 
       board.scrollIntoView({behavior:'smooth'});
-
       // Animación sticky (solo en sesión)
       attachStickyAnimation();
     }
@@ -757,8 +821,9 @@
     function onControlSeatClick(btn){
       if(!CONTROL_EDIT) return;
       const status=(btn.getAttribute('data-status')||'libre').toLowerCase().trim();
-      const num=parseInt(btn.getAttribute('data-num')||'0',10);
-      const code=btn.getAttribute('data-code');
+      const num   =parseInt(btn.getAttribute('data-num')||'0',10);
+      const code  =btn.getAttribute('data-code');
+
       if(status==='ocupado'){
         document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
         btn.classList.add('pick-source'); EDIT_SRC={num,code};
@@ -766,6 +831,7 @@
         document.querySelectorAll('#controlCroquis .seat.pick-target').forEach(el=>el.classList.remove('pick-target'));
         btn.classList.add('pick-target'); EDIT_DST={num,code};
       }else{ return; }
+
       updateEditTags(); syncToolbarUI();
     }
 
@@ -783,7 +849,6 @@
       const btnCancel=document.getElementById('btnCancel');
 
       toolbar.classList.toggle('editing', CONTROL_EDIT);
-
       if(CONTROL_EDIT){
         btnEdit.classList.add('danger'); btnEdit.textContent='Salir de edición';
         btnMove.disabled=!(EDIT_SRC && EDIT_DST);
