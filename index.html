@@ -35,7 +35,9 @@
       padding:clamp(8px,2.4vw,16px) clamp(12px,3vw,20px);
       border-radius:16px; background: rgba(255,255,255,.55);
       border:1px solid rgba(255,255,255,.65); box-shadow:0 8px 24px rgba(17,24,39,.12);
-      max-width:92vw; overflow:hidden;
+      max-width:92vw;
+      /* IMPORTANTE: permitir que el menú se muestre fuera del chip */
+      overflow: visible;
     }
     /* Skeleton del logo */
     .logo-skeleton{
@@ -209,6 +211,7 @@
       box-shadow: 0 12px 28px rgba(17,24,39,.16);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
+      pointer-events: auto; /* interactuable */
     }
     .admin-title { margin: 0 0 10px 0; font-weight: 800; color: var(--text); }
     .btn-admin { width: 100%; }
@@ -229,7 +232,6 @@
         <p class="admin-title">Acceso staff</p>
         <button type="button" class="btn primary btn-admin" onclick="openStaffLogin()">Control interno</button>
       </div>
-      <!-- Nota: se retiró el texto guía “Presioná el logo” -->
     </div>
   </header>
 
