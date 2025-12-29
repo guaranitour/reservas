@@ -12,47 +12,35 @@
     :root{
       --bg:#f7f9fc; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
       --primary:#2c7be5; --success:#10b981; --shadow:0 8px 20px rgba(17,24,39,.08);
-      /* Fondo suave del header */
-      --brandA: rgba(44,123,229,.10);
-      --brandB: rgba(16,185,129,.08);
-      /* Tamaño del logo (mobile-only) */
-      --logo-w-ideal: 84vw;
-      --logo-w-max: 360px;
-      /* Safe area y altura de la Bottom App Bar (solo botones) */
+      --brandA: rgba(44,123,229,.10); --brandB: rgba(16,185,129,.08);
+      --logo-w-ideal: 84vw; --logo-w-max: 360px;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --action-bar-h: 72px;
     }
     html,body{height:100%;}
-    html{ scroll-padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); } /* evita que la action-bar tape scrollIntoView */
+    html{ scroll-padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
     body{
-      margin:0;
-      font-family: system-ui,-apple-system, Segoe UI, Roboto, Ubuntu,'Helvetica Neue', Arial,'Noto Sans',sans-serif;
-      color:var(--text);
-      background:var(--bg);
-      overflow-x:hidden; /* evita scroll lateral */
+      margin:0; font-family: system-ui,-apple-system, Segoe UI, Roboto, Ubuntu,'Helvetica Neue', Arial,'Noto Sans',sans-serif;
+      color:var(--text); background:var(--bg); overflow-x:hidden;
     }
     *, *::before, *::after{ box-sizing:border-box; }
 
-    /* ===== Header (logo centrado, sin overflow) ===== */
+    /* ===== Header ===== */
     .hero{
       width:100%;
       background: linear-gradient(180deg, var(--brandA) 0%, var(--brandB) 45%, rgba(255,255,255,0) 100%);
-      padding:clamp(12px,4vw,24px);
-      display:grid; place-items:center;
+      padding:clamp(12px,4vw,24px); display:grid; place-items:center;
       min-height: clamp(110px, 24vw, 210px);
     }
     .brand-chip{
       display:inline-flex; align-items:center; justify-content:center;
       padding:clamp(8px,2.4vw,16px) clamp(12px,3vw,20px);
-      border-radius:16px;
-      background: rgba(255,255,255,.55);
-      border:1px solid rgba(255,255,255,.65);
-      box-shadow:0 8px 24px rgba(17,24,39,.12);
+      border-radius:16px; background: rgba(255,255,255,.55);
+      border:1px solid rgba(255,255,255,.65); box-shadow:0 8px 24px rgba(17,24,39,.12);
       max-width:92vw; overflow:hidden;
     }
     .brand-chip img{
-      width: min(var(--logo-w-ideal), var(--logo-w-max));
-      max-width:100%;
+      width: min(var(--logo-w-ideal), var(--logo-w-max)); max-width:100%;
       height:auto; display:block; object-fit:contain; margin:0 auto;
       filter: drop-shadow(0 3px 8px rgba(17,24,39,.14));
     }
@@ -63,7 +51,7 @@
     .view.active{display:block; animation:fadeIn .4s ease both;}
     @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
 
-    /* Inicio */
+    /* Inicio (cards) */
     .home-center{min-height:calc(100dvh - 160px); display:grid; place-items:center;}
     .cards{display:grid; grid-template-columns:1fr; gap:14px; max-width:480px; width:100%;}
     .card{
@@ -81,13 +69,13 @@
     label{font-weight:600;}
     input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem; background:#fff; color:var(--text);}
     .actions{display:flex; gap:8px; flex-wrap:wrap;}
-    .btn{border:none; border-radius:10px; padding:12px 14px; font-weight:600; cursor:pointer; min-height:44px;} /* tap target cómodo */
+    .btn{border:none; border-radius:10px; padding:12px 14px; font-weight:600; cursor:pointer; min-height:44px;}
     .btn.primary{background:var(--primary); color:white;}
     .btn.ghost{background:transparent; border:1px solid #e5e7eb; color:var(--text);}
     .btn.success{background:var(--success); color:white;}
     .btn.danger{background:#ef4444; color:white;}
 
-    /* Leyenda */
+    /* Chips / legend */
     .legend{display:flex; gap:8px; margin:8px 0 12px; flex-wrap:wrap;}
     .badge{display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:6px 10px; font-size:.875rem;}
     .badge.libre{background:#d1fae5; color:#065f46;}
@@ -98,18 +86,15 @@
     /* Croquis 2+2 */
     .grid{display:flex; flex-direction:column; gap:8px;}
     .row{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr); /* evita overflow */
+      display:grid; grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr);
       gap:8px; align-items:center; width:100%;
     }
     .block{display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;}
     .aisle{width:20px; height:20px;}
-
     .seat{
       border:none; border-radius:12px; padding:12px; font-weight:700; box-shadow:var(--shadow);
       transition:transform .1s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
-      width:100%;
-      position:relative; overflow:hidden; min-height:48px; /* tap target público */
+      width:100%; position:relative; overflow:hidden; min-height:48px;
     }
     .seat.libre{background:#e6fffa; color:#0f766e;}
     .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;}
@@ -117,19 +102,14 @@
     .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
     .seat:active{transform:scale(0.98);}
 
-    /* Resaltado “mis asientos” (buscar por CI): borde + pulso */
-    .seat.mine{
-      outline:3px solid #6366f1;
-      box-shadow:0 0 0 3px rgba(99,102,241,.15) inset;
-    }
+    /* Resaltado (buscar por CI) */
+    .seat.mine{ outline:3px solid #6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15) inset; }
     .seat.mine::after{
       content:""; position:absolute; inset:0; border-radius:12px;
-      box-shadow:0 0 0 0 rgba(99,102,241,.25);
-      animation:pulse 1.8s ease-in-out infinite;
+      box-shadow:0 0 0 0 rgba(99,102,241,.25); animation:pulse 1.8s ease-in-out infinite;
     }
     @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(99,102,241,.25);} 70%{box-shadow:0 0 0 10px rgba(99,102,241,0);} 100%{box-shadow:0 0 0 0 rgba(99,102,241,0);} }
 
-    /* Chips números + espacio “Ver croquis” */
     .nums{display:flex; gap:10px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
     #findFeedback .actions{margin-top:14px;}
@@ -137,7 +117,7 @@
     #grid-find{    margin-top: 8px; }
 
     /* ===== Asignación múltiple ===== */
-    .assign{ margin-top: 12px; padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); } /* reserva espacio para la bottom bar */
+    .assign{ margin-top: 12px; padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
     .assign-list{ display:flex; flex-direction:column; gap:16px; }
     .assign-row{
       background:var(--card); border-radius:12px; box-shadow:var(--shadow);
@@ -149,19 +129,17 @@
     .field{ display:flex; flex-direction:column; gap:6px; }
     .field-label{ font-weight:600; font-size:.9rem; color:var(--muted); }
 
-    /* Bottom App Bar solo botones (transparente, sin tarjeta) */
+    /* Bottom App Bar: solo botones (transparente) */
     .assign .action-bar{
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
       height: calc(var(--action-bar-h) + var(--safe-bottom));
       display: grid; place-items: center;
       background: transparent; border: none; box-shadow: none;
-      pointer-events: none; /* el contenedor no bloquea toques/scroll del contenido */
+      pointer-events: none;
     }
     .assign .action-bar .actions{
-      width: min(680px, 92vw);
-      display:flex; gap:10px;
-      padding: 0 12px var(--safe-bottom) 12px; /* respeta notch */
-      pointer-events: auto; /* los botones sí reciben clic */
+      width: min(680px, 92vw); display:flex; gap:10px;
+      padding: 0 12px var(--safe-bottom) 12px; pointer-events: auto;
     }
     .assign .action-bar .btn{ flex: 1; min-height: 44px; }
 
@@ -169,16 +147,11 @@
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
     .control-title{margin:0 0 12px 0; font-size:1.1rem; font-weight:700;}
 
-    /* Toolbar sticky (control) */
     .control-toolbar{
-      position: sticky; top: 8px; z-index: 20;
-      display:flex; flex-direction:column; gap:10px;
-      padding:12px; border-radius:14px;
-      background: rgba(255,255,255,.72);
-      border:1px solid rgba(255,255,255,.80);
-      box-shadow:0 8px 24px rgba(17,24,39,.10);
-      transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
-      margin-bottom: 20px;
+      position: sticky; top: 8px; z-index: 20; display:flex; flex-direction:column; gap:10px;
+      padding:12px; border-radius:14px; background: rgba(255,255,255,.72);
+      border:1px solid rgba(255,255,255,.80); box-shadow:0 8px 24px rgba(17,24,39,.10);
+      transition: transform .25s ease, box-shadow .25s ease, background .25s ease; margin-bottom: 20px;
     }
     .control-toolbar.scrolled{ transform: translateY(2px); box-shadow:0 12px 28px rgba(17,24,39,.16); background: rgba(255,255,255,.82); }
     .control-actions{display:flex; gap:8px; flex-wrap:wrap;}
@@ -198,25 +171,34 @@
     .spinner{width:20px; height:20px; border-radius:50%; border:3px solid #c7d2fe; border-top-color:#3b82f6; animation:spin .9s linear infinite;}
     @keyframes spin { to { transform: rotate(360deg); } }
     .loader-text{font-weight:600; color:#111827;}
-    @media (prefers-reduced-motion: reduce){
-      .view.active{animation:none}
-      .spinner{animation:none}
-    }
+    @media (prefers-reduced-motion: reduce){ .view.active{animation:none} .spinner{animation:none} }
     .hidden{display:none !important;}
 
     /* Croquis de Control: número + primer nombre */
     #controlCroquis .seat{
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      min-height: 56px; /* dos líneas: número + nombre */
+      min-height: 56px;
     }
     #controlCroquis .seat .num{ font-size: 1rem; line-height: 1; font-weight: 800; }
     #controlCroquis .seat .occ-name{
-      margin-top: 4px;
-      font-size: .75rem; line-height: 1.1; font-weight: 600;
-      color:#374151; letter-spacing: .2px;
-      max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-top: 4px; font-size: .75rem; line-height: 1.1; font-weight: 600;
+      color:#374151; letter-spacing: .2px; max-width: 100%;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     #controlCroquis .seat.ocupado .occ-name{ color:#7f1d1d; }
+
+    /* ===== NUEVO: vistas para elegir viaje y planta ===== */
+    .trip-list{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:0 auto; }
+    .trip-card{ background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px; display:flex; flex-direction:column; gap:6px; cursor:pointer; }
+    .trip-card h3{ margin:0; font-size:1rem; }
+    .trip-card small{ color:var(--muted); }
+    .trip-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .trip-pill{ display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:4px 8px; font-size:.8rem; background:#eef2ff; color:#1e3a8a; }
+    .floors{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:12px auto 0; }
+    @media (min-width:520px){ .floors{ grid-template-columns:1fr 1fr; } }
+    .floors .card h2{ font-size:1rem; }
+    .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+    .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
   </style>
 </head>
 <body>
@@ -228,22 +210,57 @@
   </header>
 
   <main id="app" class="app">
-    <!-- Inicio -->
-    <section id="view-home" class="view active" aria-label="Inicio">
+
+    <!-- ===== NUEVO: Elegir viaje ===== -->
+    <section id="view-choose" class="view active" aria-label="Elegí el viaje">
+      <div class="home-center" style="align-items:start;">
+        <div style="max-width:680px; margin:0 auto; width:100%;">
+          <h2 style="margin:0 0 8px 0;">Elegí el viaje que querés reservar</h2>
+          <p class="muted" style="margin:0 0 16px 0; color:#6b7280;">Los viajes se cargan automáticamente desde tu carpeta de Drive.</p>
+          <div id="tripList" class="trip-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== NUEVO: Elegir planta (si aplica) ===== -->
+    <section id="view-floor" class="view" aria-label="Elegí planta">
+      <div class="home-center" style="align-items:start;">
+        <div style="max-width:680px; margin:0 auto; width:100%;">
+          <h2 style="margin:0 0 8px 0;">Elegí planta</h2>
+          <div class="floors" id="floorCards"></div>
+          <div class="actions" style="margin-top:12px;">
+            <button type="button" class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
+            <button type="button" class="btn primary" onclick="goHome()">Ir al menú</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Menú principal ===== -->
+    <section id="view-home" class="view" aria-label="Inicio">
       <div class="home-center">
+        <div style="max-width:560px; width:100%; margin-bottom:12px;">
+          <div class="trip-tags">
+            <span class="tag" id="tagTrip">Viaje: —</span>
+            <span class="tag" id="tagSheet">Hoja: —</span>
+          </div>
+        </div>
         <div class="cards">
           <article class="card" tabindex="0" role="button" onclick="goSelect()" onkeypress="handleEnter(event, goSelect)">
             <h2>Seleccionar asiento</h2>
-            <p>Elige tu lugar en el bus y confirma con tu nombre y CI.</p>
+            <p>Elige tu lugar y confirma con tu nombre y CI.</p>
           </article>
           <article class="card" tabindex="0" role="button" onclick="goFind()" onkeypress="handleEnter(event, goFind)">
             <h2>Buscar por CI</h2>
-            <p>Ingresa tu CI para ver tus números de asiento y el croquis.</p>
+            <p>Ingresa tu CI para ver tus números y el croquis.</p>
           </article>
           <article class="card" tabindex="0" role="button" onclick="goControl()" onkeypress="handleEnter(event, goControl)">
             <h2>Control interno</h2>
-            <p>Ocupación por número, exportar PDF y edición de asientos.</p>
+            <p>Ocupación, exportar PDF y edición.</p>
           </article>
+        </div>
+        <div class="actions" style="margin-top:14px;">
+          <button class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
         </div>
       </div>
     </section>
@@ -253,15 +270,11 @@
       <form id="selectForm" class="form" onsubmit="event.preventDefault(); startSelection();">
         <div class="form-row">
           <label for="nombrePrincipal">Nombre del pasajero</label>
-          <input id="nombrePrincipal" type="text"
-                 placeholder="Nombre y Apellido" required
-                 autocomplete="name" autocapitalize="words" enterkeyhint="next"/>
+          <input id="nombrePrincipal" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next"/>
         </div>
         <div class="form-row">
           <label for="ciPrincipal">CI del pasajero</label>
-          <input id="ciPrincipal" type="text"
-                 placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*"
-                 required autocomplete="off" enterkeyhint="done"/>
+          <input id="ciPrincipal" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done"/>
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Reservar</button>
@@ -309,9 +322,7 @@
       <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
         <div class="form-row">
           <label for="ciSearch">CI del pasajero</label>
-          <input id="ciSearch" type="text"
-                 placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*"
-                 required autocomplete="off" enterkeyhint="search"/>
+          <input id="ciSearch" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="search"/>
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Buscar</button>
@@ -348,11 +359,10 @@
         <p class="hint">Acceso exclusivo para el staff.</p>
       </form>
 
-      <!-- Board: OCULTO por defecto (hasta login OK) -->
+      <!-- Board: OCULTO por defecto -->
       <div id="controlBoard" class="control-board" hidden>
         <h4 class="control-title">Ocupación por número</h4>
 
-        <!-- Toolbar sticky: edit-actions SOLO en modo edición -->
         <div id="controlToolbar" class="control-toolbar">
           <div class="control-actions">
             <button type="button" class="btn ghost" onclick="refreshSeatsWithSpinner(null, renderControlBoard)">Actualizar</button>
@@ -360,13 +370,11 @@
             <button id="btnEditMode" type="button" class="btn success" onclick="toggleControlEdit()">Modo edición</button>
           </div>
 
-          <!-- Etiquetas de selección -->
           <div class="sel-tags">
             <span class="tag src" id="tagSrc">Origen: —</span>
             <span class="tag dst" id="tagDst">Destino: —</span>
           </div>
 
-          <!-- Botones de edición: SOLO visibles en modo edición -->
           <div class="edit-actions">
             <button id="btnMove" type="button" class="btn primary" onclick="movePassenger()" disabled>Mover</button>
             <button id="btnFree" type="button" class="btn danger" onclick="freeSelectedSeat()" disabled>Liberar</button>
@@ -374,7 +382,6 @@
           </div>
         </div>
 
-        <!-- Croquis 2+2 para control (incluye inhabilitados) -->
         <div id="controlCroquis" class="grid" aria-live="polite"></div>
         <div id="pdfLinkFallback" class="hint hidden"></div>
       </div>
@@ -394,7 +401,8 @@
 
   <!-- ===== api.js (embebido) ===== -->
   <script>
-    const BASE_URL = 'https://script.google.com/macros/s/AKfycbz6WeyWOfRGGW35sUUyQesTbUoITSNNLCXMhft-saHaHYwDwHWUa6kMT5Cof1GkuFL2/exec';
+    // BASE_URL: tu Web App "puro"
+    const BASE_URL = 'https://script.google.com/macros/s/AKfycbyJYarovqJhUHxRFy_aG4_ex5YUpM4ALC2mQhqsYiMNxjoEo7F3NxvYrC9FuSXFz7sp/exec';
     const API_KEY = null;
 
     const QS = (params = {}) =>
@@ -406,77 +414,138 @@
     async function parseResponse(res) { const text = await res.text(); try { return JSON.parse(text); } catch { return text; } }
     function withCommonParams(extra = {}) { const base = { api: '1', ...extra }; if (API_KEY) base.apiKey = API_KEY; return base; }
     function getUrl(action, extraParams = {}) { const params = withCommonParams({ action, ...extraParams }); return BASE_URL + QS(params); }
-
     function postOptions(payloadObj) {
       return { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payloadObj || {}) };
     }
 
-    async function apiGetSeats()            { const res = await fetch(getUrl('seats'));                if (!res.ok) throw new Error(`GET seats: ${res.status}`);         return parseResponse(res); }
-    async function apiGetSeatsByCi(ci)      { const res = await fetch(getUrl('seatsByCi', { ci }));    if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`);      return parseResponse(res); }
-    async function apiGetLogo()             { const res = await fetch(getUrl('logo'));                 if (!res.ok) throw new Error(`GET logo: ${res.status}`);           return parseResponse(res); }
-    async function apiExportPdf()           { const res = await fetch(getUrl('exportPdf'));            if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`);      return parseResponse(res); }
-    async function apiReserve(pairs)        { const res = await fetch(getUrl('reserve'), postOptions({ pairs })); if (!res.ok) throw new Error(`POST reserve: ${res.status}`); return parseResponse(res); }
-    async function apiMove(sourceCode,targetCode){ const res = await fetch(getUrl('move'), postOptions({ sourceCode, targetCode })); if (!res.ok) throw new Error(`POST move: ${res.status}`); return parseResponse(res); }
-    async function apiFree(code)            { const res = await fetch(getUrl('free'), postOptions({ code }));     if (!res.ok) throw new Error(`POST free: ${res.status}`);       return parseResponse(res); }
-    async function apiLogin(user,pass)      { const res = await fetch(getUrl('login'), postOptions({ user, pass })); if (!res.ok) throw new Error(`POST login: ${res.status}`);  return parseResponse(res); }
+    // ==== Endpoints con parámetros (fileId/sheetName) ====
+    async function apiGetTrips(folderId) { const res = await fetch(getUrl('trips', { folderId })); if (!res.ok) throw new Error(`GET trips: ${res.status}`); return parseResponse(res); }
+    async function apiGetSeats(fileId, sheetName) { const res = await fetch(getUrl('seats', { fileId, sheetName })); if (!res.ok) throw new Error(`GET seats: ${res.status}`); return parseResponse(res); }
+    async function apiGetSeatsByCi(fileId, sheetName, ci) { const res = await fetch(getUrl('seatsByCi', { fileId, sheetName, ci })); if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`); return parseResponse(res); }
+    async function apiGetLogo() { const res = await fetch(getUrl('logo')); if (!res.ok) throw new Error(`GET logo: ${res.status}`); return parseResponse(res); }
+    async function apiExportPdf(fileId, sheetName) { const res = await fetch(getUrl('exportPdf', { fileId, sheetName })); if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`); return parseResponse(res); }
+    async function apiReserve(fileId, sheetName, pairs) { const res = await fetch(getUrl('reserve'), postOptions({ fileId, sheetName, pairs })); if (!res.ok) throw new Error(`POST reserve: ${res.status}`); return parseResponse(res); }
+    async function apiMove(fileId, sheetName, sourceCode, targetCode){ const res = await fetch(getUrl('move'), postOptions({ fileId, sheetName, sourceCode, targetCode })); if (!res.ok) throw new Error(`POST move: ${res.status}`); return parseResponse(res); }
+    async function apiFree(fileId, sheetName, code) { const res = await fetch(getUrl('free'), postOptions({ fileId, sheetName, code })); if (!res.ok) throw new Error(`POST free: ${res.status}`); return parseResponse(res); }
+    async function apiLogin(user,pass) { const res = await fetch(getUrl('login'), postOptions({ user, pass })); if (!res.ok) throw new Error(`POST login: ${res.status}`); return parseResponse(res); }
 
-    window.API = { apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLogin };
+    // API facade que usa el estado actual seleccionado
+    window.API = { apiGetTrips, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLogin };
   </script>
 
   <!-- ===== Lógica de la app ===== -->
   <script>
+    /* Estado global */
+    let SEATS = {}; let selected = new Set(); let NUM_LABELS = new Map();
+    let HIGHLIGHT_CODES = new Set(); let LAST_FOUND_CODES = [];
+    let CONTROL_AUTH = false; let CONTROL_EDIT = false; let EDIT_SRC = null; let EDIT_DST = null;
+    let BUSY = false;
+
+    // ===== NUEVO: estado de viaje/hoja actual =====
+    let CURRENT_TRIP = { fileId: null, name: null, sheets: [], sheetName: null, hasFloors: false };
+
     /* Navegación */
     function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-    function goHome(){ showView('view-home'); }
+    function goHome(){
+      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; }
+      updateTripTags(); showView('view-home');
+    }
+    function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
+    /* Helpers UI */
+    function toast(msg){ const bar = document.getElementById('snackbar'); bar.textContent = msg; bar.classList.add('show'); setTimeout(() => bar.classList.remove('show'), 2800); }
+    function showLoading(msg){ const ov = document.getElementById('overlay'); ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
+    function hideLoading(){ const ov = document.getElementById('overlay'); ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); }
+    function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
+    function firstName(full){ const t = (full || '').trim(); if(!t) return ''; const name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
+    function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
+
+    /* ===== NUEVO: elegir viaje ===== */
+    async function loadTrips(){
+      showLoading('Cargando viajes…');
+      try{
+        const payload = await API.apiGetTrips(); // usa folderId por defecto en tu backend
+        const list = document.getElementById('tripList'); list.innerHTML = '';
+        (payload.trips || []).forEach(tr => {
+          const card = document.createElement('div'); card.className='trip-card'; card.tabIndex=0;
+          const head = document.createElement('div'); head.className='trip-head';
+          const title = document.createElement('h3'); title.textContent = tr.name;
+          const pill = document.createElement('span'); pill.className='trip-pill'; pill.textContent = tr.hasFloors ? 'Doble piso' : 'Convencional';
+          head.appendChild(title); head.appendChild(pill);
+          const small = document.createElement('small'); small.textContent = `Hojas: ${tr.sheets.join(' • ')}`;
+          card.appendChild(head); card.appendChild(small);
+          card.onclick = () => selectTrip(tr);
+          card.onkeypress = (ev) => { if(ev.key==='Enter') selectTrip(tr); };
+          list.appendChild(card);
+        });
+        if(!(payload.trips || []).length){ list.innerHTML = '<p class="muted">No se encontraron viajes (archivos Sheets) en la carpeta.</p>'; }
+      }catch(err){ toast('No se pudieron cargar los viajes'); }
+      finally{ hideLoading(); }
+    }
+    function selectTrip(tr){
+      CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
+      if(CURRENT_TRIP.hasFloors){
+        // mostrar elección de planta
+        const floorBox = document.getElementById('floorCards'); floorBox.innerHTML = '';
+        const bajaName = tr.sheets.find(s => s.toLowerCase() === 'asientos baja');
+        const altaName = tr.sheets.find(s => s.toLowerCase() === 'asientos alta');
+        const candidates = [];
+        if(bajaName) candidates.push({ label:'Planta baja', sheetName:bajaName });
+        if(altaName) candidates.push({ label:'Planta alta', sheetName:altaName });
+        // Si no coinciden exactamente, mostrar todas las hojas como fallback:
+        if(!candidates.length){
+          tr.sheets.forEach(s => candidates.push({ label:s, sheetName:s }));
+        }
+        candidates.forEach(c => {
+          const card = document.createElement('article'); card.className='card'; card.tabIndex=0;
+          const h2 = document.createElement('h2'); h2.textContent = c.label;
+          const p = document.createElement('p'); p.textContent = `Hoja: ${c.sheetName}`;
+          card.appendChild(h2); card.appendChild(p);
+          card.onclick = () => chooseFloor(c.sheetName);
+          card.onkeypress = (ev) => { if(ev.key==='Enter') chooseFloor(c.sheetName); };
+          floorBox.appendChild(card);
+        });
+        showView('view-floor');
+      }else{
+        // convencional: usar 'Asientos'
+        const sheet = tr.sheets.find(s => s.toLowerCase() === 'asientos') || tr.sheets[0];
+        chooseFloor(sheet);
+      }
+    }
+    function chooseFloor(sheetName){
+      CURRENT_TRIP.sheetName = sheetName;
+      updateTripTags();
+      goHome();
+    }
+    function backToChoose(){ CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false }; showView('view-choose'); }
+
+    function updateTripTags(){
+      document.getElementById('tagTrip').textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`;
+      document.getElementById('tagSheet').textContent= `Hoja: ${CURRENT_TRIP.sheetName || '—'}`;
+    }
+
+    /* Vistas principales */
     function goSelect(){
+      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; }
       showView('view-select');
       showLoading('Cargando asientos…');
       refreshSeats('grid-select', () => hideLoading());
     }
     function goFind(){
-      showView('view-find');
-      clearFindView();
+      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; }
+      showView('view-find'); clearFindView();
     }
     function goControl(){
-      showView('view-control');
-      CONTROL_AUTH = false;
-      hideControlBoard();
+      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; }
+      showView('view-control'); CONTROL_AUTH = false; hideControlBoard();
     }
-    function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
-
-    /* Estado global */
-    let SEATS = {}; let selected = new Set(); let NUM_LABELS = new Map();
-    let HIGHLIGHT_CODES = new Set(); let LAST_FOUND_CODES = [];
-    let CONTROL_AUTH = false;
-
-    /* Edición (control) */
-    let CONTROL_EDIT = false; let EDIT_SRC = null; let EDIT_DST = null;
-
-    /* Protección doble tap en reserva */
-    let BUSY = false;
-
-    /* UI helpers */
-    function toast(msg){ const bar = document.getElementById('snackbar'); bar.textContent = msg; bar.classList.add('show'); setTimeout(() => bar.classList.remove('show'), 2800); }
-    function showLoading(msg){ const ov = document.getElementById('overlay'); ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
-    function hideLoading(){ const ov = document.getElementById('overlay'); ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); }
-
-    /* Util */
-    function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
-    function firstName(full){
-      const t = (full || '').trim();
-      if(!t) return '';
-      const name = t.split(/\s+/)[0];
-      return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-    }
-    function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
     /* Datos */
     async function refreshSeats(targetId, onDone){
       const gridEl = targetId ? document.getElementById(targetId) : null;
       if(gridEl) gridEl.setAttribute('aria-busy','true');
       try{
-        const resp = await API.apiGetSeats();
+        const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
         const rows = resp.rows || [];
         SEATS = {};
         rows.forEach(r => {
@@ -505,21 +574,15 @@
       return 'libre';
     }
 
-    /* Croquis 2+2 (público y find) */
+    /* Croquis 2+2 */
     function buildGrid(targetId){
       const grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy');
-
-      selected = new Set(); // resetea selección
-      NUM_LABELS = new Map();
-
+      selected = new Set(); NUM_LABELS = new Map();
       const maxRow = getMaxRow(); if(maxRow === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
       let seatNumber = 1;
 
       for(let row=1; row<=maxRow; row++){
-        const labelsLeft = ['A','B'];
-        const labelsRight = ['C','D'];
-
         const rowEl = document.createElement('div'); rowEl.className = 'row';
         const left  = document.createElement('div'); left.className  = 'block';
         const right = document.createElement('div'); right.className = 'block';
@@ -536,14 +599,11 @@
             btn.setAttribute('data-code', code);
             btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             NUM_LABELS.set(norm, seatNumber); seatNumber++;
-
-            if(targetId === 'grid-select'){ // público: permite elegir si está libre
+            if(targetId === 'grid-select'){
               if(klass === 'libre'){ btn.onclick = () => toggleSeat(code, btn); } else { btn.disabled = true; }
             }
           }else{
-            btn.innerHTML = ' ';
-            btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
-            btn.disabled = true;
+            btn.innerHTML = ' '; btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`); btn.disabled = true;
           }
 
           if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); }
@@ -586,9 +646,8 @@
         const only = Array.from(selected)[0];
         const onlyNorm = normalize(only);
         const pairs = [{ asiento: onlyNorm, pasajero: nombre, ci }];
-        BUSY = true;
-        showLoading('Reservando…');
-        try{ await API.apiReserve(pairs); showReserveFeedbackDetailed(pairs); refreshSeats('grid-select'); }
+        BUSY = true; showLoading('Reservando…');
+        try{ await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs); showReserveFeedbackDetailed(pairs); refreshSeats('grid-select'); }
         catch(err){ toast('No se pudo reservar'); }
         finally{ hideLoading(); BUSY = false; }
         return;
@@ -599,7 +658,6 @@
 
       for(let i=0;i<codes.length;i++){
         const codeNorm = normalize(codes[i]); const num = NUM_LABELS.get(codeNorm) || '';
-
         const row  = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
         const title= document.createElement('div'); title.className = 'assign-title'; title.textContent = `Asiento ${num || codeNorm}`;
         const grid = document.createElement('div'); grid.className  = 'assign-grid';
@@ -637,18 +695,10 @@
         if(!pasajero || !ci){ toast(`Faltan datos en ${codeNorm}`); return; }
         pairs.push({ asiento: codeNorm, pasajero, ci });
       }
-      BUSY = true;
-      showLoading('Reservando…');
-      try{
-        await API.apiReserve(pairs);
-        showReserveFeedbackDetailed(pairs);
-        refreshSeats('grid-select');
-        document.getElementById('view-assign').classList.add('hidden');
-      }catch(err){
-        toast('No se pudo reservar');
-      }finally{
-        hideLoading(); BUSY = false;
-      }
+      BUSY = true; showLoading('Reservando…');
+      try{ await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs); showReserveFeedbackDetailed(pairs); refreshSeats('grid-select'); document.getElementById('view-assign').classList.add('hidden'); }
+      catch(err){ toast('No se pudo reservar'); }
+      finally{ hideLoading(); BUSY = false; }
     }
 
     function showReserveFeedbackDetailed(pairs){
@@ -664,15 +714,16 @@
 
     /* Buscar por CI */
     async function findByCI(){
+      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; }
       const ci = document.getElementById('ciSearch').value.trim();
       if(!ci){ toast('Ingresá tu CI'); return; }
       showLoading('Buscando…');
       try{
-        const respSeats = await API.apiGetSeatsByCi(ci);
+        const respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci);
         const rawCodes = (respSeats.seats || []).map(s => normalize(s));
         LAST_FOUND_CODES = Array.from(new Set(rawCodes));
 
-        const respRows = await API.apiGetSeats();
+        const respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
         const rows = respRows.rows || [];
         SEATS = {}; rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
 
@@ -680,11 +731,9 @@
         renderFindFeedback(nums);
 
         HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
-      }catch(err){
-        toast('Error al buscar por CI');
-      }finally{ hideLoading(); }
+      }catch(err){ toast('Error al buscar por CI'); }
+      finally{ hideLoading(); }
     }
-
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map();
       const maxRow = getMaxRow();
@@ -699,7 +748,6 @@
       }
       return codes.map(c => NUM_LABELS.get(c)).filter(n => typeof n !== 'undefined');
     }
-
     function renderFindFeedback(nums){
       const panel = document.getElementById('findFeedback');
       const list  = document.getElementById('findNums');
@@ -707,22 +755,14 @@
 
       list.innerHTML = '';
       if(nums.length){
-        nums.forEach(n => {
-          const pill = document.createElement('span');
-          pill.className='pill';
-          pill.textContent = String(n);
-          list.appendChild(pill);
-        });
-        panel.classList.remove('hidden');
-        btn.disabled = false;
-        panel.scrollIntoView({behavior:'smooth'});
+        nums.forEach(n => { const pill = document.createElement('span'); pill.className='pill'; pill.textContent = String(n); list.appendChild(pill); });
+        panel.classList.remove('hidden'); btn.disabled = false; panel.scrollIntoView({behavior:'smooth'});
       }else{
         panel.classList.remove('hidden');
         list.innerHTML = '<span class="pill">Sin asientos</span>';
         btn.disabled = true;
       }
     }
-
     function showCroquisForCI(){
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', () => {
@@ -731,7 +771,6 @@
         toast(`Resaltados: ${HIGHLIGHT_CODES.size}`);
       });
     }
-
     function clearFindView(){
       document.getElementById('findFeedback').classList.add('hidden');
       document.getElementById('findNums').innerHTML = '';
@@ -756,16 +795,11 @@
         CONTROL_AUTH = false; hideControlBoard(); toast('Error de verificación');
       }finally{ hideLoading(); }
     }
-
     function doControlLogout(){
-      CONTROL_AUTH=false;
-      hideControlBoard();
-      document.getElementById('ctlPass').value=''; toast('Sesión finalizada');
+      CONTROL_AUTH=false; hideControlBoard(); document.getElementById('ctlPass').value=''; toast('Sesión finalizada');
     }
-
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
-
       const board  = document.getElementById('controlBoard');
       const croquis= document.getElementById('controlCroquis');
       const fb     = document.getElementById('pdfLinkFallback');
@@ -773,7 +807,6 @@
       board.hidden = false;
       croquis.innerHTML = '';
       fb.classList.add('hidden'); fb.innerHTML = '';
-
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null;
       updateEditTags(); syncToolbarUI();
 
@@ -783,53 +816,33 @@
       NUM_LABELS = new Map(); let seatNumber = 1;
 
       for(let row=1; row<=maxRow; row++){
-        const labelsLeft=['A','B'], labelsRight=['C','D'];
-
-        const rowEl = document.createElement('div'); rowEl.className='row';
-        const left  = document.createElement('div'); left.className='block';
-        const right = document.createElement('div'); right.className='block';
+        const rowEl=document.createElement('div'); rowEl.className='row';
+        const left=document.createElement('div'); left.className='block';
+        const right=document.createElement('div'); right.className='block';
 
         const renderSeat=(letter, container)=>{
-          const code  = `${row}${letter}`;
-          const norm  = normalize(code);
-          const klass = computeClassFor(code);
-          const isNum = (klass==='libre' || klass==='ocupado');
+          const code=`${row}${letter}`; const norm=normalize(code);
+          const klass=computeClassFor(code); const isNum=(klass==='libre'||klass==='ocupado');
 
-          const btn = document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
-
+          const btn=document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
           if(isNum){
             const occFull = SEATS[norm]?.pasajero || '';
             const occName = (klass==='ocupado') ? firstName(occFull) : '';
-
-            btn.innerHTML =
-              `<span class="num">${seatNumber}</span>` +
-              (occName ? `<span class="occ-name">${occName}</span>` : '');
-
-            btn.setAttribute('data-code',code);
-            btn.setAttribute('data-status',klass);
-            btn.setAttribute('data-num',seatNumber);
-            btn.setAttribute(
-              'aria-label',
-              `Asiento ${code} (${seatNumber}) ${klass}` + (occName ? ` — Ocupa: ${occName}` : '')
-            );
-
+            btn.innerHTML = `<span class="num">${seatNumber}</span>` + (occName ? `<span class="occ-name">${occName}</span>` : '');
+            btn.setAttribute('data-code',code); btn.setAttribute('data-status',klass); btn.setAttribute('data-num',seatNumber);
+            btn.setAttribute('aria-label',`Asiento ${code} (${seatNumber}) ${klass}` + (occName ? ` — Ocupa: ${occName}` : ''));
             NUM_LABELS.set(norm,seatNumber); seatNumber++;
           }else{
-            btn.innerHTML=' ';
-            btn.setAttribute('data-code',code);
-            btn.setAttribute('data-status','inexistente');
-            btn.setAttribute('aria-label',`Asiento ${code} inhabilitado/no disponible`);
-            btn.disabled=true;
+            btn.innerHTML=' '; btn.setAttribute('data-code',code); btn.setAttribute('data-status','inexistente');
+            btn.setAttribute('aria-label',`Asiento ${code} inhabilitado/no disponible`); btn.disabled=true;
           }
-
           btn.onclick=()=> onControlSeatClick(btn);
           container.appendChild(btn);
         };
 
-        labelsLeft.forEach(l=>renderSeat(l,left));
+        ['A','B'].forEach(l=>renderSeat(l,left));
         const aisle=document.createElement('div'); aisle.className='aisle';
-        labelsRight.forEach(l=>renderSeat(l,right));
-
+        ['C','D'].forEach(l=>renderSeat(l,right));
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         croquis.appendChild(rowEl);
       }
@@ -837,7 +850,6 @@
       board.scrollIntoView({behavior:'smooth'});
       attachStickyAnimation();
     }
-
     function attachStickyAnimation(){
       const toolbar = document.getElementById('controlToolbar');
       function onScroll(){ const y=window.scrollY; if(y>24){ toolbar.classList.add('scrolled'); } else { toolbar.classList.remove('scrolled'); } }
@@ -845,27 +857,22 @@
       window.addEventListener('scroll', onScroll, { passive:true });
       onScroll();
     }
-
     function hideControlBoard(){
       const board = document.getElementById('controlBoard');
-      board.hidden = true;
-      document.getElementById('controlCroquis').innerHTML='';
+      board.hidden = true; document.getElementById('controlCroquis').innerHTML='';
       const fb=document.getElementById('pdfLinkFallback'); fb.classList.add('hidden'); fb.innerHTML='';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null;
       updateEditTags(); syncToolbarUI();
     }
-
     function toggleControlEdit(){
       CONTROL_EDIT=!CONTROL_EDIT; updateEditTags(); syncToolbarUI();
       toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado');
     }
-
     function onControlSeatClick(btn){
       if(!CONTROL_EDIT) return;
       const status=(btn.getAttribute('data-status')||'libre').toLowerCase().trim();
       const num   =parseInt(btn.getAttribute('data-num')||'0',10);
       const code  =btn.getAttribute('data-code');
-
       if(status==='ocupado'){
         document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
         btn.classList.add('pick-source'); EDIT_SRC={num,code};
@@ -873,35 +880,28 @@
         document.querySelectorAll('#controlCroquis .seat.pick-target').forEach(el=>el.classList.remove('pick-target'));
         btn.classList.add('pick-target'); EDIT_DST={num,code};
       }else{ return; }
-
       updateEditTags(); syncToolbarUI();
     }
-
     function updateEditTags(){
       const tagSrc=document.getElementById('tagSrc'), tagDst=document.getElementById('tagDst');
       tagSrc.textContent=`Origen: ${EDIT_SRC ? `${EDIT_SRC.num} • ${EDIT_SRC.code}` : '—'}`;
       tagDst.textContent=`Destino: ${EDIT_DST ? `${EDIT_DST.num} • ${EDIT_DST.code}` : '—'}`;
     }
-
     function syncToolbarUI(){
-      const toolbar=document.getElementById('controlToolbar');
       const btnEdit=document.getElementById('btnEditMode');
       const btnMove=document.getElementById('btnMove');
       const btnFree=document.getElementById('btnFree');
       const btnCancel=document.getElementById('btnCancel');
-
+      const toolbar=document.getElementById('controlToolbar');
       toolbar.classList.toggle('editing', CONTROL_EDIT);
       if(CONTROL_EDIT){
         btnEdit.classList.add('danger'); btnEdit.textContent='Salir de edición';
-        btnMove.disabled=!(EDIT_SRC && EDIT_DST);
-        btnFree.disabled=!EDIT_SRC;
-        btnCancel.disabled=false;
+        btnMove.disabled=!(EDIT_SRC && EDIT_DST); btnFree.disabled=!EDIT_SRC; btnCancel.disabled=false;
       }else{
         btnEdit.classList.remove('danger'); btnEdit.textContent='Modo edición';
         btnMove.disabled=true; btnFree.disabled=true; btnCancel.disabled=true;
       }
     }
-
     function cancelEdit(silent=false){
       EDIT_SRC=null; EDIT_DST=null;
       document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
@@ -914,34 +914,29 @@
       showLoading('Moviendo pasajero…');
       if(!EDIT_SRC || !EDIT_DST){ hideLoading(); toast('Selecciona origen (ocupado) y destino (libre).'); return; }
       try{
-        const resp=await API.apiMove(EDIT_SRC.code,EDIT_DST.code);
+        const resp=await API.apiMove(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code, EDIT_DST.code);
         toast(resp && resp.message ? resp.message : 'Movimiento realizado');
         cancelEdit(true);
         refreshSeatsWithSpinner(null, renderControlBoard);
-      }catch(err){
-        toast('No se pudo mover al pasajero');
-      }finally{ hideLoading(); }
+      }catch(err){ toast('No se pudo mover al pasajero'); }
+      finally{ hideLoading(); }
     }
-
     async function freeSelectedSeat(){
       showLoading('Liberando asiento…');
       if(!EDIT_SRC){ hideLoading(); toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
       try{
-        const resp=await API.apiFree(EDIT_SRC.code);
+        const resp=await API.apiFree(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code);
         toast(resp && resp.message ? resp.message : 'Asiento liberado');
         cancelEdit(true);
         refreshSeatsWithSpinner(null, renderControlBoard);
-      }catch(err){
-        toast('No se pudo liberar el asiento');
-      }finally{ hideLoading(); }
+      }catch(err){ toast('No se pudo liberar el asiento'); }
+      finally{ hideLoading(); }
     }
-
-    /* Exportar PDF */
     async function doExportPdf(){
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
       showLoading('Generando PDF…');
       try{
-        const resp=await API.apiExportPdf();
+        const resp = await API.apiExportPdf(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
         if(resp && resp.url){
           const newWin=window.open(resp.url,'_blank');
           if(!newWin){
@@ -963,13 +958,13 @@
         else if(payload && payload.publicUrl){ img.src = payload.publicUrl; }
       }catch(e){ /* noop */ }
 
-      // listeners para CI solo dígitos
       document.getElementById('ciPrincipal')?.addEventListener('input', e => onlyDigits(e.target));
       document.getElementById('ciSearch')?.addEventListener('input', e => onlyDigits(e.target));
 
-      refreshSeats('grid-select');
-      LAST_FOUND_CODES = [];
+      // Cargar lista de viajes al inicio
+      await loadTrips();
     })();
   </script>
 </body>
 </html>
+``
