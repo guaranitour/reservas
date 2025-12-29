@@ -2,10 +2,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
   <title>Selección de Asientos</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
-
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
   <style>
     :root{
       --bg:#f7f9fc; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
@@ -15,6 +14,7 @@
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --action-bar-h: 72px;
     }
+
     html,body{height:100%;}
     html{ scroll-padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
     body{
@@ -48,7 +48,6 @@
       animation: shimmer 1.2s ease-in-out infinite;
     }
     @keyframes shimmer{ 0%{background-position: 0% 0;} 100%{background-position: 200% 0;} }
-
     .brand-chip img{
       width: min(var(--logo-w-ideal), var(--logo-w-max));
       max-width:100%; height:auto; display:block; object-fit:contain; margin:0 auto;
@@ -115,12 +114,11 @@
     .seat.mine{ outline:3px solid #6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15) inset; }
     .seat.mine::after{ content:""; position:absolute; inset:0; border-radius:12px; box-shadow:0 0 0 0 rgba(99,102,241,.25); animation:pulse 1.8s ease-in-out infinite; }
     @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(99,102,241,.25);} 70%{box-shadow:0 0 0 10px rgba(99,102,241,0);} 100%{box-shadow:0 0 0 0 rgba(99,102,241,0);} }
-
     .nums{display:flex; gap:10px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
     #findFeedback .actions{margin-top:14px;}
     #findFeedback{ margin-bottom: 16px; }
-    #grid-find{    margin-top: 8px; }
+    #grid-find{ margin-top: 8px; }
 
     /* Asignación múltiple */
     .assign{ margin-top: 12px; padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
@@ -152,7 +150,6 @@
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
     .control-title{margin:0 0 12px 0; font-size:1.1rem; font-weight:700;}
-
     .control-toolbar{
       position: sticky; top: 8px; z-index: 20; display:flex; flex-direction:column; gap:10px;
       padding:12px; border-radius:14px; background: rgba(255,255,255,.72);
@@ -205,18 +202,13 @@
     <div class="brand-chip">
       <!-- Skeleton visible mientras carga el logo -->
       <div id="logoSkeleton" class="logo-skeleton" aria-hidden="true"></div>
-      <!-- El <img> arranca con un pixel transparente; luego hace fade-in -->
-      data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==
-    </div>
-  </header>
-
-  <main id="app" class="app">
+      <!-- El <img> arranca transparente; luego hace fade-in -->
+      <img id="heroLogo" alt="Logo de la empresa" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP/// <main id="app" class="app">
     <!-- Elegir viaje -->
     <section id="view-choose" class="view active" aria-label="Elegí el viaje">
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 style="margin:0 0 8px 0;">Elegí el viaje que querés reservar</h2>
-          <!-- (Se quitó el párrafo descriptivo) -->
           <div id="tripList" class="trip-list"></div>
         </div>
       </div>
@@ -270,11 +262,11 @@
       <form id="selectForm" class="form" onsubmit="event.preventDefault(); startSelection();">
         <div class="form-row">
           <label for="nombrePrincipal">Nombre del pasajero</label>
-          <input id="nombrePrincipal" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next"/>
+          <input id="nombrePrincipal" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" />
         </div>
         <div class="form-row">
           <label for="ciPrincipal">CI del pasajero</label>
-          <input id="ciPrincipal" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done"/>
+          <input id="ciPrincipal" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" />
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Reservar</button>
@@ -296,7 +288,6 @@
       <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
         <h3>Asignar nombres a tus asientos</h3>
         <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
-
         <div id="assignList" class="assign-list"></div>
 
         <!-- Bottom App Bar (solo botones) -->
@@ -322,7 +313,7 @@
       <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
         <div class="form-row">
           <label for="ciSearch">CI del pasajero</label>
-          <input id="ciSearch" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="search"/>
+          <input id="ciSearch" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="search" />
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Buscar</button>
@@ -346,11 +337,11 @@
       <form id="controlForm" class="form" onsubmit="event.preventDefault(); doControlLogin();">
         <div class="form-row">
           <label for="ctlUser">Usuario</label>
-          <input id="ctlUser" type="text" placeholder="Usuario" autocomplete="username" required/>
+          <input id="ctlUser" type="text" placeholder="Usuario" autocomplete="username" required />
         </div>
         <div class="form-row">
           <label for="ctlPass">Contraseña</label>
-          <input id="ctlPass" type="password" placeholder="Contraseña" autocomplete="current-password" required/>
+          <input id="ctlPass" type="password" placeholder="Contraseña" autocomplete="current-password" required />
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Ingresar</button>
@@ -409,20 +400,76 @@
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
         .join('&');
 
-    async function parseResponse(res) { const text = await res.text(); try { return JSON.parse(text); } catch { return text; } }
-    function withCommonParams(extra = {}) { const base = { api: '1', ...extra }; if (API_KEY) base.apiKey = API_KEY; return base; }
-    function getUrl(action, extraParams = {}) { const params = withCommonParams({ action, ...extraParams }); return BASE_URL + QS(params); }
-    function postOptions(payloadObj) { return { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payloadObj || {}) }; }
+    async function parseResponse(res) {
+      const text = await res.text();
+      try { return JSON.parse(text); } catch { return text; }
+    }
 
-    async function apiGetTrips(folderId) { const res = await fetch(getUrl('trips', { folderId })); if (!res.ok) throw new Error(`GET trips: ${res.status}`); return parseResponse(res); }
-    async function apiGetSeats(fileId, sheetName) { const res = await fetch(getUrl('seats', { fileId, sheetName })); if (!res.ok) throw new Error(`GET seats: ${res.status}`); return parseResponse(res); }
-    async function apiGetSeatsByCi(fileId, sheetName, ci) { const res = await fetch(getUrl('seatsByCi', { fileId, sheetName, ci })); if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`); return parseResponse(res); }
-    async function apiGetLogo() { const res = await fetch(getUrl('logo')); if (!res.ok) throw new Error(`GET logo: ${res.status}`); return parseResponse(res); }
-    async function apiExportPdf(fileId, sheetName) { const res = await fetch(getUrl('exportPdf', { fileId, sheetName })); if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`); return parseResponse(res); }
-    async function apiReserve(fileId, sheetName, pairs) { const res = await fetch(getUrl('reserve'), postOptions({ fileId, sheetName, pairs })); if (!res.ok) throw new Error(`POST reserve: ${res.status}`); return parseResponse(res); }
-    async function apiMove(fileId, sheetName, sourceCode, targetCode){ const res = await fetch(getUrl('move'), postOptions({ fileId, sheetName, sourceCode, targetCode })); if (!res.ok) throw new Error(`POST move: ${res.status}`); return parseResponse(res); }
-    async function apiFree(fileId, sheetName, code) { const res = await fetch(getUrl('free'), postOptions({ fileId, sheetName, code })); if (!res.ok) throw new Error(`POST free: ${res.status}`); return parseResponse(res); }
-    async function apiLogin(user,pass) { const res = await fetch(getUrl('login'), postOptions({ user, pass })); if (!res.ok) throw new Error(`POST login: ${res.status}`); return parseResponse(res); }
+    function withCommonParams(extra = {}) {
+      const base = { api: '1', ...extra };
+      if (API_KEY) base.apiKey = API_KEY;
+      return base;
+    }
+
+    function getUrl(action, extraParams = {}) {
+      const params = withCommonParams({ action, ...extraParams });
+      return BASE_URL + QS(params);
+    }
+
+    function postOptions(payloadObj) {
+      return {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payloadObj || {})
+      };
+    }
+
+    async function apiGetTrips(folderId) {
+      const res = await fetch(getUrl('trips', { folderId }));
+      if (!res.ok) throw new Error(`GET trips: ${res.status}`);
+      return parseResponse(res);
+    }
+    async function apiGetSeats(fileId, sheetName) {
+      const res = await fetch(getUrl('seats', { fileId, sheetName }));
+      if (!res.ok) throw new Error(`GET seats: ${res.status}`);
+      return parseResponse(res);
+    }
+    async function apiGetSeatsByCi(fileId, sheetName, ci) {
+      const res = await fetch(getUrl('seatsByCi', { fileId, sheetName, ci }));
+      if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`);
+      return parseResponse(res);
+    }
+    async function apiGetLogo() {
+      const res = await fetch(getUrl('logo'));
+      if (!res.ok) throw new Error(`GET logo: ${res.status}`);
+      return parseResponse(res);
+    }
+    async function apiExportPdf(fileId, sheetName) {
+      const res = await fetch(getUrl('exportPdf', { fileId, sheetName }));
+      if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`);
+      return parseResponse(res);
+    }
+    async function apiReserve(fileId, sheetName, pairs) {
+      const res = await fetch(getUrl('reserve'), postOptions({ fileId, sheetName, pairs }));
+      if (!res.ok) throw new Error(`POST reserve: ${res.status}`);
+      return parseResponse(res);
+    }
+    async function apiMove(fileId, sheetName, sourceCode, targetCode){
+      const res = await fetch(getUrl('move'), postOptions({ fileId, sheetName, sourceCode, targetCode }));
+      if (!res.ok) throw new Error(`POST move: ${res.status}`);
+      return parseResponse(res);
+    }
+    async function apiFree(fileId, sheetName, code) {
+      const res = await fetch(getUrl('free'), postOptions({ fileId, sheetName, code }));
+      if (!res.ok) throw new Error(`POST free: ${res.status}`);
+      return parseResponse(res);
+    }
+    async function apiLogin(user,pass) {
+      const res = await fetch(getUrl('login'), postOptions({ user, pass }));
+      if (!res.ok) throw new Error(`POST login: ${res.status}`);
+      return parseResponse(res);
+    }
 
     window.API = { apiGetTrips, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLogin };
   </script>
@@ -472,6 +519,7 @@
       }catch(err){ toast('No se pudieron cargar los viajes'); }
       finally{ hideLoading(); }
     }
+
     function selectTrip(tr){
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
       if(CURRENT_TRIP.hasFloors){
@@ -497,6 +545,7 @@
         chooseFloor(sheet);
       }
     }
+
     function chooseFloor(sheetName){ CURRENT_TRIP.sheetName = sheetName; updateTripTags(); goHome(); }
     function backToChoose(){ CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false }; showView('view-choose'); }
     function updateTripTags(){ document.getElementById('tagTrip').textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`; document.getElementById('tagSheet').textContent= `Hoja: ${CURRENT_TRIP.sheetName || '—'}`; }
@@ -513,7 +562,8 @@
       try{
         const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
         const rows = resp.rows || [];
-        SEATS = {}; rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
+        SEATS = {};
+        rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
         if(gridEl){ buildGrid(targetId); }
       }catch(err){
         toast('Error al cargar asientos'); if(gridEl){ buildGrid(targetId); }
@@ -529,38 +579,36 @@
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
       const maxRow = getMaxRow(); if(maxRow === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
       let seatNumber = 1;
-
       for(let row=1; row<=maxRow; row++){
         const rowEl = document.createElement('div'); rowEl.className = 'row';
-        const left  = document.createElement('div'); left.className  = 'block';
+        const left = document.createElement('div'); left.className = 'block';
         const right = document.createElement('div'); right.className = 'block';
-
         const renderSeat = (letter, container)=>{
           const code = `${row}${letter}`;
           const klass = computeClassFor(code);
           const btn = document.createElement('button'); btn.type='button'; btn.className = `seat ${klass}`;
           const isNum = (klass === 'libre' || klass === 'ocupado');
           const norm = normalize(code);
-
           if(isNum){
             btn.textContent = seatNumber;
             btn.setAttribute('data-code', code);
             btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             NUM_LABELS.set(norm, seatNumber); seatNumber++;
-            if(targetId === 'grid-select'){ if(klass === 'libre'){ btn.onclick = () => toggleSeat(code, btn); } else { btn.disabled = true; } }
-          }else{ btn.innerHTML = ' '; btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`); btn.disabled = true; }
-
+            if(targetId === 'grid-select'){
+              if(klass === 'libre'){ btn.onclick = () => toggleSeat(code, btn); } else { btn.disabled = true; }
+            }
+          }else{
+            btn.innerHTML = ' '; btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`); btn.disabled = true;
+          }
           if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); }
           container.appendChild(btn);
         };
-
         ['A','B'].forEach(l => renderSeat(l, left));
         const aisle = document.createElement('div'); aisle.className = 'aisle';
         ['C','D'].forEach(l => renderSeat(l, right));
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
       }
-
       if(HIGHLIGHT_CODES.size){
         const first = grid.querySelector('.seat.mine');
         if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
@@ -576,7 +624,7 @@
       if(BUSY) return;
       if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
       const nombre = document.getElementById('nombrePrincipal').value.trim();
-      const ci     = document.getElementById('ciPrincipal').value.trim();
+      const ci = document.getElementById('ciPrincipal').value.trim();
       if(!nombre || !ci){ toast('Completá nombre y CI'); return; }
 
       if(selected.size === 1){
@@ -595,25 +643,23 @@
         const codeNorm = normalize(codes[i]); const num = NUM_LABELS.get(codeNorm) || '';
         const row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
         const title = document.createElement('div'); title.className = 'assign-title'; title.textContent = `Asiento ${num || codeNorm}`;
-        const grid = document.createElement('div'); grid.className  = 'assign-grid';
+        const grid = document.createElement('div'); grid.className = 'assign-grid';
 
-        const nameWrap  = document.createElement('label'); nameWrap.className = 'field';
-        const nameLabel = document.createElement('span');  nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
+        const nameWrap = document.createElement('label'); nameWrap.className = 'field';
+        const nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
         const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.value = i===0 ? nombre : ''; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
 
-        const ciWrap  = document.createElement('label'); ciWrap.className = 'field';
-        const ciLabel = document.createElement('span');  ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
+        const ciWrap = document.createElement('label'); ciWrap.className = 'field';
+        const ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
         const ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.value = i===0 ? ci : ''; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
         ciInput.addEventListener('input', e => onlyDigits(e.target));
 
         nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
-        ciWrap.appendChild(ciLabel);     ciWrap.appendChild(ciInput);
-
+        ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
         grid.appendChild(nameWrap); grid.appendChild(ciWrap);
         row.appendChild(title); row.appendChild(grid);
         assign.appendChild(row);
       }
-
       document.getElementById('view-assign').classList.remove('hidden');
       document.getElementById('view-assign').scrollIntoView({behavior:'smooth'});
     }
@@ -626,7 +672,7 @@
         const row = inputs[i];
         const codeNorm = row.getAttribute('data-code');
         const pasajero = row.querySelector('.assign-name').value.trim();
-        const ci       = row.querySelector('.assign-ci').value.trim();
+        const ci = row.querySelector('.assign-ci').value.trim();
         if(!pasajero || !ci){ toast(`Faltan datos en ${codeNorm}`); return; }
         pairs.push({ asiento: codeNorm, pasajero, ci });
       }
@@ -638,7 +684,8 @@
 
     function showReserveFeedbackDetailed(pairs){
       const panel = document.getElementById('reserveFeedback'); const nums = document.getElementById('reserveNums'); nums.innerHTML = '';
-      (pairs || []).forEach(p => { const norm = normalize(p.asiento); const num = NUM_LABELS.get(norm);
+      (pairs || []).forEach(p => {
+        const norm = normalize(p.asiento); const num = NUM_LABELS.get(norm);
         const pill = document.createElement('span'); pill.className = 'pill';
         pill.textContent = `${(typeof num !== 'undefined') ? num : norm} — ${p.pasajero} (${p.ci})`;
         nums.appendChild(pill);
@@ -667,19 +714,25 @@
       }catch(err){ toast('Error al buscar por CI'); }
       finally{ hideLoading(); }
     }
+
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map(); const maxRow = getMaxRow(); let seatNumber = 1;
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
       for(let row=1; row<=maxRow; row++){ for(const letter of ['A','B','C','D']){ const code = `${row}${letter}`; const klass = computeClassFor(code); const norm = normalize(code); if(isNum(klass)){ NUM_LABELS.set(norm, seatNumber); seatNumber++; } } }
       return codes.map(c => NUM_LABELS.get(c)).filter(n => typeof n !== 'undefined');
     }
+
     function renderFindFeedback(nums){
-      const panel = document.getElementById('findFeedback'); const list  = document.getElementById('findNums'); const btn = document.getElementById('btnShowCroquis');
+      const panel = document.getElementById('findFeedback'); const list = document.getElementById('findNums'); const btn = document.getElementById('btnShowCroquis');
       list.innerHTML = '';
-      if(nums.length){ nums.forEach(n => { const pill = document.createElement('span'); pill.className='pill'; pill.textContent = String(n); list.appendChild(pill); });
+      if(nums.length){
+        nums.forEach(n => { const pill = document.createElement('span'); pill.className='pill'; pill.textContent = String(n); list.appendChild(pill); });
         panel.classList.remove('hidden'); btn.disabled = false; panel.scrollIntoView({behavior:'smooth'});
-      }else{ panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true; }
+      }else{
+        panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true;
+      }
     }
+
     function showCroquisForCI(){ showLoading('Cargando croquis…'); refreshSeats('grid-find', () => { hideLoading(); document.getElementById('grid-find').scrollIntoView({behavior:'smooth'}); toast(`Resaltados: ${HIGHLIGHT_CODES.size}`); }); }
     function clearFindView(){ document.getElementById('findFeedback').classList.add('hidden'); document.getElementById('findNums').innerHTML = ''; document.getElementById('grid-find').innerHTML = ''; HIGHLIGHT_CODES = new Set(); LAST_FOUND_CODES = []; }
 
@@ -695,23 +748,20 @@
       finally{ hideLoading(); }
     }
     function doControlLogout(){ CONTROL_AUTH=false; hideControlBoard(); document.getElementById('ctlPass').value=''; toast('Sesión finalizada'); }
+
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
-      const board  = document.getElementById('controlBoard');
+      const board = document.getElementById('controlBoard');
       const croquis= document.getElementById('controlCroquis');
-      const fb     = document.getElementById('pdfLinkFallback');
-
+      const fb = document.getElementById('pdfLinkFallback');
       board.hidden = false; croquis.innerHTML = ''; fb.classList.add('hidden'); fb.innerHTML = '';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
-
       const maxRow = getMaxRow(); if(maxRow === 0){ croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
       NUM_LABELS = new Map(); let seatNumber = 1;
-
       for(let row=1; row<=maxRow; row++){
         const rowEl=document.createElement('div'); rowEl.className='row';
         const left=document.createElement('div'); left.className='block';
         const right=document.createElement('div'); right.className='block';
-
         const renderSeat=(letter, container)=>{
           const code=`${row}${letter}`; const norm=normalize(code); const klass=computeClassFor(code); const isNum=(klass==='libre'||klass==='ocupado');
           const btn=document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
@@ -728,24 +778,23 @@
           btn.onclick=()=> onControlSeatClick(btn);
           container.appendChild(btn);
         };
-
         ['A','B'].forEach(l=>renderSeat(l,left));
         const aisle=document.createElement('div'); aisle.className='aisle';
         ['C','D'].forEach(l=>renderSeat(l,right));
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         croquis.appendChild(rowEl);
       }
-
       board.scrollIntoView({behavior:'smooth'}); attachStickyAnimation();
     }
+
     function attachStickyAnimation(){ const toolbar = document.getElementById('controlToolbar'); function onScroll(){ const y=window.scrollY; if(y>24){ toolbar.classList.add('scrolled'); } else { toolbar.classList.remove('scrolled'); } } window.removeEventListener('scroll', onScroll); window.addEventListener('scroll', onScroll, { passive:true }); onScroll(); }
     function hideControlBoard(){ const board = document.getElementById('controlBoard'); board.hidden = true; document.getElementById('controlCroquis').innerHTML=''; const fb=document.getElementById('pdfLinkFallback'); fb.classList.add('hidden'); fb.innerHTML=''; CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI(); }
     function toggleControlEdit(){ CONTROL_EDIT=!CONTROL_EDIT; updateEditTags(); syncToolbarUI(); toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado'); }
     function onControlSeatClick(btn){
       if(!CONTROL_EDIT) return;
       const status=(btn.getAttribute('data-status')||'libre').toLowerCase().trim();
-      const num   =parseInt(btn.getAttribute('data-num')||'0',10);
-      const code  =btn.getAttribute('data-code');
+      const num =parseInt(btn.getAttribute('data-num')||'0',10);
+      const code =btn.getAttribute('data-code');
       if(status==='ocupado'){
         document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
         btn.classList.add('pick-source'); EDIT_SRC={num,code};
@@ -776,17 +825,21 @@
     async function movePassenger(){
       showLoading('Moviendo pasajero…');
       if(!EDIT_SRC || !EDIT_DST){ hideLoading(); toast('Selecciona origen (ocupado) y destino (libre).'); return; }
-      try{ const resp=await API.apiMove(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code, EDIT_DST.code);
+      try{
+        const resp=await API.apiMove(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code, EDIT_DST.code);
         toast(resp && resp.message ? resp.message : 'Movimiento realizado'); cancelEdit(true); refreshSeatsWithSpinner(null, renderControlBoard);
       }catch(err){ toast('No se pudo mover al pasajero'); } finally{ hideLoading(); }
     }
+
     async function freeSelectedSeat(){
       showLoading('Liberando asiento…');
       if(!EDIT_SRC){ hideLoading(); toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
-      try{ const resp=await API.apiFree(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code);
+      try{
+        const resp=await API.apiFree(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code);
         toast(resp && resp.message ? resp.message : 'Asiento liberado'); cancelEdit(true); refreshSeatsWithSpinner(null, renderControlBoard);
       }catch(err){ toast('No se pudo liberar el asiento'); } finally{ hideLoading(); }
     }
+
     async function doExportPdf(){
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
       showLoading('Generando PDF…');
@@ -794,8 +847,11 @@
         const resp = await API.apiExportPdf(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
         if(resp && resp.url){
           const newWin=window.open(resp.url,'_blank');
-          if(!newWin){ const fb=document.getElementById('pdfLinkFallback'); fb.innerHTML='Tu PDF está listo: <a href="'+resp.url+'" target="_blank" rel="noopener">Abrir PDF</a>'; fb.classList.remove('hidden'); }
-          else{ toast('PDF listo'); }
+          if(!newWin){
+            const fb=document.getElementById('pdfLinkFallback');
+            fb.innerHTML='Tu PDF está listo: <a href="'+resp.url+'" target="_blank" rel="noopener">Abrir PDF</a>';
+            fb.classList.remove('hidden');
+          }else{ toast('PDF listo'); }
         }else{ toast(resp && resp.message ? resp.message : 'No se pudo generar el PDF'); }
       }catch(err){ toast('Error al generar PDF'); }
       finally{ hideLoading(); }
@@ -822,10 +878,8 @@
         // si falla, mantené skeleton para disimular el error
         document.getElementById('logoSkeleton').style.display='block';
       }
-
       document.getElementById('ciPrincipal')?.addEventListener('input', e => onlyDigits(e.target));
       document.getElementById('ciSearch')?.addEventListener('input', e => onlyDigits(e.target));
-
       await loadTrips();
     })();
   </script>
