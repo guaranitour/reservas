@@ -76,14 +76,15 @@
     .card h2{margin:0; font-size:1.15rem;}
     .card p{margin:0; color:var(--muted);}
 
-    /* Título más discreto para secciones */
+    /* Título discreto y centrado para secciones */
     .view-title{
-      margin:0 0 8px 0;
-      font-size:1rem;            /* más pequeño que el h2 por defecto */
+      margin:0 0 16px 0;   /* MÁS ESPACIO debajo del título */
+      font-size:1rem;      /* más pequeño que el h2 por defecto */
       line-height:1.25;
       font-weight:800;
       letter-spacing:.2px;
       color:var(--text);
+      text-align:center;   /* centrado */
     }
 
     /* Formularios */
@@ -263,7 +264,7 @@
     <section id="view-choose" class="view active" aria-label="Elegí el viaje">
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
-          <!-- Título más discreto -->
+          <!-- Título más discreto y centrado (con más espacio abajo) -->
           <h2 class="view-title">Elegí tu viaje</h2>
           <div id="tripList" class="trip-list"></div>
         </div>
@@ -274,7 +275,7 @@
     <section id="view-floor" class="view" aria-label="Elegí planta">
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
-          <h2 style="margin:0 0 8px 0;">Elegí planta</h2>
+          <h2 class="view-title">Elegí planta</h2>
           <div class="floors" id="floorCards"></div>
           <div class="actions" style="margin-top:12px;">
             <button type="button" class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
@@ -583,13 +584,15 @@
         const bajaName = tr.sheets.find(s => s.toLowerCase() === 'asientos baja');
         const altaName = tr.sheets.find(s => s.toLowerCase() === 'asientos alta');
         const candidates = [];
-        if(bajaName) candidates.push({ label:'Planta baja', sheetName:bajaName });
-        if(altaName) candidates.push({ label:'Planta alta', sheetName:altaName });
-        if(!candidates.length){ tr.sheets.forEach(s => candidates.push({ label:s, sheetName:s })); }
+        // Si existen las hojas estándar, usamos etiquetas y descripciones amigables
+        if(bajaName) candidates.push({ label:'Planta baja', sheetName:bajaName, desc:'Acceso rápido, usualmente cerca del conductor.' });
+        if(altaName) candidates.push({ label:'Planta alta', sheetName:altaName, desc:'Mayor altura y vista panorámica.' });
+        // Si no, caemos a todas las hojas mostrando el nombre de la hoja como etiqueta
+        if(!candidates.length){ tr.sheets.forEach(s => candidates.push({ label:s, sheetName:s, desc:null })); }
         candidates.forEach(c => {
           const card = document.createElement('article'); card.className='card'; card.tabIndex=0;
           const h2 = document.createElement('h2'); h2.textContent = c.label;
-          const p = document.createElement('p'); p.textContent = `Hoja: ${c.sheetName}`;
+          const p = document.createElement('p'); p.textContent = c.desc ? c.desc : `Hoja: ${c.sheetName}`;
           card.appendChild(h2); card.appendChild(p);
           card.onclick = () => chooseFloor(c.sheetName);
           card.onkeypress = (ev) => { if(ev.key==='Enter') chooseFloor(c.sheetName); };
