@@ -76,6 +76,16 @@
     .card h2{margin:0; font-size:1.15rem;}
     .card p{margin:0; color:var(--muted);}
 
+    /* Título más discreto para secciones */
+    .view-title{
+      margin:0 0 8px 0;
+      font-size:1rem;            /* más pequeño que el h2 por defecto */
+      line-height:1.25;
+      font-weight:800;
+      letter-spacing:.2px;
+      color:var(--text);
+    }
+
     /* Formularios */
     .form{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px; margin-bottom:12px;}
     .form-row{display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
@@ -238,9 +248,11 @@
       <div id="adminMenu" class="admin-menu hidden" role="dialog" aria-modal="false" aria-label="Acceso staff">
         <p class="admin-title">Acceso staff</p>
         <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
-          <button type="button" class="btn primary btn-admin" onclick="openStaffLogin()">Control interno</button>
-          <button type="button" class="btn ghost btn-admin" onclick="goToControlBoard()">Panel de control</button>
-          <button type="button" class="btn danger btn-admin" onclick="doControlLogout()">Cerrar sesión staff</button>
+          <!-- Solo visible si NO estás logueado -->
+          <button type="button" id="btnAdminLogin" class="btn primary btn-admin" onclick="openStaffLogin()">Control interno</button>
+          <!-- Visibles SOLO si estás logueado -->
+          <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="goToControlBoard()">Panel de control</button>
+          <button type="button" id="btnAdminLogout" class="btn danger btn-admin hidden" onclick="doControlLogout()">Cerrar sesión staff</button>
         </div>
       </div>
     </div>
@@ -251,7 +263,8 @@
     <section id="view-choose" class="view active" aria-label="Elegí el viaje">
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
-          <h2 style="margin:0 0 8px 0;">Elegí el viaje que querés reservar</h2>
+          <!-- Título más discreto -->
+          <h2 class="view-title">Elegí tu viaje</h2>
           <div id="tripList" class="trip-list"></div>
         </div>
       </div>
@@ -502,10 +515,24 @@
     function showAdminMenu(){ document.getElementById('adminMenu').classList.remove('hidden'); }
     function hideAdminMenu(){ document.getElementById('adminMenu').classList.add('hidden'); }
     function toggleAdminMenu(){ document.getElementById('adminMenu').classList.toggle('hidden'); }
+
+    /* Mostrar/ocultar opciones del panel del logo según login */
+    function updateAdminMenu(){
+      const bLogin  = document.getElementById('btnAdminLogin');
+      const bPanel  = document.getElementById('btnAdminControl');
+      const bLogout = document.getElementById('btnAdminLogout');
+      if(!bLogin || !bPanel || !bLogout) return;
+      const isAuth = CONTROL_AUTH;
+      bLogin.classList.toggle('hidden',  isAuth);   // ocultar “Control interno” si estoy logueado
+      bPanel.classList.toggle('hidden',  !isAuth);  // mostrar “Panel de control” solo logueado
+      bLogout.classList.toggle('hidden', !isAuth);  // mostrar “Cerrar sesión” solo logueado
+    }
+
     function openStaffLogin(){
       hideAdminMenu();
       CONTROL_AUTH = false;
       setStaffSession(false);
+      updateAdminMenu();
       hideControlBoard();
       showView('view-control');
       const u = document.getElementById('ctlUser'); const p = document.getElementById('ctlPass');
@@ -812,6 +839,7 @@
         if(resp && resp.ok){
           CONTROL_AUTH = true;
           setStaffSession(true);
+          updateAdminMenu();
           toast('Acceso staff habilitado');
           syncStaffBadge();
           // Tras login: mostrar lista de viajes para seleccionar
@@ -821,6 +849,7 @@
         }else{
           CONTROL_AUTH = false;
           setStaffSession(false);
+          updateAdminMenu();
           hideControlBoard();
           toast('Usuario o contraseña inválidos');
           syncStaffBadge();
@@ -828,6 +857,7 @@
       }catch(err){
         CONTROL_AUTH = false;
         setStaffSession(false);
+        updateAdminMenu();
         hideControlBoard();
         toast('Error de verificación');
         syncStaffBadge();
@@ -838,6 +868,7 @@
     function doControlLogout(){
       CONTROL_AUTH=false;
       setStaffSession(false);
+      updateAdminMenu();
       syncStaffBadge();
       hideControlBoard();
       toast('Sesión finalizada');
@@ -1043,10 +1074,12 @@
       // 6) Restaurar perfil staff si existe y cargar viajes
       if (isStaffSession()) {
         CONTROL_AUTH = true;
+        updateAdminMenu();
         syncStaffBadge();
         await loadTrips();
         showView('view-choose');
       } else {
+        updateAdminMenu();
         await loadTrips();
       }
     })();
