@@ -52,6 +52,7 @@
       max-width:100%; height:auto; display:block; object-fit:contain; margin:0 auto;
       filter: drop-shadow(0 3px 8px rgba(17,24,39,.14));
       opacity:0; transition: opacity .25s ease; /* fade-in al cargar */
+      cursor: pointer; /* clickeable para el easter egg */
     }
     .brand-chip img.ready{ opacity:1; }
 
@@ -193,6 +194,37 @@
     .floors .card h2{ font-size:1rem; }
     .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
     .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
+
+    /* ===== Admin (Easter Egg en el logo) ===== */
+    .admin-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 8px;
+      z-index: 40;
+      width: min(92vw, 320px);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(255,255,255,.80);
+      box-shadow: 0 12px 28px rgba(17,24,39,.16);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .admin-title {
+      margin: 0 0 10px 0;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .btn-admin { width: 100%; }
+    .admin-menu.hidden { display: none; }
+    .brand-chip .egg-note {
+      position: absolute;
+      bottom: 6px; right: 10px;
+      font-size: .75rem; color: #374151; opacity: .6;
+    }
+    /* Indicadores staff (opcional) */
+    #controlCroquis .seat.pick-source { outline: 3px dashed #ef4444; }
+    #controlCroquis .seat.pick-target { outline: 3px dashed #10b981; }
   </style>
 </head>
 <body>
@@ -201,8 +233,15 @@
     <div class="brand-chip">
       <!-- Skeleton visible mientras carga el logo -->
       <div id="logoSkeleton" class="logo-skeleton" aria-hidden="true"></div>
-      <!-- Imagen del logo: arranca invisible; el init() setea el src -->
+      <!-- Imagen del logo (el init() setea el src) -->
       <img id="heroLogo" alt="Logo" />
+
+      <!-- Panel “Easter Egg” del staff (arranca oculto) -->
+      <div id="adminMenu" class="admin-menu hidden" role="dialog" aria-modal="false" aria-label="Acceso staff">
+        <p class="admin-title">Acceso staff</p>
+        <button type="button" class="btn primary btn-admin" onclick="openStaffLogin()">Control interno</button>
+      </div>
+      <span class="egg-note" aria-hidden="true">Presioná el logo</span>
     </div>
   </header>
 
@@ -212,7 +251,6 @@
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 style="margin:0 0 8px 0;">Elegí el viaje que querés reservar</h2>
-          <!-- (Se quitó el párrafo descriptivo) -->
           <div id="tripList" class="trip-list"></div>
         </div>
       </div>
@@ -250,10 +288,7 @@
             <h2>Buscar por CI</h2>
             <p>Ingresa tu CI para ver tus números y el croquis.</p>
           </article>
-          <article class="card" tabindex="0" role="button" onclick="goControl()" onkeypress="handleEnter(event, goControl)">
-            <h2>Control interno</h2>
-            <p>Ocupación, exportar PDF y edición.</p>
-          </article>
+          <!-- Se removió la tarjeta de “Control interno” del menú público -->
         </div>
         <div class="actions" style="margin-top:14px;">
           <button class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
@@ -336,7 +371,7 @@
       <div id="grid-find" class="grid" aria-live="polite" aria-busy="true"></div>
     </section>
 
-    <!-- Control interno -->
+    <!-- Control interno (login + tablero) -->
     <section id="view-control" class="view" aria-label="Control interno">
       <form id="controlForm" class="form" onsubmit="event.preventDefault(); doControlLogin();">
         <div class="form-row">
@@ -451,6 +486,19 @@
     function firstName(full){ const t = (full || '').trim(); if(!t) return ''; const name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
+    /* ===== Admin (Easter Egg) ===== */
+    function showAdminMenu(){ document.getElementById('adminMenu').classList.remove('hidden'); }
+    function hideAdminMenu(){ document.getElementById('adminMenu').classList.add('hidden'); }
+    function toggleAdminMenu(){ document.getElementById('adminMenu').classList.toggle('hidden'); }
+    function openStaffLogin(){
+      hideAdminMenu();
+      CONTROL_AUTH = false;
+      hideControlBoard();
+      showView('view-control');
+      const u = document.getElementById('ctlUser'); const p = document.getElementById('ctlPass');
+      if(u) u.value = ''; if(p) p.value = '';
+    }
+
     /* Elegir viaje */
     async function loadTrips(){
       showLoading('Cargando viajes…');
@@ -499,14 +547,28 @@
       }
     }
 
-    function chooseFloor(sheetName){ CURRENT_TRIP.sheetName = sheetName; updateTripTags(); goHome(); }
+    function chooseFloor(sheetName){
+      CURRENT_TRIP.sheetName = sheetName;
+      updateTripTags();
+
+      if (CONTROL_AUTH) {
+        // Staff: tablero de control
+        showView('view-control');
+        showLoading('Cargando ocupación…');
+        refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
+      } else {
+        // Público: flujo normal
+        goHome();
+      }
+    }
+
     function backToChoose(){ CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false }; showView('view-choose'); }
     function updateTripTags(){ document.getElementById('tagTrip').textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`; document.getElementById('tagSheet').textContent= `Hoja: ${CURRENT_TRIP.sheetName || '—'}`; }
 
     /* Vistas principales */
     function goSelect(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-select'); showLoading('Cargando asientos…'); refreshSeats('grid-select', () => hideLoading()); }
     function goFind(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-find'); clearFindView(); }
-    function goControl(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-control'); CONTROL_AUTH = false; hideControlBoard(); }
+    function goControl(){ openStaffLogin(); } // compat: ahora abre vía panel del logo
 
     /* Datos */
     async function refreshSeats(targetId, onDone){
@@ -743,13 +805,20 @@
         const resp = await API.apiLogin(u,p);
         if(resp && resp.ok){
           CONTROL_AUTH = true;
-          showLoading('Cargando ocupación…');
-          await refreshSeats(null, renderControlBoard);
+          toast('Acceso staff habilitado');
+          // Tras login: mostrar lista de viajes para seleccionar
+          showView('view-choose');
+          await loadTrips();
+          hideControlBoard();
         }else{
-          CONTROL_AUTH = false; hideControlBoard(); toast('Usuario o contraseña inválidos');
+          CONTROL_AUTH = false;
+          hideControlBoard();
+          toast('Usuario o contraseña inválidos');
         }
       }catch(err){
-        CONTROL_AUTH = false; hideControlBoard(); toast('Error de verificación');
+        CONTROL_AUTH = false;
+        hideControlBoard();
+        toast('Error de verificación');
       }finally{
         hideLoading();
       }
@@ -931,10 +1000,10 @@
       }
     }
 
-    /* ===== Inicio (corrección de logo) ===== */
+    /* ===== Inicio (carga logo + enganchar easter egg) ===== */
     (async function init(){
       try{
-        // 1) Eliminar nodos de texto sueltos que Word pueda haber dejado dentro de .brand-chip
+        // 1) Limpiar nodos de texto fantasma dentro de .brand-chip
         const chip = document.querySelector('.brand-chip');
         chip.childNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
 
@@ -955,12 +1024,26 @@
         } else {
           skel.style.display='block';
         }
+
+        // 5) Enganchar el easter egg: click y long-press móvil
+        img.addEventListener('click', (ev) => { ev.stopPropagation(); toggleAdminMenu(); });
+        document.addEventListener('click', (ev) => {
+          const menu = document.getElementById('adminMenu');
+          const chipBox = document.querySelector('.brand-chip');
+          if (!chipBox.contains(ev.target)) { menu.classList.add('hidden'); }
+        }, { passive:true });
+
+        let pressTimer = null;
+        img.addEventListener('touchstart', () => { pressTimer = setTimeout(() => toggleAdminMenu(), 450); }, {passive:true});
+        img.addEventListener('touchend', () => { clearTimeout(pressTimer); }, {passive:true});
       }catch(e){
         document.getElementById('logoSkeleton').style.display='block';
       }
 
       document.getElementById('ciPrincipal')?.addEventListener('input', e => onlyDigits(e.target));
       document.getElementById('ciSearch')?.addEventListener('input', e => onlyDigits(e.target));
+
+      // Cargar lista de viajes al inicio (público y también útil para staff tras login)
       await loadTrips();
     })();
   </script>
