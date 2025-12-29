@@ -78,7 +78,7 @@
 
     /* Título discreto y centrado para secciones */
     .view-title{
-      margin:0 0 16px 0;   /* MÁS ESPACIO debajo del título */
+      margin:0 0 16px 0;   /* más espacio debajo del título */
       font-size:1rem;      /* más pequeño que el h2 por defecto */
       line-height:1.25;
       font-weight:800;
@@ -228,13 +228,16 @@
     .btn-admin { width: 100%; }
     .admin-menu.hidden { display: none; }
 
-    /* ===== Chip Perfil Staff ===== */
-    .staff-chip {
-      display:inline-flex; align-items:center; gap:8px;
-      background:#fde68a; color:#92400e; font-weight:700;
-      border-radius:999px; padding:6px 10px; box-shadow:0 4px 12px rgba(17,24,39,.10);
+    /* ===== Insignia Staff fija (top-right) ===== */
+    .staff-badge{
+      position:fixed; top:10px; right:10px; z-index:60;
+      display:inline-flex; align-items:center; gap:6px;
+      background:#fde68a; color:#92400e;
+      padding:6px 10px; border-radius:999px;
+      font-size:.85rem; font-weight:800;
+      box-shadow:0 8px 20px rgba(17,24,39,.16), inset 0 0 0 1px rgba(146,64,14,.20);
+      border:1px solid rgba(255,255,255,.65);
     }
-    .staff-chip .dot { width:8px; height:8px; border-radius:50%; background:#f59e0b; }
   </style>
 </head>
 <body>
@@ -258,6 +261,9 @@
       </div>
     </div>
   </header>
+
+  <!-- Insignia Staff fija (se muestra solo logueado) -->
+  <div id="staffBadge" class="staff-badge hidden" aria-label="Perfil Staff">Staff</div>
 
   <main id="app" class="app">
     <!-- Elegir viaje -->
@@ -291,8 +297,7 @@
         <div style="max-width:560px; width:100%; margin-bottom:12px;">
           <div class="trip-tags">
             <span class="tag" id="tagTrip">Viaje: —</span>
-            <span class="tag" id="tagSheet">Hoja: —</span>
-            <span id="tagStaff" class="staff-chip hidden"><span class="dot"></span>Perfil: Staff</span>
+            <!-- Nota: se removió el chip de Hoja para no mostrar ramificaciones/nombres -->
           </div>
         </div>
         <div class="cards">
@@ -304,7 +309,6 @@
             <h2>Buscar por CI</h2>
             <p>Ingresa tu CI para ver tus números y el croquis.</p>
           </article>
-          <!-- Se removió la tarjeta de “Control interno” del menú público -->
         </div>
         <div class="actions" style="margin-top:14px;">
           <button class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
@@ -524,36 +528,23 @@
       const bLogout = document.getElementById('btnAdminLogout');
       if(!bLogin || !bPanel || !bLogout) return;
       const isAuth = CONTROL_AUTH;
-      bLogin.classList.toggle('hidden',  isAuth);   // ocultar “Control interno” si estoy logueado
-      bPanel.classList.toggle('hidden',  !isAuth);  // mostrar “Panel de control” solo logueado
-      bLogout.classList.toggle('hidden', !isAuth);  // mostrar “Cerrar sesión” solo logueado
+      bLogin.classList.toggle('hidden',  isAuth);
+      bPanel.classList.toggle('hidden',  !isAuth);
+      bLogout.classList.toggle('hidden', !isAuth);
     }
 
-    function openStaffLogin(){
-      hideAdminMenu();
-      CONTROL_AUTH = false;
-      setStaffSession(false);
-      updateAdminMenu();
-      hideControlBoard();
-      showView('view-control');
-      const u = document.getElementById('ctlUser'); const p = document.getElementById('ctlPass');
-      if(u) u.value = ''; if(p) p.value = '';
-    }
-    function goToControlBoard(){
-      hideAdminMenu();
-      if (!CONTROL_AUTH) { toast('Debes iniciar sesión'); return; }
-      if (!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName) {
-        showView('view-choose');
-        loadTrips();
-        return;
-      }
-      showLoading('Cargando ocupación…');
-      refreshSeatsWithSpinner(null, renderControlBoard);
-    }
+    /* Insignia (pill) fija arriba a la derecha */
     function syncStaffBadge(){
-      const el = document.getElementById('tagStaff');
+      const el = document.getElementById('staffBadge');
       if (!el) return;
       el.classList.toggle('hidden', !CONTROL_AUTH);
+    }
+
+    /* Mostrar/ocultar el formulario de login del control interno */
+    function syncControlFormVisibility(){
+      const form = document.getElementById('controlForm');
+      if (!form) return;
+      form.hidden = CONTROL_AUTH;  // oculto si está logueado, muestro si no
     }
 
     /* Elegir viaje */
@@ -577,6 +568,7 @@
       }catch(err){ toast('No se pudieron cargar los viajes'); }
       finally{ hideLoading(); }
     }
+
     function selectTrip(tr){
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
       if(CURRENT_TRIP.hasFloors){
@@ -584,10 +576,10 @@
         const bajaName = tr.sheets.find(s => s.toLowerCase() === 'asientos baja');
         const altaName = tr.sheets.find(s => s.toLowerCase() === 'asientos alta');
         const candidates = [];
-        // Si existen las hojas estándar, usamos etiquetas y descripciones amigables
+        // Doble piso: etiquetas y descripciones amigables
         if(bajaName) candidates.push({ label:'Planta baja', sheetName:bajaName, desc:'Acceso rápido, usualmente cerca del conductor.' });
         if(altaName) candidates.push({ label:'Planta alta', sheetName:altaName, desc:'Mayor altura y vista panorámica.' });
-        // Si no, caemos a todas las hojas mostrando el nombre de la hoja como etiqueta
+        // Si no hay las hojas estándar, caemos a todas las hojas
         if(!candidates.length){ tr.sheets.forEach(s => candidates.push({ label:s, sheetName:s, desc:null })); }
         candidates.forEach(c => {
           const card = document.createElement('article'); card.className='card'; card.tabIndex=0;
@@ -600,10 +592,12 @@
         });
         showView('view-floor');
       }else{
+        // Convencional: elegimos la hoja por defecto, sin mostrar nombres/ramificaciones al usuario
         const sheet = tr.sheets.find(s => s.toLowerCase() === 'asientos') || tr.sheets[0];
         chooseFloor(sheet);
       }
     }
+
     function chooseFloor(sheetName){
       CURRENT_TRIP.sheetName = sheetName;
       updateTripTags();
@@ -617,10 +611,16 @@
         goHome();
       }
     }
-    function backToChoose(){ CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false }; showView('view-choose'); }
+
+    function backToChoose(){
+      CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false };
+      showView('view-choose');
+    }
+
     function updateTripTags(){
-      document.getElementById('tagTrip').textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`;
-      document.getElementById('tagSheet').textContent= `Hoja: ${CURRENT_TRIP.sheetName || '—'}`;
+      const tagTrip = document.getElementById('tagTrip');
+      if (tagTrip) tagTrip.textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`;
+      // Nota: se removió el chip de Hoja para que no se muestren nombres/ramificaciones de Sheets al público.
       syncStaffBadge();
     }
 
@@ -833,6 +833,19 @@
     }
 
     /* Control interno */
+    function openStaffLogin(){
+      hideAdminMenu();
+      CONTROL_AUTH = false;
+      setStaffSession(false);
+      updateAdminMenu();
+      syncStaffBadge();
+      syncControlFormVisibility();
+      hideControlBoard();
+      showView('view-control');
+      const u = document.getElementById('ctlUser'); const p = document.getElementById('ctlPass');
+      if(u) u.value = ''; if(p) p.value = '';
+    }
+
     async function doControlLogin(){
       const u = document.getElementById('ctlUser').value.trim();
       const p = document.getElementById('ctlPass').value.trim();
@@ -843,9 +856,10 @@
           CONTROL_AUTH = true;
           setStaffSession(true);
           updateAdminMenu();
-          toast('Acceso staff habilitado');
           syncStaffBadge();
-          // Tras login: mostrar lista de viajes para seleccionar
+          syncControlFormVisibility(); // oculto la caja de login
+          toast('Acceso staff habilitado');
+          // Tras login: mostrar lista de viajes para seleccionar (público o staff)
           showView('view-choose');
           await loadTrips();
           hideControlBoard();
@@ -853,31 +867,35 @@
           CONTROL_AUTH = false;
           setStaffSession(false);
           updateAdminMenu();
+          syncStaffBadge();
+          syncControlFormVisibility(); // muestro la caja de login
           hideControlBoard();
           toast('Usuario o contraseña inválidos');
-          syncStaffBadge();
         }
       }catch(err){
         CONTROL_AUTH = false;
         setStaffSession(false);
         updateAdminMenu();
+        syncStaffBadge();
+        syncControlFormVisibility();
         hideControlBoard();
         toast('Error de verificación');
-        syncStaffBadge();
       }finally{
         hideLoading();
       }
     }
+
     function doControlLogout(){
-      CONTROL_AUTH=false;
+      CONTROL_AUTH = false;
       setStaffSession(false);
       updateAdminMenu();
       syncStaffBadge();
+      syncControlFormVisibility(); // vuelvo a mostrar login
       hideControlBoard();
       toast('Sesión finalizada');
-      // Opcional: volver al inicio público
-      backToChoose();
+      backToChoose(); // Volver al inicio público
     }
+
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
       const board = document.getElementById('controlBoard');
@@ -923,6 +941,7 @@
       board.scrollIntoView({behavior:'smooth'});
       attachStickyAnimation();
     }
+
     function attachStickyAnimation(){
       const toolbar = document.getElementById('controlToolbar');
       function onScroll(){ const y=window.scrollY; if(y>24){ toolbar.classList.add('scrolled'); } else { toolbar.classList.remove('scrolled'); } }
@@ -930,6 +949,7 @@
       window.addEventListener('scroll', onScroll, { passive:true });
       onScroll();
     }
+
     function hideControlBoard(){
       const board = document.getElementById('controlBoard');
       board.hidden = true;
@@ -938,7 +958,9 @@
       fb.classList.add('hidden'); fb.innerHTML='';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
     }
+
     function toggleControlEdit(){ CONTROL_EDIT=!CONTROL_EDIT; updateEditTags(); syncToolbarUI(); toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado'); }
+
     function onControlSeatClick(btn){
       if(!CONTROL_EDIT) return;
       const status=(btn.getAttribute('data-status') || 'libre').toLowerCase().trim();
@@ -953,11 +975,13 @@
       }else{ return; }
       updateEditTags(); syncToolbarUI();
     }
+
     function updateEditTags(){
       const tagSrc=document.getElementById('tagSrc'), tagDst=document.getElementById('tagDst');
       tagSrc.textContent=`Origen: ${EDIT_SRC ? `${EDIT_SRC.num} • ${EDIT_SRC.code}` : '—'}`;
       tagDst.textContent=`Destino: ${EDIT_DST ? `${EDIT_DST.num} • ${EDIT_DST.code}` : '—'}`;
     }
+
     function syncToolbarUI(){
       const btnEdit=document.getElementById('btnEditMode');
       const btnMove=document.getElementById('btnMove');
@@ -975,6 +999,7 @@
         btnMove.disabled=true; btnFree.disabled=true; btnCancel.disabled=true;
       }
     }
+
     function cancelEdit(silent=false){
       EDIT_SRC=null; EDIT_DST=null;
       document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
@@ -982,6 +1007,7 @@
       updateEditTags(); syncToolbarUI();
       if(!silent) toast('Edición cancelada.');
     }
+
     async function movePassenger(){
       showLoading('Moviendo pasajero…');
       if(!EDIT_SRC || !EDIT_DST){ hideLoading(); toast('Selecciona origen (ocupado) y destino (libre).'); return; }
@@ -996,6 +1022,7 @@
         hideLoading();
       }
     }
+
     async function freeSelectedSeat(){
       showLoading('Liberando asiento…');
       if(!EDIT_SRC){ hideLoading(); toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
@@ -1010,6 +1037,7 @@
         hideLoading();
       }
     }
+
     async function doExportPdf(){
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
       showLoading('Generando PDF…');
@@ -1034,7 +1062,7 @@
       }
     }
 
-    /* ===== Inicio (carga logo + enganchar easter egg SIEMPRE) ===== */
+    /* ===== Inicio (carga logo + easter egg) ===== */
     (async function init(){
       // 1) Limpiar nodos de texto fantasma dentro de .brand-chip
       const chip = document.querySelector('.brand-chip');
@@ -1044,7 +1072,7 @@
       const img = document.getElementById('heroLogo');
       const skel = document.getElementById('logoSkeleton');
 
-      // 3) Enganchar SIEMPRE el easter egg (click y long-press), independientemente del fetch
+      // 3) Enganchar SIEMPRE el easter egg (click y long-press)
       img.addEventListener('click', (ev) => { ev.stopPropagation(); toggleAdminMenu(); });
       document.addEventListener('click', (ev) => {
         const menu = document.getElementById('adminMenu');
@@ -1054,7 +1082,7 @@
       img.addEventListener('touchstart', () => { pressTimer = setTimeout(() => toggleAdminMenu(), 450); }, {passive:true});
       img.addEventListener('touchend', () => { clearTimeout(pressTimer); }, {passive:true});
 
-      // 4) Pedir logo al backend (Apps Script) — si falla, los listeners igual funcionan
+      // 4) Pedir logo al backend (Apps Script)
       try{
         const payload = await API.apiGetLogo();
         let src = '';
@@ -1079,10 +1107,13 @@
         CONTROL_AUTH = true;
         updateAdminMenu();
         syncStaffBadge();
+        syncControlFormVisibility();
         await loadTrips();
         showView('view-choose');
       } else {
         updateAdminMenu();
+        syncStaffBadge();
+        syncControlFormVisibility();
         await loadTrips();
       }
     })();
