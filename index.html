@@ -234,7 +234,6 @@
       <div id="logoSkeleton" class="logo-skeleton" aria-hidden="true"></div>
       <!-- Imagen del logo (el init() setea el src) -->
       <img id="heroLogo" alt="Logo" />
-
       <!-- Panel “Easter Egg” del staff (arranca oculto) -->
       <div id="adminMenu" class="admin-menu hidden" role="dialog" aria-modal="false" aria-label="Acceso staff">
         <p class="admin-title">Acceso staff</p>
@@ -433,12 +432,11 @@
   <script>
     const BASE_URL = 'https://script.google.com/macros/s/AKfycbyJYarovqJhUHxRFy_aG4_ex5YUpM4ALC2mQhqsYiMNxjoEo7F3NxvYrC9FuSXFz7sp/exec';
     const API_KEY = null;
-
     const QS = (params = {}) =>
       '?' + Object.entries(params)
-        .filter(([, v]) => v !== undefined && v !== null && v !== '')
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-        .join('&');
+      .filter(([, v]) => v !== undefined && v !== null && v !== '')
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join('&');
 
     async function parseResponse(res) { const text = await res.text(); try { return JSON.parse(text); } catch { return text; } }
     function withCommonParams(extra = {}) { const base = { api: '1', ...extra }; if (API_KEY) base.apiKey = API_KEY; return base; }
@@ -524,7 +522,6 @@
       showLoading('Cargando ocupación…');
       refreshSeatsWithSpinner(null, renderControlBoard);
     }
-
     function syncStaffBadge(){
       const el = document.getElementById('tagStaff');
       if (!el) return;
@@ -552,7 +549,6 @@
       }catch(err){ toast('No se pudieron cargar los viajes'); }
       finally{ hideLoading(); }
     }
-
     function selectTrip(tr){
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
       if(CURRENT_TRIP.hasFloors){
@@ -578,11 +574,9 @@
         chooseFloor(sheet);
       }
     }
-
     function chooseFloor(sheetName){
       CURRENT_TRIP.sheetName = sheetName;
       updateTripTags();
-
       if (CONTROL_AUTH) {
         // Staff: tablero de control
         showView('view-control');
@@ -593,7 +587,6 @@
         goHome();
       }
     }
-
     function backToChoose(){ CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false }; showView('view-choose'); }
     function updateTripTags(){
       document.getElementById('tagTrip').textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`;
@@ -622,7 +615,6 @@
         if (typeof onDone === 'function') { try { onDone(); } catch(e){} }
       }
     }
-
     function refreshSeatsWithSpinner(targetId, onDone){ showLoading('Actualizando asientos…'); refreshSeats(targetId, () => { hideLoading(); if (typeof onDone === 'function') onDone(); }); }
     function getMaxRow(){ let maxRow = 0; Object.keys(SEATS).forEach(code => { const m = code.match(/^(\d+)[A-Z]$/); if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow || 0; }
     function computeClassFor(code){ const key = normalize(code); if(!SEATS.hasOwnProperty(key)) return 'inexistente'; const st = (SEATS[key].estado || '').toLowerCase().trim(); if(st === 'ocupado') return 'ocupado'; if(st === 'inhabilitado') return 'inexistente'; return 'libre'; }
@@ -637,14 +629,12 @@
         const rowEl = document.createElement('div'); rowEl.className = 'row';
         const left = document.createElement('div'); left.className = 'block';
         const right = document.createElement('div'); right.className = 'block';
-
         const renderSeat = (letter, container)=>{
           const code = `${row}${letter}`;
           const klass = computeClassFor(code);
           const btn = document.createElement('button'); btn.type='button'; btn.className = `seat ${klass}`;
           const isNum = (klass === 'libre' || klass === 'ocupado');
           const norm = normalize(code);
-
           if(isNum){
             btn.textContent = seatNumber;
             btn.setAttribute('data-code', code);
@@ -659,19 +649,15 @@
             btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
             btn.disabled = true;
           }
-
           if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); }
           container.appendChild(btn);
         };
-
         ['A','B'].forEach(l => renderSeat(l, left));
         const aisle = document.createElement('div'); aisle.className = 'aisle';
         ['C','D'].forEach(l => renderSeat(l, right));
-
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
       }
-
       if(HIGHLIGHT_CODES.size){
         const first = grid.querySelector('.seat.mine');
         if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
@@ -688,14 +674,12 @@
     }
     function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
     function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
-
     async function startSelection(){
       if(BUSY) return;
       if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
       const nombre = document.getElementById('nombrePrincipal').value.trim();
       const ci = document.getElementById('ciPrincipal').value.trim();
       if(!nombre || !ci){ toast('Completá nombre y CI'); return; }
-
       if(selected.size === 1){
         const only = Array.from(selected)[0]; const onlyNorm = normalize(only);
         const pairs = [{ asiento: onlyNorm, pasajero: nombre, ci }];
@@ -705,7 +689,6 @@
         finally{ hideLoading(); BUSY = false; }
         return;
       }
-
       const assign = document.getElementById('assignList'); assign.innerHTML = '';
       const codes = Array.from(selected);
       for(let i=0;i<codes.length;i++){
@@ -713,28 +696,22 @@
         const row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
         const title = document.createElement('div'); title.className = 'assign-title'; title.textContent = `Asiento ${num || codeNorm}`;
         const grid = document.createElement('div'); grid.className = 'assign-grid';
-
         const nameWrap = document.createElement('label'); nameWrap.className = 'field';
         const nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
         const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.value = i===0 ? nombre : ''; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
-
         const ciWrap = document.createElement('label'); ciWrap.className = 'field';
         const ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
         const ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.value = i===0 ? ci : ''; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
         ciInput.addEventListener('input', e => onlyDigits(e.target));
-
         nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
         ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
         grid.appendChild(nameWrap); grid.appendChild(ciWrap);
-
         row.appendChild(title); row.appendChild(grid);
         assign.appendChild(row);
       }
-
       document.getElementById('view-assign').classList.remove('hidden');
       document.getElementById('view-assign').scrollIntoView({behavior:'smooth'});
     }
-
     async function confirmReservation(){
       if(BUSY) return;
       const inputs = document.querySelectorAll('#assignList .assign-row');
@@ -752,7 +729,6 @@
       catch(err){ toast('No se pudo reservar'); }
       finally{ hideLoading(); BUSY = false; }
     }
-
     function showReserveFeedbackDetailed(pairs){
       const panel = document.getElementById('reserveFeedback'); const nums = document.getElementById('reserveNums'); nums.innerHTML = '';
       (pairs || []).forEach(p => {
@@ -775,19 +751,16 @@
         const respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci);
         const rawCodes = (respSeats.seats || []).map(s => normalize(s));
         LAST_FOUND_CODES = Array.from(new Set(rawCodes));
-
         const respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
         const rows = respRows.rows || [];
         SEATS = {};
         rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
-
         const nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
         HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
       }catch(err){ toast('Error al buscar por CI'); }
       finally{ hideLoading(); }
     }
-
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map(); const maxRow = getMaxRow(); let seatNumber = 1;
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
@@ -801,7 +774,6 @@
       }
       return codes.map(c => NUM_LABELS.get(c)).filter(n => typeof n !== 'undefined');
     }
-
     function renderFindFeedback(nums){
       const panel = document.getElementById('findFeedback');
       const list = document.getElementById('findNums');
@@ -814,7 +786,6 @@
         panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true;
       }
     }
-
     function showCroquisForCI(){
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', () => {
@@ -823,7 +794,6 @@
         toast(`Resaltados: ${HIGHLIGHT_CODES.size}`);
       });
     }
-
     function clearFindView(){
       document.getElementById('findFeedback').classList.add('hidden');
       document.getElementById('findNums').innerHTML = '';
@@ -865,7 +835,6 @@
         hideLoading();
       }
     }
-
     function doControlLogout(){
       CONTROL_AUTH=false;
       setStaffSession(false);
@@ -875,7 +844,6 @@
       // Opcional: volver al inicio público
       backToChoose();
     }
-
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
       const board = document.getElementById('controlBoard');
@@ -884,22 +852,18 @@
       board.hidden = false; croquis.innerHTML = '';
       fb.classList.add('hidden'); fb.innerHTML = '';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
-
       const maxRow = getMaxRow(); if(maxRow === 0){ croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
       NUM_LABELS = new Map(); let seatNumber = 1;
-
       for(let row=1; row<=maxRow; row++){
         const rowEl=document.createElement('div'); rowEl.className='row';
         const left=document.createElement('div'); left.className='block';
         const right=document.createElement('div'); right.className='block';
-
         const renderSeat=(letter, container)=>{
           const code = `${row}${letter}`;
           const norm = normalize(code);
           const klass= computeClassFor(code);
           const isNum= (klass==='libre' || klass==='ocupado');
           const btn=document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
-
           if(isNum){
             const occFull = SEATS[norm]?.pasajero || '';
             const occName = (klass==='ocupado') ? firstName(occFull) : '';
@@ -913,22 +877,18 @@
             btn.setAttribute('aria-label',`Asiento ${code} inhabilitado/no disponible`);
             btn.disabled=true;
           }
-
           btn.onclick=()=> onControlSeatClick(btn);
           container.appendChild(btn);
         };
-
         ['A','B'].forEach(l=>renderSeat(l,left));
         const aisle=document.createElement('div'); aisle.className='aisle';
         ['C','D'].forEach(l=>renderSeat(l,right));
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         croquis.appendChild(rowEl);
       }
-
       board.scrollIntoView({behavior:'smooth'});
       attachStickyAnimation();
     }
-
     function attachStickyAnimation(){
       const toolbar = document.getElementById('controlToolbar');
       function onScroll(){ const y=window.scrollY; if(y>24){ toolbar.classList.add('scrolled'); } else { toolbar.classList.remove('scrolled'); } }
@@ -936,7 +896,6 @@
       window.addEventListener('scroll', onScroll, { passive:true });
       onScroll();
     }
-
     function hideControlBoard(){
       const board = document.getElementById('controlBoard');
       board.hidden = true;
@@ -945,14 +904,12 @@
       fb.classList.add('hidden'); fb.innerHTML='';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
     }
-
     function toggleControlEdit(){ CONTROL_EDIT=!CONTROL_EDIT; updateEditTags(); syncToolbarUI(); toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado'); }
     function onControlSeatClick(btn){
       if(!CONTROL_EDIT) return;
       const status=(btn.getAttribute('data-status') || 'libre').toLowerCase().trim();
       const num =parseInt(btn.getAttribute('data-num') || '0',10);
       const code =btn.getAttribute('data-code');
-
       if(status==='ocupado'){
         document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
         btn.classList.add('pick-source'); EDIT_SRC={num,code};
@@ -960,16 +917,13 @@
         document.querySelectorAll('#controlCroquis .seat.pick-target').forEach(el=>el.classList.remove('pick-target'));
         btn.classList.add('pick-target'); EDIT_DST={num,code};
       }else{ return; }
-
       updateEditTags(); syncToolbarUI();
     }
-
     function updateEditTags(){
       const tagSrc=document.getElementById('tagSrc'), tagDst=document.getElementById('tagDst');
       tagSrc.textContent=`Origen: ${EDIT_SRC ? `${EDIT_SRC.num} • ${EDIT_SRC.code}` : '—'}`;
       tagDst.textContent=`Destino: ${EDIT_DST ? `${EDIT_DST.num} • ${EDIT_DST.code}` : '—'}`;
     }
-
     function syncToolbarUI(){
       const btnEdit=document.getElementById('btnEditMode');
       const btnMove=document.getElementById('btnMove');
@@ -987,7 +941,6 @@
         btnMove.disabled=true; btnFree.disabled=true; btnCancel.disabled=true;
       }
     }
-
     function cancelEdit(silent=false){
       EDIT_SRC=null; EDIT_DST=null;
       document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
@@ -995,7 +948,6 @@
       updateEditTags(); syncToolbarUI();
       if(!silent) toast('Edición cancelada.');
     }
-
     async function movePassenger(){
       showLoading('Moviendo pasajero…');
       if(!EDIT_SRC || !EDIT_DST){ hideLoading(); toast('Selecciona origen (ocupado) y destino (libre).'); return; }
@@ -1010,7 +962,6 @@
         hideLoading();
       }
     }
-
     async function freeSelectedSeat(){
       showLoading('Liberando asiento…');
       if(!EDIT_SRC){ hideLoading(); toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
@@ -1025,7 +976,6 @@
         hideLoading();
       }
     }
-
     async function doExportPdf(){
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
       showLoading('Generando PDF…');
@@ -1057,7 +1007,7 @@
       chip.childNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
 
       // 2) Preparar logo + skeleton
-      const img  = document.getElementById('heroLogo');
+      const img = document.getElementById('heroLogo');
       const skel = document.getElementById('logoSkeleton');
 
       // 3) Enganchar SIEMPRE el easter egg (click y long-press), independientemente del fetch
@@ -1066,18 +1016,16 @@
         const menu = document.getElementById('adminMenu');
         if (!chip.contains(ev.target)) { menu.classList.add('hidden'); }
       }, { passive:true });
-
       let pressTimer = null;
       img.addEventListener('touchstart', () => { pressTimer = setTimeout(() => toggleAdminMenu(), 450); }, {passive:true});
-      img.addEventListener('touchend',   () => { clearTimeout(pressTimer); }, {passive:true});
+      img.addEventListener('touchend', () => { clearTimeout(pressTimer); }, {passive:true});
 
       // 4) Pedir logo al backend (Apps Script) — si falla, los listeners igual funcionan
       try{
         const payload = await API.apiGetLogo();
         let src = '';
-        if (payload && payload.dataUrl)  src = payload.dataUrl;   // Data URL (base64)
+        if (payload && payload.dataUrl) src = payload.dataUrl; // Data URL (base64)
         else if (payload && payload.publicUrl) src = payload.publicUrl; // URL pública
-
         if (src) {
           img.onload = () => { img.classList.add('ready'); skel.style.display='none'; };
           img.src = src;
