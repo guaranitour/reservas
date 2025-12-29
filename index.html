@@ -5,7 +5,6 @@
   <meta charset="utf-8"/>
   <title>Selección de Asientos</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
-
   <style>
     :root{
       --bg:#f7f9fc; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
@@ -16,7 +15,6 @@
       --action-bar-h: 72px;
       --menu-w: 84vw; --menu-w-max: 360px;
     }
-
     html,body{height:100%;}
     html{ scroll-padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
     body{
@@ -41,7 +39,6 @@
       border:1px solid rgba(255,255,255,.65); box-shadow:0 8px 24px rgba(17,24,39,.12);
       max-width:92vw; overflow:hidden;
     }
-    /* Skeleton del logo */
     .logo-skeleton{
       width: min(var(--logo-w-ideal), var(--logo-w-max));
       height: clamp(64px, 18vw, 140px);
@@ -55,19 +52,21 @@
       width: min(var(--logo-w-ideal), var(--logo-w-max));
       max-width:100%; height:auto; display:block; object-fit:contain; margin:0 auto;
       filter: drop-shadow(0 3px 8px rgba(17,24,39,.14));
-      opacity:0; transition: opacity .25s ease; /* fade-in al cargar */
+      opacity:0; transition: opacity .25s ease;
     }
     .brand-chip img.ready{ opacity:1; }
 
-    /* ===== Botón Hamburguesa ===== */
-    .menu-btn{
-      position:absolute; right: clamp(8px, 3vw, 16px); top: clamp(8px, 3vw, 16px);
-      display:inline-flex; align-items:center; justify-content:center;
+    /* ===== Botón Hamburguesa (NO intrusivo) ===== */
+    /* Arranca oculto y recién se muestra cuando el logo está listo */
+    #menuBtn{
+      position:fixed; right: clamp(8px, 3vw, 16px); top: clamp(8px, 3vw, 16px);
+      display:none; /* <-- clave: para no tapar el logo mientras carga */
+      align-items:center; justify-content:center;
       width:42px; height:42px; border-radius:12px;
       background:#fff; border:1px solid #e5e7eb; box-shadow:0 6px 16px rgba(17,24,39,.10);
-      cursor:pointer; transition:transform .08s ease, box-shadow .18s ease;
+      cursor:pointer; transition:transform .08s ease, box-shadow .18s ease; z-index: 40;
     }
-    .menu-btn:active{ transform:scale(.98); }
+    #menuBtn:active{ transform:scale(.98); }
     .menu-icon{ width:22px; height:14px; position:relative; }
     .menu-icon span{ position:absolute; left:0; right:0; height:2px; background:#1f2937; border-radius:2px; }
     .menu-icon span:nth-child(1){ top:0; }
@@ -77,13 +76,13 @@
     /* ===== Drawer del menú ===== */
     .menu-overlay{
       position:fixed; inset:0; background:rgba(17,24,39,.28); opacity:0; pointer-events:none;
-      transition:opacity .15s ease;
+      transition:opacity .15s ease; z-index: 39;
     }
     .menu-overlay.show{ opacity:1; pointer-events:auto; }
     .menu-drawer{
       position:fixed; top:0; right:0; height:100%; width:min(var(--menu-w), var(--menu-w-max));
       background:#fff; box-shadow:-16px 0 38px rgba(17,24,39,.12);
-      transform:translateX(100%); transition:transform .22s ease;
+      transform:translateX(100%); transition:transform .22s ease; z-index: 40;
       display:flex; flex-direction:column;
     }
     .menu-drawer.show{ transform:translateX(0); }
@@ -210,21 +209,12 @@
 </head>
 <body>
 
-  <!-- Header -->
-  <header class="hero" aria-label="Cabecera">
-    <!-- Botón hamburguesa -->
-    <button class="menu-btn" aria-label="Abrir menú" onclick="openMenu()">
-      <span class="menu-icon" aria-hidden="true">
-        <span></span><span></span><span></span>
-      </span>
-    </button>
-
-    <div class="brand-chip">
-      <div id="logoSkeleton" class="logo-skeleton" aria-hidden="true"></div>
-      data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==
-    </div>
-  </header>
-
+  <!-- Botón hamburguesa (aparece recién cuando el logo esté ready) -->
+  <button id="menuBtn" aria-label="Abrir menú" onclick="openMenu()">
+    <span class="menu-icon" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </span>
+  </button>
   <!-- Drawer del menú -->
   <div id="menuOverlay" class="menu-overlay" onclick="closeMenu()" aria-hidden="true"></div>
   <nav id="menuDrawer" class="menu-drawer" aria-label="Menú principal">
@@ -233,10 +223,18 @@
       <button class="menu-close" onclick="closeMenu()">Cerrar</button>
     </div>
     <div class="menu-items">
-      <button class="menu-item" onclick="goMenuHome()"><span class="emoji">🏠</span> Inicio</button>
+      <button class="menu-item" onclick="goMenuHome()"><span class="emoji">🏠</span> Inicio (Elegir viaje)</button>
       <button class="menu-item" onclick="goMenuControl()"><span class="emoji">🛠️</span> Control interno</button>
     </div>
   </nav>
+
+  <!-- Header -->
+  <header class="hero" aria-label="Cabecera">
+    <div class="brand-chip">
+      <div id="logoSkeleton" class="logo-skeleton" aria-hidden="true"></div>
+      data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==
+    </div>
+  </header>
 
   <main id="app" class="app">
     <!-- Elegir viaje -->
@@ -263,7 +261,7 @@
       </div>
     </section>
 
-    <!-- Menú principal (sin tarjeta de Control interno) -->
+    <!-- Menú principal (tarjetas originales intactas) -->
     <section id="view-home" class="view" aria-label="Inicio">
       <div class="home-center">
         <div style="max-width:560px; width:100%; margin-bottom:12px;">
@@ -281,7 +279,10 @@
             <h2>Buscar por CI</h2>
             <p>Ingresa tu CI para ver tus números y el croquis.</p>
           </article>
-          <!-- Se quitó la tarjeta de Control interno -->
+          <article class="card" tabindex="0" role="button" onclick="goControl()" onkeypress="handleEnter(event, goControl)">
+            <h2>Control interno</h2>
+            <p>Ocupación, exportar PDF y edición.</p>
+          </article>
         </div>
         <div class="actions" style="margin-top:14px;">
           <button class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
@@ -364,19 +365,6 @@
 
     <!-- Control interno -->
     <section id="view-control" class="view" aria-label="Control interno">
-      <!-- Etiquetas del viaje también aquí -->
-      <div style="max-width:560px; width:100%; margin-bottom:12px;">
-        <div class="trip-tags">
-          <span class="tag" id="tagTripCtl">Viaje: —</span>
-          <span class="tag" id="tagSheetCtl">Hoja: —</span>
-        </div>
-      </div>
-
-      <!-- Botón para elegir/cambiar viaje desde Control -->
-      <div class="actions" style="margin-bottom:12px;">
-        <button type="button" class="btn ghost" onclick="showView('view-choose')">Elegir/Cambiar viaje</button>
-      </div>
-
       <form id="controlForm" class="form" onsubmit="event.preventDefault(); doControlLogin();">
         <div class="form-row">
           <label for="ctlUser">Usuario</label>
@@ -401,8 +389,6 @@
             <button type="button" class="btn ghost" onclick="refreshSeatsWithSpinner(null, renderControlBoard)">Actualizar</button>
             <button type="button" class="btn primary" onclick="doExportPdf()">Exportar PDF</button>
             <button id="btnEditMode" type="button" class="btn success" onclick="toggleControlEdit()">Modo edición</button>
-            <!-- Extra: acceso rápido para cambiar viaje desde el tablero -->
-            <button type="button" class="btn ghost" onclick="showView('view-choose')">Elegir viaje</button>
           </div>
           <div class="sel-tags">
             <span class="tag src" id="tagSrc">Origen: —</span>
@@ -482,19 +468,11 @@
       document.getElementById('menuDrawer').classList.remove('show');
     }
     function goMenuHome(){ closeMenu(); showView('view-choose'); }
-    function goMenuControl(){ closeMenu(); showView('view-control'); CONTROL_AUTH=false; hideControlBoard(); }
+    function goMenuControl(){ closeMenu(); goControl(); }
 
     /* Navegación */
-    function showView(id){
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      // al cambiar de vista, sincronizar toolbar sticky del control si corresponde
-      if(id === 'view-control'){ attachStickyAnimation(); }
-    }
-    function goHome(){
-      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; }
-      updateTripTags(); showView('view-home');
-    }
+    function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function goHome(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } updateTripTags(); showView('view-home'); }
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
     /* UI helpers */
@@ -555,20 +533,12 @@
 
     function chooseFloor(sheetName){ CURRENT_TRIP.sheetName = sheetName; updateTripTags(); goHome(); }
     function backToChoose(){ CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false }; showView('view-choose'); }
-
-    /* Actualiza etiquetas en Inicio y Control, si existen */
-    function updateTripTags(){
-      const t1 = document.getElementById('tagTrip');     if(t1) t1.textContent     = `Viaje: ${CURRENT_TRIP.name     || '—'}`;
-      const s1 = document.getElementById('tagSheet');    if(s1) s1.textContent     = `Hoja:  ${CURRENT_TRIP.sheetName || '—'}`;
-      const t2 = document.getElementById('tagTripCtl');  if(t2) t2.textContent     = `Viaje: ${CURRENT_TRIP.name     || '—'}`;
-      const s2 = document.getElementById('tagSheetCtl'); if(s2) s2.textContent     = `Hoja:  ${CURRENT_TRIP.sheetName || '—'}`;
-    }
+    function updateTripTags(){ document.getElementById('tagTrip').textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`; document.getElementById('tagSheet').textContent= `Hoja: ${CURRENT_TRIP.sheetName || '—'}`; }
 
     /* Vistas principales */
-    function goSelect(){  if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-select'); showLoading('Cargando asientos…'); refreshSeats('grid-select', () => hideLoading()); }
-    function goFind(){    if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-find'); clearFindView(); }
-    /* IMPORTANTE: ahora permite entrar a Control aunque no haya viaje elegido; allí agregamos el botón para elegir */
-    function goControl(){ showView('view-control'); CONTROL_AUTH = false; hideControlBoard(); updateTripTags(); }
+    function goSelect(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-select'); showLoading('Cargando asientos…'); refreshSeats('grid-select', () => hideLoading()); }
+    function goFind(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-find'); clearFindView(); }
+    function goControl(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-control'); CONTROL_AUTH = false; hideControlBoard(); }
 
     /* Datos */
     async function refreshSeats(targetId, onDone){
@@ -577,17 +547,11 @@
       try{
         const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
         const rows = resp.rows || [];
-        SEATS = {};
-        rows.forEach(r => {
-          SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' };
-        });
+        SEATS = {}; rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
         if(gridEl){ buildGrid(targetId); }
       }catch(err){
-        toast('Error al cargar asientos');
-        if(gridEl){ buildGrid(targetId); }
-      }finally{
-        if (typeof onDone === 'function') try { onDone(); } catch(e){}
-      }
+        toast('Error al cargar asientos'); if(gridEl){ buildGrid(targetId); }
+      }finally{ if (typeof onDone === 'function') try { onDone(); } catch(e){} }
     }
     function refreshSeatsWithSpinner(targetId, onDone){ showLoading('Actualizando asientos…'); refreshSeats(targetId, () => { hideLoading(); if (typeof onDone === 'function') onDone(); }); }
     function getMaxRow(){ let maxRow = 0; Object.keys(SEATS).forEach(code => { const m = code.match(/^(\d+)[A-Z]$/); if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow || 0; }
@@ -603,41 +567,28 @@
         const rowEl = document.createElement('div'); rowEl.className = 'row';
         const left = document.createElement('div'); left.className = 'block';
         const right = document.createElement('div'); right.className = 'block';
-
         const renderSeat = (letter, container)=>{
           const code = `${row}${letter}`;
           const klass = computeClassFor(code);
           const btn = document.createElement('button'); btn.type='button'; btn.className = `seat ${klass}`;
           const isNum = (klass === 'libre' || klass === 'ocupado');
           const norm = normalize(code);
-
           if(isNum){
             btn.textContent = seatNumber;
             btn.setAttribute('data-code', code);
             btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             NUM_LABELS.set(norm, seatNumber); seatNumber++;
-            if(targetId === 'grid-select'){
-              if(klass === 'libre'){ btn.onclick = () => toggleSeat(code, btn); }
-              else { btn.disabled = true; }
-            }
-          }else{
-            btn.innerHTML = ' ';
-            btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
-            btn.disabled = true;
-          }
-
+            if(targetId === 'grid-select'){ if(klass === 'libre'){ btn.onclick = () => toggleSeat(code, btn); } else { btn.disabled = true; } }
+          }else{ btn.innerHTML = ' '; btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`); btn.disabled = true; }
           if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); }
           container.appendChild(btn);
         };
-
         ['A','B'].forEach(l => renderSeat(l, left));
         const aisle = document.createElement('div'); aisle.className = 'aisle';
         ['C','D'].forEach(l => renderSeat(l, right));
-
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
       }
-
       if(HIGHLIGHT_CODES.size){
         const first = grid.querySelector('.seat.mine');
         if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
@@ -645,23 +596,15 @@
     }
 
     /* Selección (público) */
-    function toggleSeat(code, el){
-      const key = normalize(code);
-      const isSel = selected.has(key);
-      if(isSel){ selected.delete(key); el.classList.remove('seleccionado'); }
-      else { selected.add(key); el.classList.add('seleccionado'); }
-      updateAssignVisibility();
-    }
+    function toggleSeat(code, el){ const key = normalize(code); const isSel = selected.has(key); if(isSel){ selected.delete(key); el.classList.remove('seleccionado'); } else { selected.add(key); el.classList.add('seleccionado'); } updateAssignVisibility(); }
     function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
     function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
-
     async function startSelection(){
       if(BUSY) return;
       if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
       const nombre = document.getElementById('nombrePrincipal').value.trim();
-      const ci     = document.getElementById('ciPrincipal').value.trim();
+      const ci = document.getElementById('ciPrincipal').value.trim();
       if(!nombre || !ci){ toast('Completá nombre y CI'); return; }
-
       if(selected.size === 1){
         const only = Array.from(selected)[0]; const onlyNorm = normalize(only);
         const pairs = [{ asiento: onlyNorm, pasajero: nombre, ci }];
@@ -671,45 +614,38 @@
         finally{ hideLoading(); BUSY = false; }
         return;
       }
-
       const assign = document.getElementById('assignList'); assign.innerHTML = '';
-      const codes  = Array.from(selected);
+      const codes = Array.from(selected);
       for(let i=0;i<codes.length;i++){
         const codeNorm = normalize(codes[i]); const num = NUM_LABELS.get(codeNorm) || '';
-        const row   = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
+        const row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
         const title = document.createElement('div'); title.className = 'assign-title'; title.textContent = `Asiento ${num || codeNorm}`;
-        const grid  = document.createElement('div'); grid.className = 'assign-grid';
-
-        const nameWrap  = document.createElement('label'); nameWrap.className  = 'field';
-        const nameLabel = document.createElement('span');  nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
+        const grid = document.createElement('div'); grid.className = 'assign-grid';
+        const nameWrap = document.createElement('label'); nameWrap.className = 'field';
+        const nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
         const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.value = i===0 ? nombre : ''; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
-
-        const ciWrap  = document.createElement('label'); ciWrap.className  = 'field';
-        const ciLabel = document.createElement('span');  ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
+        const ciWrap = document.createElement('label'); ciWrap.className = 'field';
+        const ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
         const ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.value = i===0 ? ci : ''; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
         ciInput.addEventListener('input', e => onlyDigits(e.target));
-
         nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
         ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
         grid.appendChild(nameWrap); grid.appendChild(ciWrap);
-
         row.appendChild(title); row.appendChild(grid);
         assign.appendChild(row);
       }
-
       document.getElementById('view-assign').classList.remove('hidden');
       document.getElementById('view-assign').scrollIntoView({behavior:'smooth'});
     }
-
     async function confirmReservation(){
       if(BUSY) return;
       const inputs = document.querySelectorAll('#assignList .assign-row');
-      const pairs  = [];
+      const pairs = [];
       for(let i=0;i<inputs.length;i++){
         const row = inputs[i];
         const codeNorm = row.getAttribute('data-code');
         const pasajero = row.querySelector('.assign-name').value.trim();
-        const ci       = row.querySelector('.assign-ci').value.trim();
+        const ci = row.querySelector('.assign-ci').value.trim();
         if(!pasajero || !ci){ toast(`Faltan datos en ${codeNorm}`); return; }
         pairs.push({ asiento: codeNorm, pasajero, ci });
       }
@@ -718,11 +654,9 @@
       catch(err){ toast('No se pudo reservar'); }
       finally{ hideLoading(); BUSY = false; }
     }
-
     function showReserveFeedbackDetailed(pairs){
       const panel = document.getElementById('reserveFeedback'); const nums = document.getElementById('reserveNums'); nums.innerHTML = '';
-      (pairs || []).forEach(p => {
-        const norm = normalize(p.asiento); const num = NUM_LABELS.get(norm);
+      (pairs || []).forEach(p => { const norm = normalize(p.asiento); const num = NUM_LABELS.get(norm);
         const pill = document.createElement('span'); pill.className = 'pill';
         pill.textContent = `${(typeof num !== 'undefined') ? num : norm} — ${p.pasajero} (${p.ci})`;
         nums.appendChild(pill);
@@ -740,14 +674,9 @@
         const respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci);
         const rawCodes = (respSeats.seats || []).map(s => normalize(s));
         LAST_FOUND_CODES = Array.from(new Set(rawCodes));
-
         const respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
         const rows = respRows.rows || [];
-        SEATS = {};
-        rows.forEach(r => {
-          SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' };
-        });
-
+        SEATS = {}; rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
         const nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
         HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
@@ -757,23 +686,15 @@
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map(); const maxRow = getMaxRow(); let seatNumber = 1;
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
-      for(let row=1; row<=maxRow; row++){
-        for(const letter of ['A','B','C','D']){
-          const code = `${row}${letter}`; const klass = computeClassFor(code); const norm = normalize(code);
-          if(isNum(klass)){ NUM_LABELS.set(norm, seatNumber); seatNumber++; }
-        }
-      }
+      for(let row=1; row<=maxRow; row++){ for(const letter of ['A','B','C','D']){ const code = `${row}${letter}`; const klass = computeClassFor(code); const norm = normalize(code); if(isNum(klass)){ NUM_LABELS.set(norm, seatNumber); seatNumber++; } } }
       return codes.map(c => NUM_LABELS.get(c)).filter(n => typeof n !== 'undefined');
     }
     function renderFindFeedback(nums){
       const panel = document.getElementById('findFeedback'); const list = document.getElementById('findNums'); const btn = document.getElementById('btnShowCroquis');
       list.innerHTML = '';
-      if(nums.length){
-        nums.forEach(n => { const pill = document.createElement('span'); pill.className='pill'; pill.textContent = String(n); list.appendChild(pill); });
+      if(nums.length){ nums.forEach(n => { const pill = document.createElement('span'); pill.className='pill'; pill.textContent = String(n); list.appendChild(pill); });
         panel.classList.remove('hidden'); btn.disabled = false; panel.scrollIntoView({behavior:'smooth'});
-      }else{
-        panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true;
-      }
+      }else{ panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true; }
     }
     function showCroquisForCI(){ showLoading('Cargando croquis…'); refreshSeats('grid-find', () => { hideLoading(); document.getElementById('grid-find').scrollIntoView({behavior:'smooth'}); toast(`Resaltados: ${HIGHLIGHT_CODES.size}`); }); }
     function clearFindView(){ document.getElementById('findFeedback').classList.add('hidden'); document.getElementById('findNums').innerHTML = ''; document.getElementById('grid-find').innerHTML = ''; HIGHLIGHT_CODES = new Set(); LAST_FOUND_CODES = []; }
@@ -790,7 +711,6 @@
       finally{ hideLoading(); }
     }
     function doControlLogout(){ CONTROL_AUTH=false; hideControlBoard(); document.getElementById('ctlPass').value=''; toast('Sesión finalizada'); }
-
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
       const board = document.getElementById('controlBoard');
@@ -828,7 +748,6 @@
       }
       board.scrollIntoView({behavior:'smooth'}); attachStickyAnimation();
     }
-
     function attachStickyAnimation(){ const toolbar = document.getElementById('controlToolbar'); function onScroll(){ const y=window.scrollY; if(y>24){ toolbar.classList.add('scrolled'); } else { toolbar.classList.remove('scrolled'); } } window.removeEventListener('scroll', onScroll); window.addEventListener('scroll', onScroll, { passive:true }); onScroll(); }
     function hideControlBoard(){ const board = document.getElementById('controlBoard'); board.hidden = true; document.getElementById('controlCroquis').innerHTML=''; const fb=document.getElementById('pdfLinkFallback'); fb.classList.add('hidden'); fb.innerHTML=''; CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI(); }
     function toggleControlEdit(){ CONTROL_EDIT=!CONTROL_EDIT; updateEditTags(); syncToolbarUI(); toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado'); }
@@ -894,7 +813,7 @@
     /* ===== Inicio ===== */
     (async function init(){
       try{
-        // Limpieza de nodos de texto sueltos en el chip (artefactos de Word)
+        // Quitar nodos de texto sueltos que Word pueda haber dejado en .brand-chip
         const chip = document.querySelector('.brand-chip');
         chip.childNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
 
@@ -906,13 +825,20 @@
         if(payload && payload.dataUrl){ src = payload.dataUrl; }
         else if(payload && payload.publicUrl){ src = payload.publicUrl; }
         if(src){
-          img.onload = () => { img.classList.add('ready'); skel.style.display='none'; };
+          img.onload = () => {
+            img.classList.add('ready'); skel.style.display='none';
+            // Mostrar el botón hamburguesa recien ahora (para no tapar el logo)
+            const mb = document.getElementById('menuBtn');
+            if (mb) mb.style.display = 'inline-flex';
+          };
           img.src = src;
         }else{
           skel.style.display='block';
+          const mb = document.getElementById('menuBtn'); if (mb) mb.style.display = 'inline-flex';
         }
       }catch(e){
         document.getElementById('logoSkeleton').style.display='block';
+        const mb = document.getElementById('menuBtn'); if (mb) mb.style.display = 'inline-flex';
       }
 
       document.getElementById('ciPrincipal')?.addEventListener('input', e => onlyDigits(e.target));
