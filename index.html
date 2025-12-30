@@ -283,8 +283,27 @@
     <section id="view-floor" class="view" aria-label="Elegí planta">
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
+
+          <!-- NUEVO: Píldora con el nombre del viaje -->
+          <div style="max-width:560px; width:100%; margin-bottom:12px;">
+            <div class="trip-tags">
+              <span class="tag trip-tag-trip">Viaje: —</span>
+            </div>
+          </div>
+
           <h2 class="view-title">Elegí planta</h2>
+
+          <!-- Tarjetas de selección de planta -->
           <div class="floors" id="floorCards"></div>
+
+          <!-- NUEVO: Card “Buscar por CI” debajo de las plantas -->
+          <div class="cards" style="margin-top:12px;">
+            <article class="card" tabindex="0" role="button" onclick="goFind()" onkeypress="handleEnter(event, goFind)">
+              <h2>Buscar por CI</h2>
+              <p>Ingresa tu CI para ver tus números y el croquis.</p>
+            </article>
+          </div>
+
           <div class="actions" style="margin-top:12px;">
             <button type="button" class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
             <button type="button" class="btn primary" onclick="goHome()">Ir al menú</button>
@@ -298,7 +317,7 @@
       <div class="home-center">
         <div style="max-width:560px; width:100%; margin-bottom:12px;">
           <div class="trip-tags">
-            <span class="tag" id="tagTrip">Viaje: —</span>
+            <span class="tag trip-tag-trip">Viaje: —</span>
             <!-- Nota: se removió el chip de Hoja para no mostrar ramificaciones/nombres -->
           </div>
         </div>
@@ -624,7 +643,11 @@
 
     function selectTrip(tr){
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
+
       if(CURRENT_TRIP.hasFloors){
+        // NUEVO: actualizar la(s) píldora(s) del nombre de viaje antes de mostrar la vista
+        updateTripTags();
+
         const floorBox = document.getElementById('floorCards'); floorBox.innerHTML = '';
         const bajaName = tr.sheets.find(s => s.toLowerCase() === 'asientos baja');
         const altaName = tr.sheets.find(s => s.toLowerCase() === 'asientos alta');
@@ -639,6 +662,7 @@
           const h2 = document.createElement('h2'); h2.textContent = c.label;
           const p = document.createElement('p'); p.textContent = c.desc ? c.desc : `Hoja: ${c.sheetName}`;
           card.appendChild(h2); card.appendChild(p);
+          // Al elegir planta: ir directo a asientos (público) o tablero (staff)
           card.onclick = () => chooseFloor(c.sheetName);
           card.onkeypress = (ev) => { if(ev.key==='Enter') chooseFloor(c.sheetName); };
           floorBox.appendChild(card);
@@ -654,14 +678,15 @@
     function chooseFloor(sheetName){
       CURRENT_TRIP.sheetName = sheetName;
       updateTripTags();
+
       if (CONTROL_AUTH) {
         // Staff: tablero de control
         showView('view-control');
         showLoading('Cargando ocupación…');
         refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
       } else {
-        // Público: flujo normal
-        goHome();
+        // Público: ir DIRECTO a la selección de asientos (NUEVO)
+        goSelect();
       }
     }
 
@@ -670,10 +695,11 @@
       showView('view-choose');
     }
 
+    /* NUEVO: actualizar todas las píldoras de viaje presentes */
     function updateTripTags(){
-      const tagTrip = document.getElementById('tagTrip');
-      if (tagTrip) tagTrip.textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`;
-      // Nota: se removió el chip de Hoja para que no se muestren nombres/ramificaciones de Sheets al público.
+      document.querySelectorAll('.trip-tag-trip').forEach(el => {
+        el.textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`;
+      });
       syncStaffBadge();
     }
 
