@@ -20,7 +20,7 @@
       margin:0; font-family: system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
       color:var(--text); background:var(--bg); overflow-x:hidden;
     }
-    *, *::before, *::::after{ box-sizing:border-box; }
+    *, *::before, *::after{ box-sizing:border-box; } /* ← corregido */
     /* ===== Header ===== */
     .hero{
       width:100%;
@@ -210,8 +210,10 @@
       </div>
     </div>
   </header>
+
   <!-- Staff badge -->
   <div id="staffBadge" class="staff-badge hidden" aria-label="Perfil Staff">Staff</div>
+
   <main id="app" class="app">
     <!-- Elegir viaje -->
     <section id="view-choose" class="view active" aria-label="Elegí el viaje">
@@ -222,6 +224,7 @@
         </div>
       </div>
     </section>
+
     <!-- Elegir planta (doble piso) -->
     <section id="view-floor" class="view" aria-label="Elegí planta">
       <div class="home-center" style="align-items:start;">
@@ -235,6 +238,7 @@
         </div>
       </div>
     </section>
+
     <!-- Menú principal (convencional) -->
     <section id="view-home" class="view" aria-label="Inicio">
       <div class="home-center">
@@ -258,6 +262,7 @@
         </div>
       </div>
     </section>
+
     <!-- Selección (público) -->
     <section id="view-select" class="view" aria-label="Seleccionar asiento">
       <form id="selectForm" class="form" onsubmit="event.preventDefault(); startSelection();">
@@ -282,12 +287,12 @@
         <span class="badge inexistente">Gris: Inhabilitado / No disponible</span>
       </div>
       <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
+
       <!-- Asignación múltiple -->
       <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
         <h3>Asignar nombres a tus asientos</h3>
         <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
         <div id="assignList" class="assign-list"></div>
-        <!-- Bottom App Bar -->
         <div class="action-bar">
           <div class="actions">
             <button type="button" class="btn ghost" onclick="backToSelect()">Volver</button>
@@ -295,6 +300,7 @@
           </div>
         </div>
       </section>
+
       <div id="reserveFeedback" class="feedback hidden">
         <h4>Reserva confirmada</h4>
         <div id="reserveNums" class="nums"></div>
@@ -303,6 +309,7 @@
         </div>
       </div>
     </section>
+
     <!-- Mirá tu asiento (single y multi) -->
     <section id="view-find" class="view" aria-label="Mirá tu asiento">
       <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
@@ -315,6 +322,7 @@
           <button type="button" class="btn ghost" onclick="goTripMenu()">Inicio</button>
         </div>
       </form>
+
       <!-- Resultado una planta -->
       <div id="findFeedback" class="feedback hidden">
         <h4>Asientos para tu CI</h4>
@@ -324,6 +332,7 @@
         </div>
       </div>
       <div id="grid-find" class="grid" aria-live="polite" aria-busy="true"></div>
+
       <!-- Resultado ambas plantas -->
       <div id="multiFeedback" class="feedback hidden">
         <h4>Asientos por planta</h4>
@@ -334,6 +343,7 @@
       </div>
       <div id="multiCroquis"></div>
     </section>
+
     <!-- Control interno -->
     <section id="view-control" class="view" aria-label="Control interno">
       <form id="controlForm" class="form" onsubmit="event.preventDefault(); doControlLogin();">
@@ -351,6 +361,7 @@
         </div>
         <p class="hint">Acceso exclusivo para el staff.</p>
       </form>
+
       <div id="controlBoard" class="control-board" hidden>
         <h4 class="control-title">Ocupación por número</h4>
         <div id="controlToolbar" class="control-toolbar">
@@ -418,69 +429,48 @@
       };
     }
 
-    /* ===== API (señales opcionales para abortar) ===== */
-    async function apiGetTrips(folderId, opts={}) {
-      const res = await fetch(getUrl('trips', { folderId }), { signal: opts.signal });
+    async function apiGetTrips(folderId) {
+      const res = await fetch(getUrl('trips', { folderId }));
       if (!res.ok) throw new Error(`GET trips: ${res.status}`);
       return parseResponse(res);
     }
-    async function apiGetSeats(fileId, sheetName, opts={}) {
-      const res = await fetch(getUrl('seats', { fileId, sheetName }), { signal: opts.signal });
+    async function apiGetSeats(fileId, sheetName) {
+      const res = await fetch(getUrl('seats', { fileId, sheetName }));
       if (!res.ok) throw new Error(`GET seats: ${res.status}`);
       return parseResponse(res);
     }
-    async function apiGetSeatsByCi(fileId, sheetName, ci, opts={}) {
-      const res = await fetch(getUrl('seatsByCi', { fileId, sheetName, ci }), { signal: opts.signal });
+    async function apiGetSeatsByCi(fileId, sheetName, ci) {
+      const res = await fetch(getUrl('seatsByCi', { fileId, sheetName, ci }));
       if (!res.ok) throw new Error(`GET seatsByCi: ${res.status}`);
       return parseResponse(res);
     }
-    async function apiGetLogo(opts={}) {
-      const res = await fetch(getUrl('logo'), { signal: opts.signal });
+    async function apiGetLogo() {
+      const res = await fetch(getUrl('logo'));
       if (!res.ok) throw new Error(`GET logo: ${res.status}`);
       return parseResponse(res);
     }
-    async function apiExportPdf(fileId, sheetName, opts={}) {
-      const res = await fetch(getUrl('exportPdf', { fileId, sheetName }), { signal: opts.signal });
+    async function apiExportPdf(fileId, sheetName) {
+      const res = await fetch(getUrl('exportPdf', { fileId, sheetName }));
       if (!res.ok) throw new Error(`GET exportPdf: ${res.status}`);
       return parseResponse(res);
     }
-    async function apiReserve(fileId, sheetName, pairs, opts={}) {
-      const res = await fetch(getUrl('reserve'), { ...postOptions({ fileId, sheetName, pairs }), signal: opts.signal });
+    async function apiReserve(fileId, sheetName, pairs) {
+      const res = await fetch(getUrl('reserve'), postOptions({ fileId, sheetName, pairs }));
       if (!res.ok) throw new Error(`POST reserve: ${res.status}`);
       return parseResponse(res);
     }
-    async function apiMove(fileId, sheetName, sourceCode, targetCode, opts={}) {
-      const res = await fetch(getUrl('move'), { ...postOptions({ fileId, sheetName, sourceCode, targetCode }), signal: opts.signal });
+    async function apiMove(fileId, sheetName, sourceCode, targetCode){
+      const res = await fetch(getUrl('move'), postOptions({ fileId, sheetName, sourceCode, targetCode }));
       if (!res.ok) throw new Error(`POST move: ${res.status}`);
       return parseResponse(res);
     }
-    async function apiFree(fileId, sheetName, code, opts={}) {
-      const res = await fetch(getUrl('free'), { ...postOptions({ fileId, sheetName, code }), signal: opts.signal });
+    async function apiFree(fileId, sheetName, code) {
+      const res = await fetch(getUrl('free'), postOptions({ fileId, sheetName, code }));
       if (!res.ok) throw new Error(`POST free: ${res.status}`);
       return parseResponse(res);
     }
 
     window.API = { apiGetTrips, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree };
-
-    /* ===== Abort/Requests manager (simple) ===== */
-    const NET = (() => {
-      const ctrlMap = new Map();
-      function getSignal(tag) {
-        // Si había uno previo, abortamos para evitar solapamientos
-        if (ctrlMap.has(tag)) { try { ctrlMap.get(tag).abort(); } catch(e){} }
-        const ctrl = new AbortController();
-        ctrlMap.set(tag, ctrl);
-        return ctrl.signal;
-      }
-      function cancel(tag) {
-        if (ctrlMap.has(tag)) { try { ctrlMap.get(tag).abort(); } catch(e){} ctrlMap.delete(tag); }
-      }
-      function cancelAll() {
-        for (const [,ctrl] of ctrlMap.entries()) { try{ ctrl.abort(); }catch(e){} }
-        ctrlMap.clear();
-      }
-      return { getSignal, cancel, cancelAll };
-    })();
   </script>
 
   <!-- ===== Lógica de la app ===== -->
@@ -489,12 +479,11 @@
     let SEATS = {}; let selected = new Set(); let NUM_LABELS = new Map();
     let HIGHLIGHT_CODES = new Set(); let LAST_FOUND_CODES = [];
     let CONTROL_AUTH = false; let CONTROL_EDIT = false; let EDIT_SRC = null; let EDIT_DST = null;
-    let BUSY = false;
+    let BUSY = false; // solo bloqueos en operaciones críticas (reservar/mover/liberar/pdf)
 
-    /* NUEVO: offsets por planta (doble piso) + caché local */
-    let FLOOR_OFFSETS = new Map();            // sheetName => offset
-    let SEATS_CACHE   = new Map();            // sheetName => seatsMap
-    let FLOORS_PREFETCH_P = null;             // Promise de prefetch para doble piso
+    /* Offsets por planta (doble piso) + caché simple por hoja */
+    let FLOOR_OFFSETS = new Map();  // sheetName => offset
+    let SEATS_CACHE   = new Map();  // sheetName => seatsMap
 
     /* Viaje/hoja actual */
     let CURRENT_TRIP = { fileId: null, name: null, sheets: [], sheetName: null, hasFloors: false };
@@ -504,15 +493,22 @@
     function setStaffSession(enabled){ try { if (enabled) localStorage.setItem(STAFF_KEY, '1'); else localStorage.removeItem(STAFF_KEY); } catch(e){} }
     function isStaffSession(){ try { return localStorage.getItem(STAFF_KEY) === '1'; } catch(e){ return false; } }
 
-    /* Navegación + UI helpers */
+    /* Navegación */
     function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function goHome(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } updateTripTags(); showView('view-home'); }
+    function goTripMenu(){
+      if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; }
+      if(CURRENT_TRIP.hasFloors){ showView('view-floor'); } else { updateTripTags(); showView('view-home'); }
+    }
+    function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
+
+    /* UI helpers */
     function toast(msg){ const bar = document.getElementById('snackbar'); bar.textContent = msg; bar.classList.add('show'); setTimeout(() => bar.classList.remove('show'), 2800); }
     function showLoading(msg){ const ov = document.getElementById('overlay'); ov.querySelector('.loader-text').textContent = msg ?? 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
     function hideLoading(){ const ov = document.getElementById('overlay'); ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); }
     function normalize(code){ return (code ?? '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
     function firstName(full){ const t = (full ?? '').trim(); if(!t) return ''; const name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
-    function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
     /* Admin (Easter Egg) */
     function showAdminMenu(){ document.getElementById('adminMenu').classList.remove('hidden'); }
@@ -528,24 +524,14 @@
       bPanel.classList.toggle('hidden', !isAuth);
       bLogout.classList.toggle('hidden', !isAuth);
     }
-    function syncStaffBadge(){
-      const el = document.getElementById('staffBadge');
-      if (!el) return;
-      el.classList.toggle('hidden', !CONTROL_AUTH);
-    }
-    function syncControlFormVisibility(){
-      const form = document.getElementById('controlForm');
-      if (!form) return;
-      form.hidden = CONTROL_AUTH;
-    }
+    function syncStaffBadge(){ const el = document.getElementById('staffBadge'); if (!el) return; el.classList.toggle('hidden', !CONTROL_AUTH); }
+    function syncControlFormVisibility(){ const form = document.getElementById('controlForm'); if (!form) return; form.hidden = CONTROL_AUTH; }
 
     /* Elegir viaje */
     async function loadTrips(){
-      if (BUSY) return; BUSY = true;
       showLoading('Cargando viajes…');
-      NET.cancelAll();
       try{
-        const payload = await API.apiGetTrips(undefined, { signal: NET.getSignal('trips') });
+        const payload = await API.apiGetTrips();
         const list = document.getElementById('tripList'); list.innerHTML = '';
         (payload.trips ?? []).forEach(tr => {
           const card = document.createElement('div'); card.className='trip-card'; card.tabIndex=0;
@@ -560,14 +546,13 @@
         });
         if(!((payload.trips ?? []).length)){ list.innerHTML = '<p class="muted">No se encontraron viajes en la carpeta.</p>'; }
       }catch(err){ toast('No se pudieron cargar los viajes'); }
-      finally{ hideLoading(); BUSY = false; }
+      finally{ hideLoading(); }
     }
 
     function selectTrip(tr){
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
       FLOOR_OFFSETS = new Map();
       SEATS_CACHE   = new Map();
-      FLOORS_PREFETCH_P = null;
 
       if(CURRENT_TRIP.hasFloors){
         const floorBox = document.getElementById('floorCards'); floorBox.innerHTML = '';
@@ -594,9 +579,6 @@
         });
         const findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', () => goFind());
         extraBox.appendChild(findCard);
-
-        /* NUEVO: prefetch silencioso de ambas plantas + offsets */
-        prefetchFloorsAndOffsets().catch(()=>{});
         showView('view-floor');
       }else{
         // Convencional
@@ -616,14 +598,11 @@
       if(!result.length) result.push(...sheets.map(s => ({ sheetName:s, label:s })));
       return result;
     }
-    function orderFloorsPreferred(floors){
-      const idxAlta = floors.findIndex(f => (f.label?.toLowerCase().includes('alta') || f.sheetName?.toLowerCase().includes('alta')));
-      if (idxAlta >= 0) {
-        const alta = floors[idxAlta];
-        const rest = floors.filter((_,i)=>i!==idxAlta);
-        return [alta, ...rest];
-      }
-      return floors;
+    function getAltaBajaNames(){
+      const floors = getFloorSheets();
+      const alta = floors.find(f => (f.label?.toLowerCase().includes('alta') || f.sheetName?.toLowerCase().includes('alta')))?.sheetName ?? null;
+      const baja = floors.find(f => (f.label?.toLowerCase().includes('baja') || f.sheetName?.toLowerCase().includes('baja')))?.sheetName ?? null;
+      return { alta, baja };
     }
     function getRowsToRenderFromMap(seatsMap){
       const rows = new Set();
@@ -657,75 +636,68 @@
       return count;
     }
 
-    /* NUEVO: prefetch concurrente y cálculo de offsets */
-    async function prefetchFloorsAndOffsets(){
-      const floors = orderFloorsPreferred(getFloorSheets());
-      if (floors.length <= 1) {
-        floors.forEach(f => FLOOR_OFFSETS.set(f.sheetName, 0));
+    /* === Offset perezoso (solo lo que hace falta) === */
+    async function ensureOffsetForCurrentFloor(){
+      if (!CURRENT_TRIP.hasFloors) { FLOOR_OFFSETS.set(CURRENT_TRIP.sheetName, 0); return; }
+      const sheet = CURRENT_TRIP.sheetName;
+      if (FLOOR_OFFSETS.has(sheet)) return; // ya calculado
+
+      const { alta, baja } = getAltaBajaNames();
+      if (!alta || !baja) { FLOOR_OFFSETS.set(sheet, 0); return; } // sin nombres estándar
+
+      // Planta alta empieza en 0; planta baja = cantidad numerable de alta
+      if (sheet === alta) {
+        FLOOR_OFFSETS.set(alta, 0);
         return;
       }
-      if (FLOORS_PREFETCH_P) return FLOORS_PREFETCH_P; // ya en progreso
-      FLOORS_PREFETCH_P = (async () => {
-        try {
-          const signals = floors.map(f => NET.getSignal(`seats_${f.sheetName}`));
-          const promises = floors.map((f, i) => API.apiGetSeats(CURRENT_TRIP.fileId, f.sheetName, { signal: signals[i] }));
-          const results = await Promise.all(promises);
-          const seatsMaps = new Map();
-          results.forEach((resp, idx) => {
+      if (sheet === baja) {
+        // Buscar conteo de Alta en caché o pedir una vez
+        let altaMap = SEATS_CACHE.get(alta);
+        if (!altaMap) {
+          try {
+            const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, alta);
             const rows = resp.rows ?? [];
-            const map = {};
-            rows.forEach(r => { map[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
-            seatsMaps.set(floors[idx].sheetName, map);
-            SEATS_CACHE.set(floors[idx].sheetName, map);       // cachea para render rápido
-          });
-          // offsets acumulados según orden preferente
-          let acc = 0;
-          for (const f of floors){
-            FLOOR_OFFSETS.set(f.sheetName, acc);
-            acc += countNumberedSeatsFromMap(seatsMaps.get(f.sheetName) ?? {});
+            altaMap = {};
+            rows.forEach(r => { altaMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
+            SEATS_CACHE.set(alta, altaMap);
+          } catch(e) {
+            // si falla, igual deja offset 0 para no bloquear la UI
+            FLOOR_OFFSETS.set(baja, 0);
+            return;
           }
-        } catch(e) {
-          // ante error, al menos inicializa offsets sin bloquear
-          floors.forEach((f, idx) => FLOOR_OFFSETS.set(f.sheetName, idx === 0 ? 0 : 0));
         }
-      })();
-      return FLOORS_PREFETCH_P;
+        const countAlta = countNumberedSeatsFromMap(altaMap);
+        FLOOR_OFFSETS.set(alta, 0);
+        FLOOR_OFFSETS.set(baja, countAlta);
+        return;
+      }
+      // Cualquier otra hoja (nombres no estándar): offset 0
+      FLOOR_OFFSETS.set(sheet, 0);
     }
 
+    /* Elegir planta / navegación principal */
     async function chooseFloor(sheetName){
-      if (BUSY) return; BUSY = true;
       CURRENT_TRIP.sheetName = sheetName;
       updateTripTags();
-      showLoading('Preparando asientos…');
 
-      // Si hay doble piso, espera prefetch (si no terminó aún)
-      if (CURRENT_TRIP.hasFloors) {
-        try { await (FLOORS_PREFETCH_P ?? prefetchFloorsAndOffsets()); } catch(e){}
-      }
-
-      try {
-        if (CONTROL_AUTH) {
-          showView('view-control');
-          await refreshSeats(null, () => { renderControlBoard(); }, /*useCache*/true);
+      if (CONTROL_AUTH) {
+        showView('view-control');
+        showLoading('Cargando ocupación…');
+        await refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
+      } else {
+        if (CURRENT_TRIP.hasFloors) {
+          showView('view-select');
+          showLoading('Cargando asientos…');
+          await refreshSeats('grid-select', () => hideLoading());
         } else {
-          if (CURRENT_TRIP.hasFloors) {
-            showView('view-select');
-            await refreshSeats('grid-select', () => {}, /*useCache*/true);
-          } else {
-            goHome();
-          }
+          goHome(); // MENÚ (convencional)
         }
-      } finally {
-        hideLoading(); BUSY = false;
       }
     }
-
     function backToChoose(){
       CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false };
       FLOOR_OFFSETS = new Map();
       SEATS_CACHE   = new Map();
-      FLOORS_PREFETCH_P = null;
-      NET.cancelAll();
       showView('view-choose');
     }
     function updateTripTags(){
@@ -735,24 +707,25 @@
     }
 
     /* ====== Datos (una hoja) ====== */
-    async function refreshSeats(targetId, onDone, useCache=true){
+    async function refreshSeats(targetId, onDone){
       const gridEl = targetId ? document.getElementById(targetId) : null;
       if(gridEl) gridEl.setAttribute('aria-busy','true');
-
       try{
-        // Usa caché si está disponible y permitido
-        const cached = SEATS_CACHE.get(CURRENT_TRIP.sheetName);
-        if (useCache && cached) {
-          SEATS = cached;
-          if(gridEl){ buildGrid(targetId); }
-        } else {
-          const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, { signal: NET.getSignal(`seats_${CURRENT_TRIP.sheetName}`) });
+        // usa caché si hay, sino pide
+        let seatsMap = SEATS_CACHE.get(CURRENT_TRIP.sheetName);
+        if (!seatsMap) {
+          const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
           const rows = resp.rows ?? [];
-          SEATS = {};
-          rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
-          SEATS_CACHE.set(CURRENT_TRIP.sheetName, SEATS); // cachea la última
-          if(gridEl){ buildGrid(targetId); }
+          seatsMap = {};
+          rows.forEach(r => { seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
+          SEATS_CACHE.set(CURRENT_TRIP.sheetName, seatsMap);
         }
+        SEATS = seatsMap;
+
+        // asegurar offset antes de pintar
+        await ensureOffsetForCurrentFloor();
+
+        if(gridEl){ buildGrid(targetId); }
       }catch(err){
         toast('Error al cargar asientos'); if(gridEl){ buildGrid(targetId); }
       }finally{
@@ -761,10 +734,21 @@
       }
     }
     function refreshSeatsWithSpinner(targetId, onDone){
-      if (BUSY) return; BUSY = true;
       showLoading('Actualizando asientos…');
-      // Forzar red a pedido explícito del usuario
-      refreshSeats(targetId, () => { hideLoading(); BUSY=false; if (typeof onDone === 'function') onDone(); }, /*useCache*/false);
+      // fuerza lectura desde API y actualiza caché
+      (async () => {
+        try{
+          const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
+          const rows = resp.rows ?? [];
+          const map = {};
+          rows.forEach(r => { map[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
+          SEATS_CACHE.set(CURRENT_TRIP.sheetName, map);
+          SEATS = map;
+          await ensureOffsetForCurrentFloor();
+          if(targetId){ buildGrid(targetId); }
+        }catch(e){ toast('Error al actualizar asientos'); }
+        finally{ hideLoading(); if (typeof onDone === 'function') onDone(); }
+      })();
     }
     function getRowsToRender(){ return getRowsToRenderFromMap(SEATS); }
     function computeClassFor(code){
@@ -798,7 +782,6 @@
           const btn = document.createElement('button'); btn.type='button'; btn.className = `seat ${klass}`;
           const isNum = (klass === 'libre' || klass === 'ocupado');
           const norm = normalize(code);
-
           if(isNum){
             btn.textContent = seatNumber;
             btn.setAttribute('data-code', code);
@@ -831,7 +814,7 @@
       }
     }
 
-    /* Selección */
+    /* Selección (público) */
     function toggleSeat(code, el){
       const key = normalize(code);
       const isSel = selected.has(key);
@@ -851,13 +834,11 @@
 
       const pairs = Array.from(selected).map(code => ({ asiento: normalize(code), pasajero: nombre, ci }));
       showLoading('Reservando…');
-      NET.cancelAll(); // evita solapamientos con cargas previas
       try{
-        await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs, { signal: NET.getSignal('reserve') });
-        // Invalida caché para reflejar el último estado
-        SEATS_CACHE.delete(CURRENT_TRIP.sheetName);
+        await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
+        SEATS_CACHE.delete(CURRENT_TRIP.sheetName); // invalida caché
         showReserveFeedbackDetailed(pairs);
-        await refreshSeats('grid-select', () => {}, /*useCache*/false);
+        await refreshSeats('grid-select', () => {});
       }catch(err){
         toast('No se pudo reservar');
       }finally{
@@ -878,12 +859,11 @@
         pairs.push({ asiento: codeNorm, pasajero, ci });
       }
       showLoading('Reservando…');
-      NET.cancelAll();
       try{
-        await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs, { signal: NET.getSignal('reserve') });
+        await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
         SEATS_CACHE.delete(CURRENT_TRIP.sheetName);
         showReserveFeedbackDetailed(pairs);
-        await refreshSeats('grid-select', () => {}, /*useCache*/false);
+        await refreshSeats('grid-select', () => {});
         document.getElementById('view-assign').classList.add('hidden');
       }catch(err){
         toast('No se pudo reservar');
@@ -903,41 +883,40 @@
       panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'});
     }
 
-    /* Mirá tu asiento (una planta) */
+    /* ====== Mirá tu asiento (una hoja o ambas plantas) ====== */
     async function findByCI(){
-      if (BUSY) return; BUSY = true;
       if(CURRENT_TRIP.hasFloors && !CURRENT_TRIP.sheetName){
         await findByCIAcrossFloors();
-        BUSY=false;
         return;
       }
-      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); BUSY=false; return; }
+      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; }
       const ci = document.getElementById('ciSearch').value.trim();
-      if(!ci){ toast('Ingresá tu CI'); BUSY=false; return; }
+      if(!ci){ toast('Ingresá tu CI'); return; }
 
       showLoading('Buscando…');
-      NET.cancelAll();
       try{
-        const respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci, { signal: NET.getSignal('find') });
+        const respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci);
         const rawCodes = (respSeats.seats ?? []).map(s => normalize(s));
         LAST_FOUND_CODES = Array.from(new Set(rawCodes));
 
-        // Usa caché para calcular números sin pedir otra vez
-        const seatsMap = SEATS_CACHE.get(CURRENT_TRIP.sheetName);
+        // usa caché si hay, sino pide
+        let seatsMap = SEATS_CACHE.get(CURRENT_TRIP.sheetName);
         if (!seatsMap) {
-          const respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, { signal: NET.getSignal(`seats_${CURRENT_TRIP.sheetName}`) });
+          const respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
           const rows = respRows.rows ?? [];
-          SEATS = {}; rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
-          SEATS_CACHE.set(CURRENT_TRIP.sheetName, SEATS);
-        } else {
-          SEATS = seatsMap;
+          seatsMap = {};
+          rows.forEach(r => { seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
+          SEATS_CACHE.set(CURRENT_TRIP.sheetName, seatsMap);
         }
+        SEATS = seatsMap;
+
+        await ensureOffsetForCurrentFloor();
 
         const nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
         HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
       }catch(err){ toast('Error al buscar por CI'); }
-      finally{ hideLoading(); BUSY=false; }
+      finally{ hideLoading(); }
     }
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map();
@@ -968,15 +947,14 @@
       }
     }
     function showCroquisForCI(){
-      if (BUSY) return; BUSY = true;
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', () => {
-        hideLoading(); BUSY=false;
+        hideLoading();
         const firstMarked = document.getElementById('grid-find').querySelector('.seat.mine');
         if (firstMarked) firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
         else document.getElementById('grid-find').scrollIntoView({ behavior:'smooth', block:'start' });
         toast(`Resaltados: ${HIGHLIGHT_CODES.size}`);
-      }, /*useCache*/true);
+      });
     }
     function clearFindView(){
       document.getElementById('findFeedback').classList.add('hidden');
@@ -986,7 +964,7 @@
       LAST_FOUND_CODES = [];
     }
 
-    /* Mirá tu asiento (ambas plantas) */
+    /* ====== BÚSQUEDA EN AMBAS PLANTAS (doble piso) ====== */
     let MULTI_SHEETS = [];
     let SEATS_BY_SHEET = new Map();
     let HIGHLIGHT_BY_SHEET = new Map();
@@ -998,40 +976,36 @@
       if(!ci){ toast('Ingresá tu CI'); return; }
 
       showLoading('Buscando en ambas plantas…');
-      NET.cancelAll();
       try{
         MULTI_SHEETS = getFloorSheets();
         SEATS_BY_SHEET = new Map();
         HIGHLIGHT_BY_SHEET = new Map();
         NUMS_BY_SHEET = new Map();
 
-        // Usa caché si existe; si no, pide
         for(const f of MULTI_SHEETS){
-          const [respSeats, seatsMap] = await Promise.all([
-            API.apiGetSeatsByCi(CURRENT_TRIP.fileId, f.sheetName, ci, { signal: NET.getSignal(`find_${f.sheetName}`) }),
-            (async () => {
-              const cached = SEATS_CACHE.get(f.sheetName);
-              if (cached) return cached;
-              const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, f.sheetName, { signal: NET.getSignal(`seats_${f.sheetName}`) });
-              const rows = resp.rows ?? []; const map = {};
-              rows.forEach(r => { map[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
-              SEATS_CACHE.set(f.sheetName, map);
-              return map;
-            })()
+          const [respSeats, respRows] = await Promise.all([
+            API.apiGetSeatsByCi(CURRENT_TRIP.fileId, f.sheetName, ci),
+            API.apiGetSeats(CURRENT_TRIP.fileId, f.sheetName)
           ]);
-
           const codesRaw = (respSeats.seats ?? []).map(s => normalize(s));
           const codes = Array.from(new Set(codesRaw));
+          const rows = respRows.rows ?? [];
+          const seatsMap = {};
+          rows.forEach(r => { seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
           SEATS_BY_SHEET.set(f.sheetName, seatsMap);
           HIGHLIGHT_BY_SHEET.set(f.sheetName, new Set(codes));
+          SEATS_CACHE.set(f.sheetName, seatsMap); // rellena caché
         }
 
-        // offsets desde caché
-        const floors = orderFloorsPreferred(MULTI_SHEETS);
-        let acc = 0;
-        for (const f of floors){
-          FLOOR_OFFSETS.set(f.sheetName, acc);
-          acc += countNumberedSeatsFromMap(SEATS_CACHE.get(f.sheetName) ?? {});
+        // offsets: Alta primero si existe
+        const { alta, baja } = getAltaBajaNames();
+        if (alta && baja) {
+          const countAlta = countNumberedSeatsFromMap(SEATS_CACHE.get(alta) ?? {});
+          FLOOR_OFFSETS.set(alta, 0);
+          FLOOR_OFFSETS.set(baja, countAlta);
+        } else {
+          // si no hay nombres estándar, offset 0 para todas
+          MULTI_SHEETS.forEach(f => FLOOR_OFFSETS.set(f.sheetName, 0));
         }
 
         for(const f of MULTI_SHEETS){
@@ -1046,7 +1020,6 @@
         hideLoading();
       }
     }
-
     function computeNumbersForCodesWith(seatsMap, codes, offset=0){
       const rows = getRowsToRenderFromMap(seatsMap);
       let seatNumber = offset + 1;
@@ -1062,7 +1035,6 @@
       }
       return codes.map(c => labels.get(c)).filter(n => typeof n !== 'undefined');
     }
-
     function renderFindFeedbackMulti(){
       clearFindView();
       const panel = document.getElementById('multiFeedback');
@@ -1094,17 +1066,11 @@
     }
 
     async function showCroquisForCIMulti(){
-      if (BUSY) return; BUSY = true;
       showLoading('Cargando croquis…');
       const container = document.getElementById('multiCroquis');
       container.innerHTML = '';
-
       const floorsWithResults = MULTI_SHEETS.filter(f => (NUMS_BY_SHEET.get(f.sheetName) ?? []).length > 0);
-      if (!floorsWithResults.length) {
-        hideLoading(); BUSY=false;
-        toast('Tu CI no tiene asientos en ninguna planta de este viaje.');
-        return;
-      }
+      if (!floorsWithResults.length) { hideLoading(); toast('Tu CI no tiene asientos en ninguna planta de este viaje.'); return; }
       for(const f of floorsWithResults){
         const seatsMap = SEATS_BY_SHEET.get(f.sheetName) ?? {};
         const highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) ?? new Set();
@@ -1117,12 +1083,11 @@
         const offset = FLOOR_OFFSETS.get(f.sheetName) ?? 0;
         buildGridCustom(gridId, seatsMap, highlights, offset);
       }
-      hideLoading(); BUSY=false;
+      hideLoading();
       const firstMarked = container.querySelector('.seat.mine');
       if (firstMarked) firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
       else container.scrollIntoView({ behavior:'smooth', block:'start' });
     }
-
     function buildGridCustom(targetId, seatsMap, highlightSet, offsetStart=0){
       const grid = document.getElementById(targetId); if(!grid) return;
       grid.innerHTML = '';
@@ -1163,7 +1128,7 @@
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
     }
 
-    /* Control interno */
+    /* ====== Control interno ====== */
     function openStaffLogin(){
       hideAdminMenu();
       CONTROL_AUTH = false;
@@ -1177,17 +1142,17 @@
       if(u) u.value = ''; if(p) p.value = '';
     }
     async function doControlLogin(){
-      if (BUSY) return; BUSY = true;
       const u = document.getElementById('ctlUser').value.trim();
       const p = document.getElementById('ctlPass').value.trim();
       showLoading('Verificando…');
-      NET.cancelAll();
       try{
-        const resp = await API.apiLogin(u,p, { signal: NET.getSignal('login') });
+        const resp = await API.apiLogin(u,p);
         if(resp && resp.ok){
           CONTROL_AUTH = true;
           setStaffSession(true);
-          updateAdminMenu(); syncStaffBadge(); syncControlFormVisibility();
+          updateAdminMenu();
+          syncStaffBadge();
+          syncControlFormVisibility();
           toast('Acceso staff habilitado');
           showView('view-choose');
           await loadTrips();
@@ -1195,16 +1160,22 @@
         }else{
           CONTROL_AUTH = false;
           setStaffSession(false);
-          updateAdminMenu(); syncStaffBadge(); syncControlFormVisibility(); hideControlBoard();
+          updateAdminMenu();
+          syncStaffBadge();
+          syncControlFormVisibility();
+          hideControlBoard();
           toast('Usuario o contraseña inválidos');
         }
       }catch(err){
         CONTROL_AUTH = false;
         setStaffSession(false);
-        updateAdminMenu(); syncStaffBadge(); syncControlFormVisibility(); hideControlBoard();
+        updateAdminMenu();
+        syncStaffBadge();
+        syncControlFormVisibility();
+        hideControlBoard();
         toast('Error de verificación');
       }finally{
-        hideLoading(); BUSY=false;
+        hideLoading();
       }
     }
     function doControlLogout(){
@@ -1326,13 +1297,12 @@
       if (BUSY) return; BUSY = true;
       showLoading('Moviendo pasajero…');
       if(!EDIT_SRC || !EDIT_DST){ hideLoading(); BUSY=false; toast('Selecciona origen (ocupado) y destino (libre).'); return; }
-      NET.cancelAll();
       try{
-        const resp=await API.apiMove(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code, EDIT_DST.code, { signal: NET.getSignal('move') });
+        const resp=await API.apiMove(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code, EDIT_DST.code);
         toast(resp && resp.message ? resp.message : 'Movimiento realizado');
         SEATS_CACHE.delete(CURRENT_TRIP.sheetName);
         cancelEdit(true);
-        await refreshSeats(null, renderControlBoard, /*useCache*/false);
+        await refreshSeats(null, renderControlBoard);
       }catch(err){
         toast('No se pudo mover al pasajero');
       }finally{
@@ -1343,13 +1313,12 @@
       if (BUSY) return; BUSY = true;
       showLoading('Liberando asiento…');
       if(!EDIT_SRC){ hideLoading(); BUSY=false; toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
-      NET.cancelAll();
       try{
-        const resp=await API.apiFree(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code, { signal: NET.getSignal('free') });
+        const resp=await API.apiFree(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code);
         toast(resp && resp.message ? resp.message : 'Asiento liberado');
         SEATS_CACHE.delete(CURRENT_TRIP.sheetName);
         cancelEdit(true);
-        await refreshSeats(null, renderControlBoard, /*useCache*/false);
+        await refreshSeats(null, renderControlBoard);
       }catch(err){
         toast('No se pudo liberar el asiento');
       }finally{
@@ -1360,9 +1329,8 @@
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
       if (BUSY) return; BUSY = true;
       showLoading('Generando PDF…');
-      NET.cancelAll();
       try{
-        const resp = await API.apiExportPdf(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, { signal: NET.getSignal('export') });
+        const resp = await API.apiExportPdf(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
         if(resp && resp.url){
           const newWin=window.open(resp.url,'_blank');
           if(!newWin){
@@ -1382,7 +1350,7 @@
       }
     }
 
-    /* Inicio */
+    /* ===== Inicio ===== */
     (async function init(){
       const chip = document.querySelector('.brand-chip');
       chip.childNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
@@ -1396,9 +1364,8 @@
       let pressTimer = null;
       img.addEventListener('touchstart', () => { pressTimer = setTimeout(() => toggleAdminMenu(), 450); }, {passive:true});
       img.addEventListener('touchend', () => { clearTimeout(pressTimer); }, {passive:true});
-
       try{
-        const payload = await API.apiGetLogo({ signal: NET.getSignal('logo') });
+        const payload = await API.apiGetLogo();
         let src = '';
         if (payload && payload.dataUrl) src = payload.dataUrl;
         else if (payload && payload.publicUrl) src = payload.publicUrl;
@@ -1411,10 +1378,8 @@
       }catch(e){
         skel.style.display='block';
       }
-
       document.getElementById('ciPrincipal')?.addEventListener('input', e => onlyDigits(e.target));
       document.getElementById('ciSearch')?.addEventListener('input', e => onlyDigits(e.target));
-
       if (isStaffSession()) {
         CONTROL_AUTH = true;
         updateAdminMenu();
