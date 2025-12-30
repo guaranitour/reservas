@@ -204,9 +204,11 @@
     .trip-card h3{ margin:0; font-size:1rem; }
     .trip-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .trip-pill{ display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:4px 8px; font-size:.8rem; background:#eef2ff; color:#1e3a8a; }
+
     .floors{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:12px auto 0; }
     @media (min-width:520px){ .floors{ grid-template-columns:1fr 1fr; } }
-    .floors .card h2{ font-size:1rem; }
+    .floors .card h2{ font-size:1rem; } /* iguala la jerarquía de las tarjetas de planta */
+
     .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
     .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
 
@@ -239,6 +241,20 @@
       font-size:.85rem; font-weight:800;
       box-shadow:0 8px 20px rgba(17,24,39,.16), inset 0 0 0 1px rgba(146,64,14,.20);
       border:1px solid rgba(255,255,255,.65);
+    }
+
+    /* ===== Aviso legal (Bases y Condiciones) ===== */
+    .legal-note{
+      margin:14px auto 0;
+      max-width:560px;
+      text-align:center;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+    .legal-note a{
+      color:var(--primary);
+      font-weight:700;
+      text-decoration:underline;
     }
   </style>
 </head>
@@ -275,6 +291,14 @@
           <!-- Título más discreto y centrado (con más espacio abajo) -->
           <h2 class="view-title">Elegí tu viaje</h2>
           <div id="tripList" class="trip-list"></div>
+
+          <!-- NUEVO: Aviso Bases y Condiciones -->
+          <p class="legal-note">
+            Podés leer nuestras
+            https://drive.google.com/file/d/1j2VCdg6gRKpz1dpySOV9M3Fz4RGGBbzm/view?usp=drive_link
+              Bases y Condiciones aquí
+            </a>.
+          </p>
         </div>
       </div>
     </section>
@@ -284,7 +308,7 @@
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
 
-          <!-- NUEVO: Píldora con el nombre del viaje -->
+          <!-- Píldora con el nombre del viaje -->
           <div style="max-width:560px; width:100%; margin-bottom:12px;">
             <div class="trip-tags">
               <span class="tag trip-tag-trip">Viaje: —</span>
@@ -293,16 +317,8 @@
 
           <h2 class="view-title">Elegí planta</h2>
 
-          <!-- Tarjetas de selección de planta -->
+          <!-- Tarjetas de selección de planta + Buscar por CI (inyectado por JS para tamaño consistente) -->
           <div class="floors" id="floorCards"></div>
-
-          <!-- NUEVO: Card “Buscar por CI” debajo de las plantas -->
-          <div class="cards" style="margin-top:12px;">
-            <article class="card" tabindex="0" role="button" onclick="goFind()" onkeypress="handleEnter(event, goFind)">
-              <h2>Buscar por CI</h2>
-              <p>Ingresa tu CI para ver tus números y el croquis.</p>
-            </article>
-          </div>
 
           <div class="actions" style="margin-top:12px;">
             <button type="button" class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
@@ -645,7 +661,7 @@
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
 
       if(CURRENT_TRIP.hasFloors){
-        // NUEVO: actualizar la(s) píldora(s) del nombre de viaje antes de mostrar la vista
+        // Actualizar la(s) píldora(s) de viaje antes de mostrar la vista
         updateTripTags();
 
         const floorBox = document.getElementById('floorCards'); floorBox.innerHTML = '';
@@ -657,6 +673,8 @@
         if(altaName) candidates.push({ label:'Planta alta', sheetName:altaName, desc:'Mayor altura y vista panorámica.' });
         // Si no hay las hojas estándar, caemos a todas las hojas
         if(!candidates.length){ tr.sheets.forEach(s => candidates.push({ label:s, sheetName:s, desc:null })); }
+
+        // Render tarjetas de planta
         candidates.forEach(c => {
           const card = document.createElement('article'); card.className='card'; card.tabIndex=0;
           const h2 = document.createElement('h2'); h2.textContent = c.label;
@@ -667,9 +685,19 @@
           card.onkeypress = (ev) => { if(ev.key==='Enter') chooseFloor(c.sheetName); };
           floorBox.appendChild(card);
         });
+
+        // NUEVO: tarjeta "Buscar por CI" con el MISMO tamaño/estilo que las tarjetas de planta
+        const ciCard = document.createElement('article'); ciCard.className='card'; ciCard.tabIndex=0;
+        const ciH2 = document.createElement('h2'); ciH2.textContent='Buscar por CI';
+        const ciP = document.createElement('p'); ciP.textContent='Ingresa tu CI para ver tus números y el croquis.';
+        ciCard.appendChild(ciH2); ciCard.appendChild(ciP);
+        ciCard.onclick = () => goFind();
+        ciCard.onkeypress = (ev) => { if(ev.key==='Enter') goFind(); };
+        floorBox.appendChild(ciCard);
+
         showView('view-floor');
       }else{
-        // Convencional: elegimos la hoja por defecto, sin mostrar nombres/ramificaciones al usuario
+        // Convencional: elegimos la hoja por defecto
         const sheet = tr.sheets.find(s => s.toLowerCase() === 'asientos') || tr.sheets[0];
         chooseFloor(sheet);
       }
@@ -685,7 +713,7 @@
         showLoading('Cargando ocupación…');
         refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
       } else {
-        // Público: ir DIRECTO a la selección de asientos (NUEVO)
+        // Público: ir DIRECTO a la selección de asientos
         goSelect();
       }
     }
@@ -695,7 +723,7 @@
       showView('view-choose');
     }
 
-    /* NUEVO: actualizar todas las píldoras de viaje presentes */
+    /* Actualizar todas las píldoras de viaje presentes */
     function updateTripTags(){
       document.querySelectorAll('.trip-tag-trip').forEach(el => {
         el.textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`;
@@ -971,7 +999,7 @@
           syncStaffBadge();
           syncControlFormVisibility(); // oculto la caja de login
           toast('Acceso staff habilitado');
-          // Tras login: mostrar lista de viajes para seleccionar (público o staff)
+          // Tras login: mostrar lista de viajes para seleccionar
           showView('view-choose');
           await loadTrips();
           hideControlBoard();
