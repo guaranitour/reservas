@@ -283,15 +283,16 @@
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí planta</h2>
           <div class="floors" id="floorCards"></div>
-          <div class="actions" style="margin-top:12px;">
+
+          <!-- Solo dejar "Cambiar viaje", con más espacio y centrado -->
+          <div class="actions" style="margin-top:24px; justify-content:center;">
             <button type="button" class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
-            <button type="button" class="btn primary" onclick="goHome()">Ir al menú</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Menú principal -->
+    <!-- Menú principal (convencional se mantiene tal cual) -->
     <section id="view-home" class="view" aria-label="Inicio">
       <div class="home-center">
         <div style="max-width:560px; width:100%; margin-bottom:12px;">
@@ -636,26 +637,43 @@
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
       if(CURRENT_TRIP.hasFloors){
         const floorBox = document.getElementById('floorCards'); floorBox.innerHTML = '';
+
         const bajaName = tr.sheets.find(s => s.toLowerCase() === 'asientos baja');
         const altaName = tr.sheets.find(s => s.toLowerCase() === 'asientos alta');
+
+        // Candidatos (planta baja / alta, o todas las hojas si no hay estándar)
         const candidates = [];
-        // Doble piso: etiquetas y descripciones amigables
         if(bajaName) candidates.push({ label:'Planta baja', sheetName:bajaName, desc:'Acceso rápido, usualmente cerca del conductor.' });
         if(altaName) candidates.push({ label:'Planta alta', sheetName:altaName, desc:'Mayor altura y vista panorámica.' });
-        // Si no hay las hojas estándar, caemos a todas las hojas
         if(!candidates.length){ tr.sheets.forEach(s => candidates.push({ label:s, sheetName:s, desc:null })); }
-        candidates.forEach(c => {
-          const card = document.createElement('article'); card.className='card'; card.tabIndex=0;
-          const h2 = document.createElement('h2'); h2.textContent = c.label;
-          const p = document.createElement('p'); p.textContent = c.desc ? c.desc : `Hoja: ${c.sheetName}`;
+
+        // Helper para crear tarjetas
+        const makeCard = (label, desc, onClick) => {
+          const card = document.createElement('article'); card.className='card'; card.tabIndex=0; card.setAttribute('role','button');
+          const h2 = document.createElement('h2'); h2.textContent = label;
+          const p = document.createElement('p'); p.textContent = desc || '';
           card.appendChild(h2); card.appendChild(p);
-          card.onclick = () => chooseFloor(c.sheetName);
-          card.onkeypress = (ev) => { if(ev.key==='Enter') chooseFloor(c.sheetName); };
-          floorBox.appendChild(card);
-        });
+          card.onclick = onClick;
+          card.onkeypress = (ev) => { if(ev.key==='Enter') onClick(); };
+          return card;
+        };
+
+        // Construir tarjetas de plantas
+        const cardEls = candidates.map(c =>
+          makeCard(c.label, c.desc ? c.desc : `Hoja: ${c.sheetName}`, () => chooseFloor(c.sheetName))
+        );
+
+        // Tarjeta "Buscar por CI" integrada entre las plantas
+        const findCard = makeCard('Buscar por CI', 'Ingresa tu CI para ver tus números y el croquis.', () => goFind());
+        if(cardEls.length >= 2) cardEls.splice(1, 0, findCard); // entre baja/alta
+        else cardEls.push(findCard); // si solo hay una planta/hoja
+
+        // Pintar
+        cardEls.forEach(el => floorBox.appendChild(el));
+
         showView('view-floor');
       }else{
-        // Convencional: elegimos la hoja por defecto, sin mostrar nombres/ramificaciones al usuario
+        // Convencional: elegimos la hoja por defecto (sin mostrar nombres/ramificaciones)
         const sheet = tr.sheets.find(s => s.toLowerCase() === 'asientos') || tr.sheets[0];
         chooseFloor(sheet);
       }
