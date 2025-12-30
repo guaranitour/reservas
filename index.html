@@ -11,7 +11,6 @@
       --primary:#2c7be5; --success:#10b981; --shadow:0 8px 20px rgba(17,24,39,.08);
       --brandA: rgba(44,123,229,.10); --brandB: rgba(16,185,129,.08);
       --logo-w-ideal: 84vw; --logo-w-max: 360px;
-      --pill-bg:#eef2ff; --pill-text:#5b21b6; /* lila */
       --safe-bottom: env(safe-area-inset-bottom, 0px);
       --action-bar-h: 72px;
     }
@@ -30,9 +29,8 @@
       padding:clamp(12px,4vw,24px); display:grid; place-items:center;
       min-height: clamp(110px, 24vw, 210px);
     }
-    /* Chip contenedor del logo: ancla del panel admin */
     .brand-chip{
-      position: relative; /* ancla del panel admin */
+      position:relative;
       display:inline-flex; align-items:center; justify-content:center;
       padding:clamp(8px,2.4vw,16px) clamp(12px,3vw,20px);
       border-radius:16px; background: rgba(255,255,255,.55);
@@ -49,37 +47,14 @@
       animation: shimmer 1.2s ease-in-out infinite;
     }
     @keyframes shimmer{ 0%{background-position: 0% 0;} 100%{background-position: 200% 0;} }
-
-    /* Logo contenido en el chip */
     .brand-chip img{
-      display:block; width:100%; max-width:min(84vw, 360px);
-      height:auto; object-fit:contain; margin:0 auto;
+      width: min(var(--logo-w-ideal), var(--logo-w-max));
+      max-width:100%; height:auto; display:block; object-fit:contain; margin:0 auto;
       filter: drop-shadow(0 3px 8px rgba(17,24,39,.14));
-      opacity:0; transition: opacity .25s ease; cursor:pointer;
+      opacity:0; transition: opacity .25s ease;
+      cursor: pointer;
     }
     .brand-chip img.ready{ opacity:1; }
-
-    /* Panel admin (easter egg): debajo del chip y alineado a la derecha */
-    .admin-menu {
-      position: absolute; top: calc(100% + 8px); right: 0; z-index: 999;
-      width: min(92vw, 320px); border-radius: 14px; padding: 14px;
-      background: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.80);
-      box-shadow: 0 12px 28px rgba(17,24,39,.16); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      pointer-events: auto;
-    }
-    .admin-title { margin: 0 0 10px 0; font-weight: 800; color: var(--text); }
-    .btn-admin { width: 100%; }
-    .admin-menu.hidden { display: none; }
-
-    /* ===== Insignia Staff fija (top-right) ===== */
-    .staff-badge{
-      position:fixed !important; top:10px; right:10px; z-index:1000;
-      display:inline-flex; align-items:center; gap:6px;
-      background:#fde68a; color:#92400e; padding:6px 10px; border-radius:999px;
-      font-size:.85rem; font-weight:800;
-      box-shadow:0 8px 20px rgba(17,24,39,.16), inset 0 0 0 1px rgba(146,64,14,.20);
-      border:1px solid rgba(255,255,255,.65);
-    }
 
     /* Contenedor principal */
     .app{padding:clamp(12px,3vw,20px);}
@@ -100,7 +75,13 @@
     .card p{margin:0; color:var(--muted);}
 
     .view-title{
-      margin:0 0 16px 0; font-size:1rem; line-height:1.25; font-weight:800; letter-spacing:.2px; color:var(--text); text-align:center;
+      margin:0 0 16px 0;
+      font-size:1rem;
+      line-height:1.25;
+      font-weight:800;
+      letter-spacing:.2px;
+      color:var(--text);
+      text-align:center;
     }
 
     /* Formularios */
@@ -146,20 +127,26 @@
     .nums{display:flex; gap:10px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
 
-    /* Más espacio para “Ver croquis” y contenedor del croquis */
-    #findFeedback .actions, #multiFeedback .actions { margin-top:14px; margin-bottom:18px; }
-    #grid-find, #multiCroquis { margin-top:16px; }
+    /* Más espacio debajo del botón “Ver croquis” y encima del croquis */
+    #findFeedback .actions,
+    #multiFeedback .actions { margin-top:14px; margin-bottom:18px; }
+    #grid-find,
+    #multiCroquis { margin-top:16px; }
 
     /* Asignación múltiple */
     .assign{ margin-top: 12px; padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
     .assign-list{ display:flex; flex-direction:column; gap:16px; }
-    .assign-row{ background:var(--card); border-radius:12px; box-shadow:var(--shadow); padding:16px; display:grid; gap:10px; scroll-margin-bottom:12px; }
+    .assign-row{
+      background:var(--card); border-radius:12px; box-shadow:var(--shadow);
+      padding:16px; display:grid; gap:10px; scroll-margin-bottom:12px;
+    }
     .assign-title{ font-size:1rem; font-weight:800; color:var(--text); }
     .assign-grid{ display:grid; grid-template-columns:1fr; gap:10px; }
     @media (min-width:560px){ .assign-grid{ grid-template-columns:1fr 1fr; } }
     .field{ display:flex; flex-direction:column; gap:6px; }
     .field-label{ font-weight:600; font-size:.9rem; color:var(--muted); }
 
+    /* Bottom App Bar (solo botones) */
     .assign .action-bar{
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
       height: calc(var(--action-bar-h) + var(--safe-bottom));
@@ -203,32 +190,18 @@
     @media (prefers-reduced-motion: reduce){ .view.active{animation:none} .spinner{animation:none} }
     .hidden{display:none !important;}
 
-    /* ===== Elegir viaje: tarjetas y pill lila a la derecha ===== */
-    .trip-list{
-      display:grid; grid-template-columns:1fr; gap:12px;
-      max-width:680px; margin:0 auto;
-    }
-    .trip-card{
-      background:var(--card); border-radius:14px; box-shadow:var(--shadow);
-      padding:16px; display:flex; flex-direction:column; gap:6px; cursor:pointer;
-      transition:transform .15s ease, box-shadow .2s ease;
-    }
-    .trip-card:hover{ transform: translateY(-2px); box-shadow:0 10px 24px rgba(17,24,39,.12); }
-    .trip-head{
-      display:flex; align-items:center; justify-content:space-between; gap:8px;
-    }
-    .trip-card h3{
-      margin:0; font-size:1rem; font-weight:800; color:var(--text);
-    }
-    .trip-pill{
-      display:inline-flex; align-items:center; gap:6px;
-      border-radius:999px; padding:6px 10px; font-size:.8rem; font-weight:800;
-      background: var(--pill-bg); color: var(--pill-text);
-      box-shadow: inset 0 0 0 1px rgba(91,33,182,.20);
-      white-space:nowrap;
-    }
+    /* Croquis de Control: número + primer nombre */
+    #controlCroquis .seat{ display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:56px; }
+    #controlCroquis .seat .num{ font-size: 1rem; line-height: 1; font-weight: 800; }
+    #controlCroquis .seat .occ-name{ margin-top:4px; font-size:.75rem; line-height:1.1; font-weight:600; color:#374151; letter-spacing:.2px; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #controlCroquis .seat.ocupado .occ-name{ color:#7f1d1d; }
 
-    /* Elegir planta */
+    /* Elegir viaje / elegir planta */
+    .trip-list{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:0 auto; }
+    .trip-card{ background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px; display:flex; flex-direction:column; gap:6px; cursor:pointer; }
+    .trip-card h3{ margin:0; font-size:1rem; }
+    .trip-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .trip-pill{ display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:4px 8px; font-size:.8rem; background:#eef2ff; color:#1e3a8a; }
     .floors{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:12px auto 0; }
     @media (min-width:520px){ .floors{ grid-template-columns:1fr 1fr; } }
     .floors .card h2{ font-size:1rem; }
@@ -242,7 +215,6 @@
     <div class="brand-chip">
       <div id="logoSkeleton" class="logo-skeleton" aria-hidden="true"></div>
       <img id="heroLogo" alt="Logo" />
-      <!-- Panel admin (easter egg) -->
       <div id="adminMenu" class="admin-menu hidden" role="dialog" aria-modal="false" aria-label="Acceso staff">
         <p class="admin-title">Acceso staff</p>
         <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
@@ -254,7 +226,7 @@
     </div>
   </header>
 
-  <!-- Insignia Staff fija -->
+  <!-- Staff badge -->
   <div id="staffBadge" class="staff-badge hidden" aria-label="Perfil Staff">Staff</div>
 
   <main id="app" class="app">
@@ -273,8 +245,14 @@
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí planta</h2>
+
+          <!-- Tarjetas de plantas -->
           <div class="floors" id="floorCards"></div>
+
+          <!-- “Mirá tu asiento” debajo de las plantas -->
           <div class="cards" id="floorFindCard" style="margin-top:16px;"></div>
+
+          <!-- Solo “Cambiar viaje” -->
           <div class="actions" style="margin-top:32px; justify-content:center;">
             <button type="button" class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
           </div>
@@ -342,6 +320,7 @@
         <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
         <div id="assignList" class="assign-list"></div>
 
+        <!-- Bottom App Bar -->
         <div class="action-bar">
           <div class="actions">
             <button type="button" class="btn ghost" onclick="backToSelect()">Volver</button>
@@ -577,12 +556,11 @@
     function firstName(full){ const t = (full || '').trim(); if(!t) return ''; const name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
-    /* ===== Admin (Easter Egg) ===== */
+    /* Admin (Easter Egg) */
     function showAdminMenu(){ document.getElementById('adminMenu').classList.remove('hidden'); }
     function hideAdminMenu(){ document.getElementById('adminMenu').classList.add('hidden'); }
     function toggleAdminMenu(){ document.getElementById('adminMenu').classList.toggle('hidden'); }
 
-    /* Mostrar/ocultar opciones del panel del logo según login */
     function updateAdminMenu(){
       const bLogin = document.getElementById('btnAdminLogin');
       const bPanel = document.getElementById('btnAdminControl');
@@ -592,18 +570,14 @@
       bLogin.classList.toggle('hidden', isAuth);
       bPanel.classList.toggle('hidden', !isAuth);
       bLogout.classList.toggle('hidden', !isAuth);
-      /* Refuerzo: sincronizar insignia cada vez que cambia el menú */
-      syncStaffBadge();
     }
 
-    /* Insignia (pill) fija arriba a la derecha */
     function syncStaffBadge(){
       const el = document.getElementById('staffBadge');
       if (!el) return;
       el.classList.toggle('hidden', !CONTROL_AUTH);
     }
 
-    /* Mostrar/ocultar el formulario de login del control interno */
     function syncControlFormVisibility(){
       const form = document.getElementById('controlForm');
       if (!form) return;
@@ -677,9 +651,6 @@
         const sheet = tr.sheets.find(s => s.toLowerCase() === 'asientos') || tr.sheets[0];
         chooseFloor(sheet);
       }
-
-      // Refuerzo: mantener visible/oculta la insignia según sesión
-      syncStaffBadge();
     }
 
     function chooseFloor(sheetName){
@@ -722,7 +693,7 @@
       refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
     }
 
-    /* ===== Helpers doble piso ===== */
+    /* Helpers doble piso */
     function getFloorSheets(){
       const sheets = CURRENT_TRIP.sheets || [];
       const baja = sheets.find(s => s.toLowerCase() === 'asientos baja');
@@ -734,7 +705,7 @@
       return result;
     }
 
-    /* ===== Datos (una hoja) ===== */
+    /* ====== Datos (una hoja) ====== */
     async function refreshSeats(targetId, onDone){
       const gridEl = targetId ? document.getElementById(targetId) : null;
       if(gridEl) gridEl.setAttribute('aria-busy','true');
@@ -764,7 +735,7 @@
       return 'libre';
     }
 
-    /* ===== Filas activas (ocultar filas totalmente inhabilitadas) ===== */
+    /* ====== Filas activas (ocultar filas totalmente inhabilitadas) ====== */
     function getRowsToRenderFromMap(seatsMap){
       const rows = new Set();
       Object.entries(seatsMap || {}).forEach(([code, seat]) => {
@@ -778,7 +749,7 @@
     }
     function getRowsToRender(){ return getRowsToRenderFromMap(SEATS); }
 
-    /* ===== Croquis (una hoja) ===== */
+    /* ====== Croquis (una hoja) ====== */
     function buildGrid(targetId){
       const grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
@@ -920,7 +891,7 @@
       panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'});
     }
 
-    /* ===== Mirá tu asiento (una hoja o ambas plantas) ===== */
+    /* ====== Mirá tu asiento (una hoja o ambas plantas) ====== */
     async function findByCI(){
       if(CURRENT_TRIP.hasFloors && !CURRENT_TRIP.sheetName){
         await findByCIAcrossFloors();
@@ -997,7 +968,7 @@
       LAST_FOUND_CODES = [];
     }
 
-    /* ===== BÚSQUEDA EN AMBAS PLANTAS (doble piso) ===== */
+    /* ====== BÚSQUEDA EN AMBAS PLANTAS (doble piso) ====== */
     let MULTI_SHEETS = [];
     let SEATS_BY_SHEET = new Map();
     let HIGHLIGHT_BY_SHEET = new Map();
@@ -1221,6 +1192,7 @@
         grid.appendChild(rowEl);
       }
 
+      // Scroll al primer resaltado dentro del croquis
       const first = grid.querySelector('.seat.mine');
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
     }
@@ -1235,7 +1207,7 @@
       NUMS_BY_SHEET = new Map();
     }
 
-    /* ===== Control interno ===== */
+    /* ====== Control interno ====== */
     function openStaffLogin(){
       hideAdminMenu();
       CONTROL_AUTH = false;
@@ -1464,7 +1436,7 @@
             toast('PDF listo');
           }
         }else{
-          toast(resp y resp.message ? resp.message : 'No se pudo generar el PDF');
+          toast(resp && resp.message ? resp.message : 'No se pudo generar el PDF');
         }
       }catch(err){
         toast('Error al generar PDF');
@@ -1473,7 +1445,7 @@
       }
     }
 
-    /* ===== Inicio (carga logo + easter egg) ===== */
+    /* ===== Inicio ===== */
     (async function init(){
       const chip = document.querySelector('.brand-chip');
       chip.childNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
@@ -1495,7 +1467,7 @@
         const payload = await API.apiGetLogo();
         let src = '';
         if (payload && payload.dataUrl) src = payload.dataUrl;
-        else if (payload y payload.publicUrl) src = payload.publicUrl;
+        else if (payload && payload.publicUrl) src = payload.publicUrl;
         if (src) {
           img.onload = () => { img.classList.add('ready'); skel.style.display='none'; };
           img.src = src;
