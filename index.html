@@ -21,7 +21,6 @@
       color:var(--text); background:var(--bg); overflow-x:hidden;
     }
     *, *::before, *::after{ box-sizing:border-box; }
-
     /* ===== Header ===== */
     .hero{
       width:100%;
@@ -35,7 +34,8 @@
       padding:clamp(8px,2.4vw,16px) clamp(12px,3vw,20px);
       border-radius:16px; background: rgba(255,255,255,.55);
       border:1px solid rgba(255,255,255,.65); box-shadow:0 8px 24px rgba(17,24,39,.12);
-      max-width:92vw; overflow: visible;
+      max-width:92vw;
+      overflow: visible;
     }
     .logo-skeleton{
       width: min(var(--logo-w-ideal), var(--logo-w-max));
@@ -54,13 +54,11 @@
       cursor: pointer;
     }
     .brand-chip img.ready{ opacity:1; }
-
     /* Contenedor principal */
     .app{padding:clamp(12px,3vw,20px);}
     .view{display:none;}
     .view.active{display:block; animation:fadeIn .4s ease both;}
     @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
-
     /* Inicio + cards */
     .home-center{min-height:calc(100dvh - 160px); display:grid; place-items:center;}
     .cards{display:grid; grid-template-columns:1fr; gap:14px; max-width:480px; width:100%;}
@@ -74,10 +72,13 @@
     .card p{margin:0; color:var(--muted);}
     .view-title{
       margin:0 0 16px 0;
-      font-size:1rem; line-height:1.25; font-weight:800; letter-spacing:.2px;
-      color:var(--text); text-align:center;
+      font-size:1rem;
+      line-height:1.25;
+      font-weight:800;
+      letter-spacing:.2px;
+      color:var(--text);
+      text-align:center;
     }
-
     /* Formularios */
     .form{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px; margin-bottom:12px;}
     .form-row{display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
@@ -89,7 +90,6 @@
     .btn.ghost{background:transparent; border:1px solid #e5e7eb; color:var(--text);}
     .btn.success{background:var(--success); color:white;}
     .btn.danger{background:#ef4444; color:white;}
-
     /* Legend / chips */
     .legend{display:flex; gap:8px; margin:8px 0 12px; flex-wrap:wrap;}
     .badge{display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:6px 10px; font-size:.875rem;}
@@ -97,7 +97,6 @@
     .badge.ocupado{background:#fee2e2; color:#7f1d1d;}
     .badge.seleccionado{background:#dbeafe; color:#1e40af;}
     .badge.inexistente{background:#e5e7eb; color:#374151;}
-
     /* Croquis 2+2 */
     .grid{display:flex; flex-direction:column; gap:8px;}
     .row{ display:grid; grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr); gap:8px; align-items:center; width:100%; }
@@ -113,18 +112,17 @@
     .seat.seleccionado{background:#dbeafe; color:#1e40af; transform:scale(1.02);}
     .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
     .seat:active{transform:scale(0.98);}
-
     /* Resaltado (Mirá tu asiento) */
     .seat.mine{ outline:3px solid #6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15) inset; }
     .seat.mine::after{ content:""; position:absolute; inset:0; border-radius:12px; box-shadow:0 0 0 0 rgba(99,102,241,.25); animation:pulse 1.8s ease-in-out infinite; }
     @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(99,102,241,.25);} 70%{box-shadow:0 0 0 10px rgba(99,102,241,0);} 100%{box-shadow:0 0 0 0 rgba(99,102,241,0);} }
     .nums{display:flex; gap:10px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
-
     /* Más espacio debajo del botón “Ver croquis” y encima del croquis */
-    #findFeedback .actions, #multiFeedback .actions { margin-top:14px; margin-bottom:18px; }
-    #grid-find, #multiCroquis { margin-top:16px; }
-
+    #findFeedback .actions,
+    #multiFeedback .actions { margin-top:14px; margin-bottom:18px; }
+    #grid-find,
+    #multiCroquis { margin-top:16px; }
     /* Asignación múltiple */
     .assign{ margin-top: 12px; padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
     .assign-list{ display:flex; flex-direction:column; gap:16px; }
@@ -137,20 +135,19 @@
     @media (min-width:560px){ .assign-grid{ grid-template-columns:1fr 1fr; } }
     .field{ display:flex; flex-direction:column; gap:6px; }
     .field-label{ font-weight:600; font-size:.9rem; color:var(--muted); }
-
     /* Bottom App Bar (solo botones) */
     .assign .action-bar{
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
       height: calc(var(--action-bar-h) + var(--safe-bottom));
       display: grid; place-items: center;
-      background: transparent; border: none; box-shadow: none; pointer-events: none;
+      background: transparent; border: none; box-shadow: none;
+      pointer-events: none;
     }
     .assign .action-bar .actions{
       width: min(680px, 92vw); display:flex; gap:10px;
       padding: 0 12px var(--safe-bottom) 12px; pointer-events: auto;
     }
     .assign .action-bar .btn{ flex: 1; min-height: 44px; }
-
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
     .control-title{margin:0 0 12px 0; font-size:1.1rem; font-weight:700;}
@@ -168,7 +165,6 @@
     .sel-tags .tag.dst{background:#dbeafe; color:#1e40af;}
     .edit-actions{display:none; gap:8px; flex-wrap:wrap;}
     .control-toolbar.editing .edit-actions{display:flex;}
-
     /* Snackbar & Overlay */
     .snackbar{position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#111827; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:var(--shadow); opacity:0; pointer-events:none;}
     .snackbar.show{opacity:1; transition:opacity .2s ease;}
@@ -180,13 +176,11 @@
     .loader-text{font-weight:600; color:#111827;}
     @media (prefers-reduced-motion: reduce){ .view.active{animation:none} .spinner{animation:none} }
     .hidden{display:none !important;}
-
-    /* Croquis de Control */
+    /* Croquis de Control: número + primer nombre */
     #controlCroquis .seat{ display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:56px; }
     #controlCroquis .seat .num{ font-size: 1rem; line-height: 1; font-weight: 800; }
     #controlCroquis .seat .occ-name{ margin-top:4px; font-size:.75rem; line-height:1.1; font-weight:600; color:#374151; letter-spacing:.2px; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     #controlCroquis .seat.ocupado .occ-name{ color:#7f1d1d; }
-
     /* Elegir viaje / elegir planta */
     .trip-list{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:0 auto; }
     .trip-card{ background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px; display:flex; flex-direction:column; gap:6px; cursor:pointer; }
@@ -216,10 +210,8 @@
       </div>
     </div>
   </header>
-
   <!-- Staff badge -->
   <div id="staffBadge" class="staff-badge hidden" aria-label="Perfil Staff">Staff</div>
-
   <main id="app" class="app">
     <!-- Elegir viaje -->
     <section id="view-choose" class="view active" aria-label="Elegí el viaje">
@@ -230,21 +222,22 @@
         </div>
       </div>
     </section>
-
     <!-- Elegir planta (doble piso) -->
     <section id="view-floor" class="view" aria-label="Elegí planta">
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí planta</h2>
+          <!-- Tarjetas de plantas -->
           <div class="floors" id="floorCards"></div>
+          <!-- “Mirá tu asiento” debajo de las plantas -->
           <div class="cards" id="floorFindCard" style="margin-top:16px;"></div>
+          <!-- Solo “Cambiar viaje” -->
           <div class="actions" style="margin-top:32px; justify-content:center;">
             <button type="button" class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
           </div>
         </div>
       </div>
     </section>
-
     <!-- Menú principal (convencional) -->
     <section id="view-home" class="view" aria-label="Inicio">
       <div class="home-center">
@@ -268,7 +261,6 @@
         </div>
       </div>
     </section>
-
     <!-- Selección (público) -->
     <section id="view-select" class="view" aria-label="Seleccionar asiento">
       <form id="selectForm" class="form" onsubmit="event.preventDefault(); startSelection();">
@@ -293,12 +285,12 @@
         <span class="badge inexistente">Gris: Inhabilitado / No disponible</span>
       </div>
       <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
-
       <!-- Asignación múltiple -->
       <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
         <h3>Asignar nombres a tus asientos</h3>
         <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
         <div id="assignList" class="assign-list"></div>
+        <!-- Bottom App Bar -->
         <div class="action-bar">
           <div class="actions">
             <button type="button" class="btn ghost" onclick="backToSelect()">Volver</button>
@@ -306,7 +298,6 @@
           </div>
         </div>
       </section>
-
       <div id="reserveFeedback" class="feedback hidden">
         <h4>Reserva confirmada</h4>
         <div id="reserveNums" class="nums"></div>
@@ -315,7 +306,6 @@
         </div>
       </div>
     </section>
-
     <!-- Mirá tu asiento (single y multi) -->
     <section id="view-find" class="view" aria-label="Mirá tu asiento">
       <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
@@ -328,7 +318,7 @@
           <button type="button" class="btn ghost" onclick="goTripMenu()">Inicio</button>
         </div>
       </form>
-
+      <!-- Resultado una planta -->
       <div id="findFeedback" class="feedback hidden">
         <h4>Asientos para tu CI</h4>
         <div id="findNums" class="nums"></div>
@@ -337,7 +327,7 @@
         </div>
       </div>
       <div id="grid-find" class="grid" aria-live="polite" aria-busy="true"></div>
-
+      <!-- Resultado ambas plantas -->
       <div id="multiFeedback" class="feedback hidden">
         <h4>Asientos por planta</h4>
         <div id="multiNums"></div>
@@ -347,7 +337,6 @@
       </div>
       <div id="multiCroquis"></div>
     </section>
-
     <!-- Control interno -->
     <section id="view-control" class="view" aria-label="Control interno">
       <form id="controlForm" class="form" onsubmit="event.preventDefault(); doControlLogin();">
@@ -365,7 +354,6 @@
         </div>
         <p class="hint">Acceso exclusivo para el staff.</p>
       </form>
-
       <div id="controlBoard" class="control-board" hidden>
         <h4 class="control-title">Ocupación por número</h4>
         <div id="controlToolbar" class="control-toolbar">
@@ -389,7 +377,6 @@
       </div>
     </section>
   </main>
-
   <!-- Overlay de carga -->
   <div id="overlay" class="overlay" aria-hidden="true">
     <div class="loader">
@@ -399,18 +386,15 @@
   </div>
   <!-- Snackbar -->
   <div id="snackbar" class="snackbar" role="status" aria-live="assertive" aria-atomic="true"></div>
-
   <!-- ===== api.js ===== -->
   <script>
     const BASE_URL = 'https://script.google.com/macros/s/AKfycbyJYarovqJhUHxRFy_aG4_ex5YUpM4ALC2mQhqsYiMNxjoEo7F3NxvYrC9FuSXFz7sp/exec';
     const API_KEY = null;
-
     const QS = (params = {}) =>
       '?' + Object.entries(params)
         .filter(([, v]) => v !== undefined && v !== null && v !== '')
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
         .join('&');
-
     async function parseResponse(res) {
       const text = await res.text();
       try { return JSON.parse(text); } catch { return text; }
@@ -432,7 +416,6 @@
         body: JSON.stringify(payloadObj ?? {})
       };
     }
-
     async function apiGetTrips(folderId) {
       const res = await fetch(getUrl('trips', { folderId }));
       if (!res.ok) throw new Error(`GET trips: ${res.status}`);
@@ -473,39 +456,35 @@
       if (!res.ok) throw new Error(`POST free: ${res.status}`);
       return parseResponse(res);
     }
-
-    window.API = { apiGetTrips, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree };
+    async function apiLogin(user,pass) {
+      const res = await fetch(getUrl('login'), postOptions({ user, pass }));
+      if (!res.ok) throw new Error(`POST login: ${res.status}`);
+      return parseResponse(res);
+    }
+    window.API = { apiGetTrips, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLogin };
   </script>
-
   <!-- ===== Lógica de la app ===== -->
   <script>
     /* Estado global */
     let SEATS = {}; let selected = new Set(); let NUM_LABELS = new Map();
     let HIGHLIGHT_CODES = new Set(); let LAST_FOUND_CODES = [];
     let CONTROL_AUTH = false; let CONTROL_EDIT = false; let EDIT_SRC = null; let EDIT_DST = null;
-    let BUSY = false; // se usa solo en operaciones críticas (reservar/mover/liberar/pdf)
-
-    /* Offsets por planta + caché por hoja */
-    let FLOOR_OFFSETS = new Map();  // sheetName => offset
-    let SEATS_CACHE   = new Map();  // sheetName => seatsMap
-
+    let BUSY = false;
     /* Viaje/hoja actual */
     let CURRENT_TRIP = { fileId: null, name: null, sheets: [], sheetName: null, hasFloors: false };
-
     /* Persistencia staff */
     const STAFF_KEY = 'app_staff_mode';
     function setStaffSession(enabled){ try { if (enabled) localStorage.setItem(STAFF_KEY, '1'); else localStorage.removeItem(STAFF_KEY); } catch(e){} }
     function isStaffSession(){ try { return localStorage.getItem(STAFF_KEY) === '1'; } catch(e){ return false; } }
-
     /* Navegación */
     function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function goHome(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } updateTripTags(); showView('view-home'); }
     function goTripMenu(){
       if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; }
-      if(CURRENT_TRIP.hasFloors){ showView('view-floor'); } else { updateTripTags(); showView('view-home'); }
+      if(CURRENT_TRIP.hasFloors){ showView('view-floor'); }
+      else{ updateTripTags(); showView('view-home'); }
     }
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
-
     /* UI helpers */
     function toast(msg){ const bar = document.getElementById('snackbar'); bar.textContent = msg; bar.classList.add('show'); setTimeout(() => bar.classList.remove('show'), 2800); }
     function showLoading(msg){ const ov = document.getElementById('overlay'); ov.querySelector('.loader-text').textContent = msg ?? 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
@@ -513,7 +492,6 @@
     function normalize(code){ return (code ?? '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
     function firstName(full){ const t = (full ?? '').trim(); if(!t) return ''; const name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
-
     /* Admin (Easter Egg) */
     function showAdminMenu(){ document.getElementById('adminMenu').classList.remove('hidden'); }
     function hideAdminMenu(){ document.getElementById('adminMenu').classList.add('hidden'); }
@@ -528,12 +506,18 @@
       bPanel.classList.toggle('hidden', !isAuth);
       bLogout.classList.toggle('hidden', !isAuth);
     }
-    function syncStaffBadge(){ const el = document.getElementById('staffBadge'); if (!el) return; el.classList.toggle('hidden', !CONTROL_AUTH); }
-    function syncControlFormVisibility(){ const form = document.getElementById('controlForm'); if (!form) return; form.hidden = CONTROL_AUTH; }
-
+    function syncStaffBadge(){
+      const el = document.getElementById('staffBadge');
+      if (!el) return;
+      el.classList.toggle('hidden', !CONTROL_AUTH);
+    }
+    function syncControlFormVisibility(){
+      const form = document.getElementById('controlForm');
+      if (!form) return;
+      form.hidden = CONTROL_AUTH;
+    }
     /* Elegir viaje */
     async function loadTrips(){
-      console.log('[loadTrips] inicio');
       showLoading('Cargando viajes…');
       try{
         const payload = await API.apiGetTrips();
@@ -550,16 +534,11 @@
           list.appendChild(card);
         });
         if(!((payload.trips ?? []).length)){ list.innerHTML = '<p class="muted">No se encontraron viajes en la carpeta.</p>'; }
-      }catch(err){ console.error('[loadTrips] error', err); toast('No se pudieron cargar los viajes'); }
-      finally{ hideLoading(); console.log('[loadTrips] fin'); }
+      }catch(err){ toast('No se pudieron cargar los viajes'); }
+      finally{ hideLoading(); }
     }
-
     function selectTrip(tr){
-      console.log('[selectTrip]', tr?.name);
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
-      FLOOR_OFFSETS = new Map();
-      SEATS_CACHE   = new Map();
-
       if(CURRENT_TRIP.hasFloors){
         const floorBox = document.getElementById('floorCards'); floorBox.innerHTML = '';
         const extraBox = document.getElementById('floorFindCard'); extraBox.innerHTML = '';
@@ -569,7 +548,6 @@
         if(bajaName) candidates.push({ label:'Planta baja', sheetName:bajaName, desc:'Acceso rápido, usualmente cerca del conductor.' });
         if(altaName) candidates.push({ label:'Planta alta', sheetName:altaName, desc:'Mayor altura y vista panorámica.' });
         if(!candidates.length){ tr.sheets.forEach(s => candidates.push({ label:s, sheetName:s, desc:null })); }
-
         const makeCard = (label, desc, onClick) => {
           const card = document.createElement('article'); card.className='card'; card.tabIndex=0; card.setAttribute('role','button');
           const h2 = document.createElement('h2'); h2.textContent = label;
@@ -579,20 +557,61 @@
           card.onkeypress = (ev) => { if(ev.key==='Enter') onClick(); };
           return card;
         };
+        // Plantas: DIRECTO a seleccionar asientos
         candidates.forEach(c => {
-          const el = makeCard(c.label, c.desc ? c.desc : `Hoja: ${c.sheetName}`, () => chooseFloor(c.sheetName));
+          const el = makeCard(
+            c.label,
+            c.desc ? c.desc : `Hoja: ${c.sheetName}`,
+            () => chooseFloor(c.sheetName)
+          );
           floorBox.appendChild(el);
         });
+        // “Mirá tu asiento” (busca en ambas si no hay planta elegida)
         const findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', () => goFind());
         extraBox.appendChild(findCard);
         showView('view-floor');
       }else{
-        // Convencional
+        // Convencional: fijar hoja por defecto y MENÚ
         const sheet = tr.sheets.find(s => s.toLowerCase() === 'asientos') ?? tr.sheets[0];
         chooseFloor(sheet);
       }
     }
-
+    function chooseFloor(sheetName){
+      CURRENT_TRIP.sheetName = sheetName;
+      updateTripTags();
+      if (CONTROL_AUTH) {
+        showView('view-control');
+        showLoading('Cargando ocupación…');
+        refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
+      } else {
+        if (CURRENT_TRIP.hasFloors) {
+          showView('view-select');
+          showLoading('Cargando asientos…');
+          refreshSeats('grid-select', () => hideLoading());
+        } else {
+          goHome(); // MENÚ (convencional)
+        }
+      }
+    }
+    function backToChoose(){
+      CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false };
+      showView('view-choose');
+    }
+    function updateTripTags(){
+      const tagTrip = document.getElementById('tagTrip');
+      if (tagTrip) tagTrip.textContent = `Viaje: ${CURRENT_TRIP.name ?? '—'}`;
+      syncStaffBadge();
+    }
+    /* Vistas principales */
+    function goSelect(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-select'); showLoading('Cargando asientos…'); refreshSeats('grid-select', () => hideLoading()); }
+    function goFind(){ if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; } showView('view-find'); clearFindView(); clearFindViewMulti(); }
+    function goControl(){ openStaffLogin(); }
+    function goToControlBoard(){
+      if(!CONTROL_AUTH){ openStaffLogin(); return; }
+      showView('view-control');
+      showLoading('Cargando ocupación…');
+      refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
+    }
     /* Helpers doble piso */
     function getFloorSheets(){
       const sheets = CURRENT_TRIP.sheets ?? [];
@@ -604,12 +623,34 @@
       if(!result.length) result.push(...sheets.map(s => ({ sheetName:s, label:s })));
       return result;
     }
-    function getAltaBajaNames(){
-      const floors = getFloorSheets();
-      const alta = floors.find(f => (f.label?.toLowerCase().includes('alta') || f.sheetName?.toLowerCase().includes('alta')))?.sheetName ?? null;
-      const baja = floors.find(f => (f.label?.toLowerCase().includes('baja') || f.sheetName?.toLowerCase().includes('baja')))?.sheetName ?? null;
-      return { alta, baja };
+    /* ====== Datos (una hoja) ====== */
+    async function refreshSeats(targetId, onDone){
+      const gridEl = targetId ? document.getElementById(targetId) : null;
+      if(gridEl) gridEl.setAttribute('aria-busy','true');
+      try{
+        const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
+        const rows = resp.rows ?? [];
+        SEATS = {};
+        rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
+        if(gridEl){ buildGrid(targetId); }
+      }catch(err){
+        toast('Error al cargar asientos'); if(gridEl){ buildGrid(targetId); }
+      }finally{
+        if (typeof onDone === 'function') { try { onDone(); } catch(e){} }
+      }
     }
+    function refreshSeatsWithSpinner(targetId, onDone){ showLoading('Actualizando asientos…'); refreshSeats(targetId, () => { hideLoading(); if (typeof onDone === 'function') onDone(); }); }
+    function getMaxRow(){ let maxRow = 0; Object.keys(SEATS).forEach(code => { const m = code.match(/^(\d+)[A-Z]$/); if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow ?? 0; }
+    function computeClassFor(code){
+      const key = normalize(code);
+      const s = SEATS[key];
+      if(!s) return 'inexistente';
+      const st = (s.estado ?? '').toLowerCase().trim();
+      if(st === 'ocupado') return 'ocupado';
+      if(st === 'inhabilitado') return 'inexistente';
+      return 'libre';
+    }
+    /* ====== Filas activas (ocultar filas totalmente inhabilitadas) ====== */
     function getRowsToRenderFromMap(seatsMap){
       const rows = new Set();
       Object.entries(seatsMap ?? {}).forEach(([code, seat]) => {
@@ -621,159 +662,18 @@
       });
       return Array.from(rows).sort((a,b)=>a-b);
     }
-    function computeClassForWith(seatsMap, code){
-      const key = normalize(code);
-      if(!seatsMap.hasOwnProperty(key)) return 'inexistente';
-      const st = (seatsMap[key].estado ?? '').toLowerCase().trim();
-      if(st === 'ocupado') return 'ocupado';
-      if(st === 'inhabilitado') return 'inexistente';
-      return 'libre';
-    }
-    function countNumberedSeatsFromMap(seatsMap){
-      const rows = getRowsToRenderFromMap(seatsMap);
-      let count = 0;
-      for(const row of rows){
-        for(const letter of ['A','B','C','D']){
-          const code = `${row}${letter}`;
-          const klass = computeClassForWith(seatsMap, code);
-          if (klass === 'libre' || klass === 'ocupado') count++;
-        }
-      }
-      return count;
-    }
-
-    /* Offset “perezoso” (solo si hace falta) */
-    async function ensureOffsetForCurrentFloor(){
-      if (!CURRENT_TRIP.hasFloors) { FLOOR_OFFSETS.set(CURRENT_TRIP.sheetName, 0); return; }
-      const sheet = CURRENT_TRIP.sheetName;
-      if (FLOOR_OFFSETS.has(sheet)) return;
-
-      const { alta, baja } = getAltaBajaNames();
-      if (!alta || !baja) { FLOOR_OFFSETS.set(sheet, 0); return; }
-
-      if (sheet === alta) { FLOOR_OFFSETS.set(alta, 0); return; }
-      if (sheet === baja) {
-        let altaMap = SEATS_CACHE.get(alta);
-        if (!altaMap) {
-          try {
-            const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, alta);
-            const rows = resp.rows ?? [];
-            altaMap = {};
-            rows.forEach(r => { altaMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
-            SEATS_CACHE.set(alta, altaMap);
-          } catch(e) {
-            console.warn('[ensureOffsetForCurrentFloor] no pude cargar planta alta, offset=0');
-            FLOOR_OFFSETS.set(baja, 0);
-            return;
-          }
-        }
-        const countAlta = countNumberedSeatsFromMap(altaMap);
-        FLOOR_OFFSETS.set(alta, 0);
-        FLOOR_OFFSETS.set(baja, countAlta);
-      }
-    }
-
-    /* Elegir planta / navegación principal */
-    async function chooseFloor(sheetName){
-      console.log('[chooseFloor]', sheetName);
-      CURRENT_TRIP.sheetName = sheetName;
-      updateTripTags();
-
-      if (CONTROL_AUTH) {
-        showView('view-control');
-        showLoading('Cargando ocupación…');
-        await refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
-      } else {
-        if (CURRENT_TRIP.hasFloors) {
-          showView('view-select');
-          showLoading('Cargando asientos…');
-          await refreshSeats('grid-select', () => hideLoading());
-        } else {
-          goHome(); // MENÚ (convencional)
-        }
-      }
-    }
-    function backToChoose(){
-      CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false };
-      FLOOR_OFFSETS = new Map();
-      SEATS_CACHE   = new Map();
-      showView('view-choose');
-    }
-    function updateTripTags(){
-      const tagTrip = document.getElementById('tagTrip');
-      if (tagTrip) tagTrip.textContent = `Viaje: ${CURRENT_TRIP.name ?? '—'}`;
-      syncStaffBadge();
-    }
-
-    /* ====== Datos (una hoja) ====== */
-    async function refreshSeats(targetId, onDone){
-      console.log('[refreshSeats] targetId=', targetId, 'sheet=', CURRENT_TRIP.sheetName);
-      const gridEl = targetId ? document.getElementById(targetId) : null;
-      if(gridEl) gridEl.setAttribute('aria-busy','true');
-      try{
-        let seatsMap = SEATS_CACHE.get(CURRENT_TRIP.sheetName);
-        if (!seatsMap) {
-          const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
-          const rows = resp.rows ?? [];
-          seatsMap = {};
-          rows.forEach(r => { seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
-          SEATS_CACHE.set(CURRENT_TRIP.sheetName, seatsMap);
-        }
-        SEATS = seatsMap;
-
-        await ensureOffsetForCurrentFloor();
-
-        if(gridEl){ buildGrid(targetId); }
-      }catch(err){
-        console.error('[refreshSeats] error', err);
-        toast('Error al cargar asientos'); if(gridEl){ buildGrid(targetId); }
-      }finally{
-        if (typeof onDone === 'function') { try { onDone(); } catch(e){} }
-        if(gridEl) gridEl.removeAttribute('aria-busy');
-      }
-    }
-    function refreshSeatsWithSpinner(targetId, onDone){
-      showLoading('Actualizando asientos…');
-      (async () => {
-        try{
-          const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
-          const rows = resp.rows ?? [];
-          const map = {};
-          rows.forEach(r => { map[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
-          SEATS_CACHE.set(CURRENT_TRIP.sheetName, map);
-          SEATS = map;
-          await ensureOffsetForCurrentFloor();
-          if(targetId){ buildGrid(targetId); }
-        }catch(e){ console.error('[refreshSeatsWithSpinner] error', e); toast('Error al actualizar asientos'); }
-        finally{ hideLoading(); if (typeof onDone === 'function') onDone(); }
-      })();
-    }
     function getRowsToRender(){ return getRowsToRenderFromMap(SEATS); }
-    function computeClassFor(code){
-      const key = normalize(code);
-      const s = SEATS[key];
-      if(!s) return 'inexistente';
-      const st = (s.estado ?? '').toLowerCase().trim();
-      if(st === 'ocupado') return 'ocupado';
-      if(st === 'inhabilitado') return 'inexistente';
-      return 'libre';
-    }
-    function getMaxRow(){ let maxRow = 0; Object.keys(SEATS).forEach(code => { const m = code.match(/^(\d+)[A-Z]$/); if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow ?? 0; }
-
     /* ====== Croquis (una hoja) ====== */
     function buildGrid(targetId){
       const grid = document.getElementById(targetId ?? 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
-      const rows = getRowsToRender();
+      const rows = getRowsToRender(); // solo filas con al menos un asiento no inhabilitado
       if(rows.length === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
-      const OFFSET = FLOOR_OFFSETS.get(CURRENT_TRIP.sheetName) ?? 0;
-      let seatNumber = OFFSET + 1;
-
+      let seatNumber = 1;
       for(const row of rows){
         const rowEl = document.createElement('div'); rowEl.className = 'row';
         const left = document.createElement('div'); left.className = 'block';
         const right = document.createElement('div'); right.className = 'block';
-
         const renderSeat = (letter, container)=>{
           const code = `${row}${letter}`;
           const klass = computeClassFor(code);
@@ -789,7 +689,7 @@
               if(klass === 'libre'){ btn.onclick = () => toggleSeat(code, btn); }
               else { btn.disabled = true; }
             } else {
-              btn.disabled = true;
+              btn.disabled = true; // grillas informativas (find)
             }
           }else{
             btn.innerHTML = ' ';
@@ -799,7 +699,6 @@
           if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); }
           container.appendChild(btn);
         };
-
         ['A','B'].forEach(l => renderSeat(l, left));
         const aisle = document.createElement('div'); aisle.className = 'aisle';
         ['C','D'].forEach(l => renderSeat(l, right));
@@ -811,7 +710,6 @@
         if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
       }
     }
-
     /* Selección (público) */
     function toggleSeat(code, el){
       const key = normalize(code);
@@ -822,31 +720,46 @@
     }
     function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
     function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
-
     async function startSelection(){
-      if(BUSY) return; BUSY = true;
-      if(selected.size === 0){ toast('Elegí al menos un asiento'); BUSY=false; return; }
+      if(BUSY) return;
+      if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
       const nombre = document.getElementById('nombrePrincipal').value.trim();
       const ci = document.getElementById('ciPrincipal').value.trim();
-      if(!nombre || !ci){ toast('Completá nombre y CI'); BUSY=false; return; }
-
-      const pairs = Array.from(selected).map(code => ({ asiento: normalize(code), pasajero: nombre, ci }));
-      showLoading('Reservando…');
-      try{
-        await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
-        SEATS_CACHE.delete(CURRENT_TRIP.sheetName); // invalida caché
-        showReserveFeedbackDetailed(pairs);
-        await refreshSeats('grid-select', () => {});
-      }catch(err){
-        console.error('[startSelection] error', err);
-        toast('No se pudo reservar');
-      }finally{
-        hideLoading(); BUSY=false; document.getElementById('view-assign').classList.add('hidden');
+      if(!nombre || !ci){ toast('Completá nombre y CI'); return; }
+      if(selected.size === 1){
+        const only = Array.from(selected)[0]; const onlyNorm = normalize(only);
+        const pairs = [{ asiento: onlyNorm, pasajero: nombre, ci }];
+        BUSY = true; showLoading('Reservando…');
+        try{ await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs); showReserveFeedbackDetailed(pairs); refreshSeats('grid-select'); }
+        catch(err){ toast('No se pudo reservar'); }
+        finally{ hideLoading(); BUSY = false; }
+        return;
       }
+      const assign = document.getElementById('assignList'); assign.innerHTML = '';
+      const codes = Array.from(selected);
+      for(let i=0;i<codes.length;i++){
+        const codeNorm = normalize(codes[i]); const num = NUM_LABELS.get(codeNorm) ?? '';
+        const row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
+        const title = document.createElement('div'); title.className = 'assign-title'; title.textContent = `Asiento ${num ?? codeNorm}`;
+        const grid = document.createElement('div'); grid.className = 'assign-grid';
+        const nameWrap = document.createElement('label'); nameWrap.className = 'field';
+        const nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
+        const nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.value = i===0 ? nombre : ''; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
+        const ciWrap = document.createElement('label'); ciWrap.className = 'field';
+        const ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
+        const ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.value = i===0 ? ci : ''; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
+        ciInput.addEventListener('input', e => onlyDigits(e.target));
+        nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
+        ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
+        grid.appendChild(nameWrap); grid.appendChild(ciWrap);
+        row.appendChild(title); row.appendChild(grid);
+        assign.appendChild(row);
+      }
+      document.getElementById('view-assign').classList.remove('hidden');
+      document.getElementById('view-assign').scrollIntoView({behavior:'smooth'});
     }
-
     async function confirmReservation(){
-      if(BUSY) return; BUSY = true;
+      if(BUSY) return;
       const inputs = document.querySelectorAll('#assignList .assign-row');
       const pairs = [];
       for(let i=0;i<inputs.length;i++){
@@ -854,22 +767,13 @@
         const codeNorm = row.getAttribute('data-code');
         const pasajero = row.querySelector('.assign-name').value.trim();
         const ci = row.querySelector('.assign-ci').value.trim();
-        if(!pasajero || !ci){ toast(`Faltan datos en ${codeNorm}`); BUSY=false; return; }
+        if(!pasajero || !ci){ toast(`Faltan datos en ${codeNorm}`); return; }
         pairs.push({ asiento: codeNorm, pasajero, ci });
       }
-      showLoading('Reservando…');
-      try{
-        await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
-        SEATS_CACHE.delete(CURRENT_TRIP.sheetName);
-        showReserveFeedbackDetailed(pairs);
-        await refreshSeats('grid-select', () => {});
-        document.getElementById('view-assign').classList.add('hidden');
-      }catch(err){
-        console.error('[confirmReservation] error', err);
-        toast('No se pudo reservar');
-      }finally{
-        hideLoading(); BUSY=false;
-      }
+      BUSY = true; showLoading('Reservando…');
+      try{ await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs); showReserveFeedbackDetailed(pairs); refreshSeats('grid-select'); document.getElementById('view-assign').classList.add('hidden'); }
+      catch(err){ toast('No se pudo reservar'); }
+      finally{ hideLoading(); BUSY = false; }
     }
     function showReserveFeedbackDetailed(pairs){
       const panel = document.getElementById('reserveFeedback'); const nums = document.getElementById('reserveNums'); nums.innerHTML = '';
@@ -882,51 +786,34 @@
       });
       panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'});
     }
-
     /* ====== Mirá tu asiento (una hoja o ambas plantas) ====== */
     async function findByCI(){
-      console.log('[findByCI] begin hasFloors=', CURRENT_TRIP.hasFloors, 'sheet=', CURRENT_TRIP.sheetName);
       if(CURRENT_TRIP.hasFloors && !CURRENT_TRIP.sheetName){
         await findByCIAcrossFloors();
         return;
       }
-      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ console.warn('[findByCI] sin viaje/hoja'); showView('view-choose'); return; }
+      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; }
       const ci = document.getElementById('ciSearch').value.trim();
       if(!ci){ toast('Ingresá tu CI'); return; }
-
       showLoading('Buscando…');
       try{
         const respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci);
         const rawCodes = (respSeats.seats ?? []).map(s => normalize(s));
         LAST_FOUND_CODES = Array.from(new Set(rawCodes));
-
-        let seatsMap = SEATS_CACHE.get(CURRENT_TRIP.sheetName);
-        if (!seatsMap) {
-          const respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
-          const rows = respRows.rows ?? [];
-          seatsMap = {};
-          rows.forEach(r => { seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
-          SEATS_CACHE.set(CURRENT_TRIP.sheetName, seatsMap);
-        }
-        SEATS = seatsMap;
-
-        await ensureOffsetForCurrentFloor();
-
+        const respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
+        const rows = respRows.rows ?? [];
+        SEATS = {};
+        rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
         const nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
         HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
-      }catch(err){
-        console.error('[findByCI] error', err);
-        toast('Error al buscar por CI');
-      }finally{
-        hideLoading();
-      }
+      }catch(err){ toast('Error al buscar por CI'); }
+      finally{ hideLoading(); }
     }
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map();
-      const rows = getRowsToRender();
-      const OFFSET = FLOOR_OFFSETS.get(CURRENT_TRIP.sheetName) ?? 0;
-      let seatNumber = OFFSET + 1;
+      const rows = getRowsToRender(); // solo filas activas
+      let seatNumber = 1;
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
       for(const row of rows){
         for(const letter of ['A','B','C','D']){
@@ -954,6 +841,7 @@
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', () => {
         hideLoading();
+        // Auto-scroll al primer marcado (si hay)
         const firstMarked = document.getElementById('grid-find').querySelector('.seat.mine');
         if (firstMarked) firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
         else document.getElementById('grid-find').scrollIntoView({ behavior:'smooth', block:'start' });
@@ -967,26 +855,21 @@
       HIGHLIGHT_CODES = new Set();
       LAST_FOUND_CODES = [];
     }
-
     /* ====== BÚSQUEDA EN AMBAS PLANTAS (doble piso) ====== */
     let MULTI_SHEETS = [];
     let SEATS_BY_SHEET = new Map();
     let HIGHLIGHT_BY_SHEET = new Map();
     let NUMS_BY_SHEET = new Map();
-
     async function findByCIAcrossFloors(){
-      console.log('[findByCIAcrossFloors] begin');
       if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; }
       const ci = document.getElementById('ciSearch').value.trim();
       if(!ci){ toast('Ingresá tu CI'); return; }
-
       showLoading('Buscando en ambas plantas…');
       try{
         MULTI_SHEETS = getFloorSheets();
         SEATS_BY_SHEET = new Map();
         HIGHLIGHT_BY_SHEET = new Map();
         NUMS_BY_SHEET = new Map();
-
         for(const f of MULTI_SHEETS){
           const [respSeats, respRows] = await Promise.all([
             API.apiGetSeatsByCi(CURRENT_TRIP.fileId, f.sheetName, ci),
@@ -999,34 +882,19 @@
           rows.forEach(r => { seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
           SEATS_BY_SHEET.set(f.sheetName, seatsMap);
           HIGHLIGHT_BY_SHEET.set(f.sheetName, new Set(codes));
-          SEATS_CACHE.set(f.sheetName, seatsMap);
-        }
-
-        const { alta, baja } = getAltaBajaNames();
-        if (alta && baja) {
-          const countAlta = countNumberedSeatsFromMap(SEATS_CACHE.get(alta) ?? {});
-          FLOOR_OFFSETS.set(alta, 0);
-          FLOOR_OFFSETS.set(baja, countAlta);
-        } else {
-          MULTI_SHEETS.forEach(f => FLOOR_OFFSETS.set(f.sheetName, 0));
-        }
-
-        for(const f of MULTI_SHEETS){
-          const codes = Array.from(HIGHLIGHT_BY_SHEET.get(f.sheetName) ?? []);
-          const nums = computeNumbersForCodesWith(SEATS_BY_SHEET.get(f.sheetName) ?? {}, codes, FLOOR_OFFSETS.get(f.sheetName) ?? 0);
+          const nums = computeNumbersForCodesWith(seatsMap, codes);
           NUMS_BY_SHEET.set(f.sheetName, nums);
         }
         renderFindFeedbackMulti();
       }catch(err){
-        console.error('[findByCIAcrossFloors] error', err);
         toast('Error al buscar en ambas plantas');
       }finally{
         hideLoading();
       }
     }
-    function computeNumbersForCodesWith(seatsMap, codes, offset=0){
-      const rows = getRowsToRenderFromMap(seatsMap);
-      let seatNumber = offset + 1;
+    function computeNumbersForCodesWith(seatsMap, codes){
+      const rows = getRowsToRenderFromMap(seatsMap); // solo filas activas
+      let seatNumber = 1;
       const labels = new Map();
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
       for(const row of rows){
@@ -1039,6 +907,22 @@
       }
       return codes.map(c => labels.get(c)).filter(n => typeof n !== 'undefined');
     }
+    function getMaxRowFrom(seatsMap){
+      let maxRow = 0;
+      Object.keys(seatsMap ?? {}).forEach(code => {
+        const m = code.match(/^(\d+)[A-Z]$/);
+        if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; }
+      });
+      return maxRow ?? 0;
+    }
+    function computeClassForWith(seatsMap, code){
+      const key = normalize(code);
+      if(!seatsMap.hasOwnProperty(key)) return 'inexistente';
+      const st = (seatsMap[key].estado ?? '').toLowerCase().trim();
+      if(st === 'ocupado') return 'ocupado';
+      if(st === 'inhabilitado') return 'inexistente';
+      return 'libre';
+    }
     function renderFindFeedbackMulti(){
       clearFindView();
       const panel = document.getElementById('multiFeedback');
@@ -1050,49 +934,82 @@
         const nums = NUMS_BY_SHEET.get(f.sheetName) ?? [];
         totalResults += nums.length;
         const section = document.createElement('div');
-        section.className = 'form'; section.style.marginBottom = '12px';
-        const title = document.createElement('h4'); title.textContent = f.label; title.style.margin = '0 0 8px 0';
-        const list = document.createElement('div'); list.className = 'nums';
+        section.className = 'form';
+        section.style.marginBottom = '12px';
+        const title = document.createElement('h4');
+        title.textContent = f.label;
+        title.style.margin = '0 0 8px 0';
+        const list = document.createElement('div');
+        list.className = 'nums';
         if(nums.length){
-          nums.forEach(n => { const pill = document.createElement('span'); pill.className='pill'; pill.textContent = String(n); list.appendChild(pill); });
+          nums.forEach(n => {
+            const pill = document.createElement('span'); pill.className='pill';
+            pill.textContent = String(n);
+            list.appendChild(pill);
+          });
         }else{
-          const pill = document.createElement('span'); pill.className='pill'; pill.textContent = 'Sin asientos'; list.appendChild(pill);
+          const pill = document.createElement('span'); pill.className='pill';
+          pill.textContent = 'Sin asientos';
+          list.appendChild(pill);
         }
-        section.appendChild(title); section.appendChild(list); wrap.appendChild(section);
+        section.appendChild(title);
+        section.appendChild(list);
+        wrap.appendChild(section);
       }
       panel.classList.remove('hidden');
       btn.disabled = (totalResults === 0);
       panel.scrollIntoView({behavior:'smooth'});
     }
+    /* === Mostrar croquis solo de planta(s) con resultados + auto-scroll === */
     async function showCroquisForCIMulti(){
       showLoading('Cargando croquis…');
       const container = document.getElementById('multiCroquis');
       container.innerHTML = '';
-      const floorsWithResults = MULTI_SHEETS.filter(f => (NUMS_BY_SHEET.get(f.sheetName) ?? []).length > 0);
-      if (!floorsWithResults.length) { hideLoading(); toast('Tu CI no tiene asientos en ninguna planta de este viaje.'); return; }
+      // Solo plantas con asientos para ese CI
+      const floorsWithResults = MULTI_SHEETS.filter(f => {
+        const found = NUMS_BY_SHEET.get(f.sheetName) ?? [];
+        return found.length > 0;
+      });
+      if (!floorsWithResults.length) {
+        hideLoading();
+        toast('Tu CI no tiene asientos en ninguna planta de este viaje.');
+        return;
+      }
+      // Construir croquis para cada planta con resultados
       for(const f of floorsWithResults){
         const seatsMap = SEATS_BY_SHEET.get(f.sheetName) ?? {};
         const highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) ?? new Set();
         const form = document.createElement('div');
-        form.className = 'form'; form.style.marginBottom = '12px';
-        const title = document.createElement('h4'); title.textContent = f.label; title.style.margin = '0 0 8px 0';
+        form.className = 'form';
+        form.style.marginBottom = '12px';
+        const title = document.createElement('h4');
+        title.textContent = f.label;
+        title.style.margin = '0 0 8px 0';
         const gridId = `grid-find-${normalize(f.label).toLowerCase()}`;
-        const grid = document.createElement('div'); grid.id = gridId; grid.className = 'grid'; grid.setAttribute('aria-live','polite');
-        form.appendChild(title); form.appendChild(grid); container.appendChild(form);
-        const offset = FLOOR_OFFSETS.get(f.sheetName) ?? 0;
-        buildGridCustom(gridId, seatsMap, highlights, offset);
+        const grid = document.createElement('div');
+        grid.id = gridId;
+        grid.className = 'grid';
+        grid.setAttribute('aria-live','polite');
+        form.appendChild(title);
+        form.appendChild(grid);
+        container.appendChild(form);
+        buildGridCustom(gridId, seatsMap, highlights);
       }
       hideLoading();
+      // Auto-scroll global al primer asiento marcado
       const firstMarked = container.querySelector('.seat.mine');
-      if (firstMarked) firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
-      else container.scrollIntoView({ behavior:'smooth', block:'start' });
+      if (firstMarked) {
+        firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
+      } else {
+        container.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
     }
-    function buildGridCustom(targetId, seatsMap, highlightSet, offsetStart=0){
+    function buildGridCustom(targetId, seatsMap, highlightSet){
       const grid = document.getElementById(targetId); if(!grid) return;
       grid.innerHTML = '';
       const rows = getRowsToRenderFromMap(seatsMap);
       if(rows.length === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
-      let seatNumber = offsetStart + 1;
+      let seatNumber = 1;
       for(const row of rows){
         const rowEl = document.createElement('div'); rowEl.className = 'row';
         const left = document.createElement('div'); left.className = 'block';
@@ -1108,7 +1025,7 @@
             btn.setAttribute('data-code', code);
             btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             seatNumber++;
-            btn.disabled = true;
+            btn.disabled = true; // croquis informativo
           }else{
             btn.innerHTML = ' ';
             btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
@@ -1123,10 +1040,19 @@
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
       }
+      // Scroll al primer resaltado dentro del croquis
       const first = grid.querySelector('.seat.mine');
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
     }
-
+    function clearFindViewMulti(){
+      document.getElementById('multiFeedback').classList.add('hidden');
+      document.getElementById('multiNums').innerHTML = '';
+      document.getElementById('multiCroquis').innerHTML = '';
+      MULTI_SHEETS = [];
+      SEATS_BY_SHEET = new Map();
+      HIGHLIGHT_BY_SHEET = new Map();
+      NUMS_BY_SHEET = new Map();
+    }
     /* ====== Control interno ====== */
     function openStaffLogin(){
       hideAdminMenu();
@@ -1196,8 +1122,7 @@
       fb.classList.add('hidden'); fb.innerHTML = '';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
       const maxRow = getMaxRow(); if(maxRow === 0){ croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
-      const OFFSET = FLOOR_OFFSETS.get(CURRENT_TRIP.sheetName) ?? 0;
-      NUM_LABELS = new Map(); let seatNumber = OFFSET + 1;
+      NUM_LABELS = new Map(); let seatNumber = 1;
       for(let row=1; row<=maxRow; row++){
         const rowEl=document.createElement('div'); rowEl.className='row';
         const left=document.createElement('div'); left.className='block';
@@ -1293,42 +1218,35 @@
       if(!silent) toast('Edición cancelada.');
     }
     async function movePassenger(){
-      if (BUSY) return; BUSY = true;
       showLoading('Moviendo pasajero…');
-      if(!EDIT_SRC || !EDIT_DST){ hideLoading(); BUSY=false; toast('Selecciona origen (ocupado) y destino (libre).'); return; }
+      if(!EDIT_SRC || !EDIT_DST){ hideLoading(); toast('Selecciona origen (ocupado) y destino (libre).'); return; }
       try{
         const resp=await API.apiMove(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code, EDIT_DST.code);
         toast(resp && resp.message ? resp.message : 'Movimiento realizado');
-        SEATS_CACHE.delete(CURRENT_TRIP.sheetName);
         cancelEdit(true);
-        await refreshSeats(null, renderControlBoard);
+        refreshSeatsWithSpinner(null, renderControlBoard);
       }catch(err){
-        console.error('[movePassenger] error', err);
         toast('No se pudo mover al pasajero');
       }finally{
-        hideLoading(); BUSY=false;
+        hideLoading();
       }
     }
     async function freeSelectedSeat(){
-      if (BUSY) return; BUSY = true;
       showLoading('Liberando asiento…');
-      if(!EDIT_SRC){ hideLoading(); BUSY=false; toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
+      if(!EDIT_SRC){ hideLoading(); toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
       try{
         const resp=await API.apiFree(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code);
         toast(resp && resp.message ? resp.message : 'Asiento liberado');
-        SEATS_CACHE.delete(CURRENT_TRIP.sheetName);
         cancelEdit(true);
-        await refreshSeats(null, renderControlBoard);
+        refreshSeatsWithSpinner(null, renderControlBoard);
       }catch(err){
-        console.error('[freeSelectedSeat] error', err);
         toast('No se pudo liberar el asiento');
       }finally{
-        hideLoading(); BUSY=false;
+        hideLoading();
       }
     }
     async function doExportPdf(){
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
-      if (BUSY) return; BUSY = true;
       showLoading('Generando PDF…');
       try{
         const resp = await API.apiExportPdf(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
@@ -1345,16 +1263,13 @@
           toast(resp && resp.message ? resp.message : 'No se pudo generar el PDF');
         }
       }catch(err){
-        console.error('[doExportPdf] error', err);
         toast('Error al generar PDF');
       }finally{
-        hideLoading(); BUSY=false;
+        hideLoading();
       }
     }
-
     /* ===== Inicio ===== */
     (async function init(){
-      console.log('[init] start');
       const chip = document.querySelector('.brand-chip');
       chip.childNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
       const img = document.getElementById('heroLogo');
@@ -1379,21 +1294,23 @@
           skel.style.display='block';
         }
       }catch(e){
-        console.warn('[init] logo error', e);
         skel.style.display='block';
       }
       document.getElementById('ciPrincipal')?.addEventListener('input', e => onlyDigits(e.target));
       document.getElementById('ciSearch')?.addEventListener('input', e => onlyDigits(e.target));
       if (isStaffSession()) {
         CONTROL_AUTH = true;
-        updateAdminMenu(); syncStaffBadge(); syncControlFormVisibility();
+        updateAdminMenu();
+        syncStaffBadge();
+        syncControlFormVisibility();
         await loadTrips();
         showView('view-choose');
       } else {
-        updateAdminMenu(); syncStaffBadge(); syncControlFormVisibility();
+        updateAdminMenu();
+        syncStaffBadge();
+        syncControlFormVisibility();
         await loadTrips();
       }
-      console.log('[init] done');
     })();
   </script>
 </body>
