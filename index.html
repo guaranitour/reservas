@@ -38,7 +38,6 @@
       max-width:92vw;
       overflow: visible;
     }
-    /* Skeleton del logo */
     .logo-skeleton{
       width: min(var(--logo-w-ideal), var(--logo-w-max));
       height: clamp(64px, 18vw, 140px);
@@ -206,36 +205,12 @@
     .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
     .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
 
-    /* ===== Admin (Easter Egg en el logo) ===== */
-    .admin-menu {
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 8px;
-      z-index: 40;
-      width: min(92vw, 320px);
-      border-radius: 14px;
-      padding: 14px;
-      background: rgba(255,255,255,.72);
-      border: 1px solid rgba(255,255,255,.80);
-      box-shadow: 0 12px 28px rgba(17,24,39,.16);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      pointer-events: auto;
-    }
+    .admin-menu { position: absolute; top: calc(100% + 8px); right: 8px; z-index: 40; width: min(92vw, 320px); border-radius: 14px; padding: 14px; background: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.80); box-shadow: 0 12px 28px rgba(17,24,39,.16); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); pointer-events: auto; }
     .admin-title { margin: 0 0 10px 0; font-weight: 800; color: var(--text); }
     .btn-admin { width: 100%; }
     .admin-menu.hidden { display: none; }
 
-    /* ===== Insignia Staff fija (top-right) ===== */
-    .staff-badge{
-      position:fixed; top:10px; right:10px; z-index:60;
-      display:inline-flex; align-items:center; gap:6px;
-      background:#fde68a; color:#92400e;
-      padding:6px 10px; border-radius:999px;
-      font-size:.85rem; font-weight:800;
-      box-shadow:0 8px 20px rgba(17,24,39,.16), inset 0 0 0 1px rgba(146,64,14,.20);
-      border:1px solid rgba(255,255,255,.65);
-    }
+    .staff-badge{ position:fixed; top:10px; right:10px; z-index:60; display:inline-flex; align-items:center; gap:6px; background:#fde68a; color:#92400e; padding:6px 10px; border-radius:999px; font-size:.85rem; font-weight:800; box-shadow:0 8px 20px rgba(17,24,39,.16), inset 0 0 0 1px rgba(146,64,14,.20); border:1px solid rgba(255,255,255,.65); }
   </style>
 </head>
 <body>
@@ -277,10 +252,10 @@
           <!-- Tarjetas de plantas -->
           <div class="floors" id="floorCards"></div>
 
-          <!-- Buscar por CI DEBAJO de las plantas -->
+          <!-- “Mirá tu asiento” DEBAJO de las plantas -->
           <div class="cards" id="floorFindCard" style="margin-top:16px;"></div>
 
-          <!-- Solo dejar "Cambiar viaje", con más espacio y centrado -->
+          <!-- Solo “Cambiar viaje”, más espacio y centrado -->
           <div class="actions" style="margin-top:32px; justify-content:center;">
             <button type="button" class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
           </div>
@@ -288,7 +263,7 @@
       </div>
     </section>
 
-    <!-- Menú principal (convencional intacto) -->
+    <!-- Menú principal (convencional) -->
     <section id="view-home" class="view" aria-label="Inicio">
       <div class="home-center">
         <div style="max-width:560px; width:100%; margin-bottom:12px;">
@@ -303,8 +278,9 @@
             <p>Elige tu lugar y confirma con tu nombre y CI.</p>
           </article>
 
+          <!-- Renombrado -->
           <article class="card" tabindex="0" role="button" onclick="goFind()" onkeypress="handleEnter(event, goFind)">
-            <h2>Buscar por CI</h2>
+            <h2>Mirá tu asiento</h2>
             <p>Ingresa tu CI para ver tus números y el croquis.</p>
           </article>
         </div>
@@ -342,7 +318,6 @@
 
       <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
 
-      <!-- Asignación múltiple -->
       <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
         <h3>Asignar nombres a tus asientos</h3>
         <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
@@ -365,8 +340,8 @@
       </div>
     </section>
 
-    <!-- Buscar por CI (single y multi) -->
-    <section id="view-find" class="view" aria-label="Ver mi asiento">
+    <!-- Mirá tu asiento (single y multi) -->
+    <section id="view-find" class="view" aria-label="Mirá tu asiento">
       <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
         <div class="form-row">
           <label for="ciSearch">CI del pasajero</label>
@@ -374,11 +349,12 @@
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Buscar</button>
-          <button type="button" class="btn ghost" onclick="goHome()">Inicio</button>
+          <!-- BOTÓN AJUSTADO -->
+          <button type="button" class="btn ghost" onclick="goTripMenu()">Inicio</button>
         </div>
       </form>
 
-      <!-- Resultado para UNA planta -->
+      <!-- Resultado (una planta) -->
       <div id="findFeedback" class="feedback hidden">
         <h4>Asientos para tu CI</h4>
         <div id="findNums" class="nums"></div>
@@ -388,7 +364,7 @@
       </div>
       <div id="grid-find" class="grid" aria-live="polite" aria-busy="true"></div>
 
-      <!-- Resultado para MULTI plantas -->
+      <!-- Resultado (ambas plantas) -->
       <div id="multiFeedback" class="feedback hidden">
         <h4>Asientos por planta</h4>
         <div id="multiNums"></div>
@@ -399,7 +375,7 @@
       <div id="multiCroquis"></div>
     </section>
 
-    <!-- Control interno (login + tablero) -->
+    <!-- Control interno -->
     <section id="view-control" class="view" aria-label="Control interno">
       <form id="controlForm" class="form" onsubmit="event.preventDefault(); doControlLogin();">
         <div class="form-row">
@@ -560,20 +536,19 @@
     /* Viaje/hoja actual */
     let CURRENT_TRIP = { fileId: null, name: null, sheets: [], sheetName: null, hasFloors: false };
 
-    /* ===== Persistencia del perfil staff ===== */
+    /* Persistencia staff */
     const STAFF_KEY = 'app_staff_mode';
-    function setStaffSession(enabled){
-      try { if (enabled) localStorage.setItem(STAFF_KEY, '1'); else localStorage.removeItem(STAFF_KEY); }
-      catch(e) { /* Safari privado, etc. */ }
-    }
-    function isStaffSession(){
-      try { return localStorage.getItem(STAFF_KEY) === '1'; }
-      catch(e){ return false; }
-    }
+    function setStaffSession(enabled){ try { if (enabled) localStorage.setItem(STAFF_KEY, '1'); else localStorage.removeItem(STAFF_KEY); } catch(e){} }
+    function isStaffSession(){ try { return localStorage.getItem(STAFF_KEY) === '1'; } catch(e){ return false; } }
 
     /* Navegación */
     function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function goHome(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } updateTripTags(); showView('view-home'); }
+    function goTripMenu(){
+      if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; }
+      if(CURRENT_TRIP.hasFloors){ showView('view-floor'); }
+      else{ updateTripTags(); showView('view-home'); }
+    }
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
     /* UI helpers */
@@ -584,12 +559,11 @@
     function firstName(full){ const t = (full || '').trim(); if(!t) return ''; const name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
-    /* ===== Admin (Easter Egg) ===== */
+    /* Admin (Easter Egg) */
     function showAdminMenu(){ document.getElementById('adminMenu').classList.remove('hidden'); }
     function hideAdminMenu(){ document.getElementById('adminMenu').classList.add('hidden'); }
     function toggleAdminMenu(){ document.getElementById('adminMenu').classList.toggle('hidden'); }
 
-    /* Mostrar/ocultar opciones del panel del logo según login */
     function updateAdminMenu(){
       const bLogin = document.getElementById('btnAdminLogin');
       const bPanel = document.getElementById('btnAdminControl');
@@ -601,18 +575,16 @@
       bLogout.classList.toggle('hidden', !isAuth);
     }
 
-    /* Insignia (pill) fija arriba a la derecha */
     function syncStaffBadge(){
       const el = document.getElementById('staffBadge');
       if (!el) return;
       el.classList.toggle('hidden', !CONTROL_AUTH);
     }
 
-    /* Mostrar/ocultar el formulario de login del control interno */
     function syncControlFormVisibility(){
       const form = document.getElementById('controlForm');
       if (!form) return;
-      form.hidden = CONTROL_AUTH; // oculto si está logueado, muestro si no
+      form.hidden = CONTROL_AUTH;
     }
 
     /* Elegir viaje */
@@ -672,8 +644,8 @@
           floorBox.appendChild(el);
         });
 
-        // Buscar por CI DEBAJO, en ambas plantas si aún no se eligió
-        const findCard = makeCard('Buscar por CI', 'Buscá tus asientos por CI en ambas plantas.', () => goFind());
+        // Tarjeta “Mirá tu asiento” (búsqueda en ambas plantas si no se elige hoja)
+        const findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', () => goFind());
         extraBox.appendChild(findCard);
 
         showView('view-floor');
@@ -688,18 +660,16 @@
       CURRENT_TRIP.sheetName = sheetName;
       updateTripTags();
       if (CONTROL_AUTH) {
-        // Staff: tablero de control
         showView('view-control');
         showLoading('Cargando ocupación…');
         refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
       } else {
-        // Público: si es doble piso -> selección directa; si es convencional -> MENÚ
         if (CURRENT_TRIP.hasFloors) {
           showView('view-select');
           showLoading('Cargando asientos…');
           refreshSeats('grid-select', () => hideLoading());
         } else {
-          goHome(); // MENÚ con "Seleccionar asiento" y "Buscar por CI"
+          goHome(); // MENÚ (convencional)
         }
       }
     }
@@ -720,7 +690,7 @@
     function goFind(){ if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; } showView('view-find'); clearFindView(); clearFindViewMulti(); }
     function goControl(){ openStaffLogin(); }
 
-    /* ===== Helpers para doble piso ===== */
+    /* Helpers doble piso */
     function getFloorSheets(){
       const sheets = CURRENT_TRIP.sheets || [];
       const baja = sheets.find(s => s.toLowerCase() === 'asientos baja');
@@ -753,14 +723,15 @@
     function getMaxRow(){ let maxRow = 0; Object.keys(SEATS).forEach(code => { const m = code.match(/^(\d+)[A-Z]$/); if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow || 0; }
     function computeClassFor(code){
       const key = normalize(code);
-      if(!SEATS.hasOwnProperty(key)) return 'inexistente';
-      const st = (SEATS[key].estado || '').toLowerCase().trim();
+      const s = SEATS[key];
+      if(!s) return 'inexistente';
+      const st = (s.estado || '').toLowerCase().trim();
       if(st === 'ocupado') return 'ocupado';
       if(st === 'inhabilitado') return 'inexistente';
       return 'libre';
     }
 
-    /* Croquis (una hoja) */
+    /* Croquis */
     function buildGrid(targetId){
       const grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
@@ -897,14 +868,12 @@
       panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'});
     }
 
-    /* ===== Buscar por CI (una hoja o ambas plantas) ===== */
+    /* ===== Mirá tu asiento (una hoja o ambas plantas) ===== */
     async function findByCI(){
-      // Si es doble piso y aún no se eligió planta, buscar en ambas
       if(CURRENT_TRIP.hasFloors && !CURRENT_TRIP.sheetName){
         await findByCIAcrossFloors();
         return;
       }
-      // Flujo de una planta
       if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; }
       const ci = document.getElementById('ciSearch').value.trim();
       if(!ci){ toast('Ingresá tu CI'); return; }
@@ -926,7 +895,6 @@
       finally{ hideLoading(); }
     }
 
-    /* —— funciones auxiliares (una planta) —— */
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map(); const maxRow = getMaxRow(); let seatNumber = 1;
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
@@ -1148,7 +1116,7 @@
             btn.setAttribute('data-code', code);
             btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             seatNumber++;
-            btn.disabled = true; // croquis de consulta
+            btn.disabled = true;
           }else{
             btn.innerHTML = ' ';
             btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
@@ -1314,7 +1282,6 @@
     }
 
     function toggleControlEdit(){ CONTROL_EDIT=!CONTROL_EDIT; updateEditTags(); syncToolbarUI(); toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado'); }
-
     function onControlSeatClick(btn){
       if(!CONTROL_EDIT) return;
       const status=(btn.getAttribute('data-status') || 'libre').toLowerCase().trim();
