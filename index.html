@@ -662,22 +662,23 @@
           return card;
         };
 
-        // Pintar tarjetas de plantas: ahora VAN DIRECTO a seleccionar asientos
+        // Plantas: DIRECTO a seleccionar asientos
         candidates.forEach(c => {
           const el = makeCard(
             c.label,
             c.desc ? c.desc : `Hoja: ${c.sheetName}`,
-            () => chooseFloor(c.sheetName) // lleva directo a view-select
+            () => chooseFloor(c.sheetName)
           );
           floorBox.appendChild(el);
         });
 
-        // Tarjeta "Buscar por CI" DEBAJO de las plantas
+        // Buscar por CI DEBAJO, en ambas plantas si aún no se eligió
         const findCard = makeCard('Buscar por CI', 'Buscá tus asientos por CI en ambas plantas.', () => goFind());
         extraBox.appendChild(findCard);
 
         showView('view-floor');
       }else{
+        // Convencional: fijar hoja por defecto y llevar al MENÚ
         const sheet = tr.sheets.find(s => s.toLowerCase() === 'asientos') || tr.sheets[0];
         chooseFloor(sheet);
       }
@@ -692,10 +693,14 @@
         showLoading('Cargando ocupación…');
         refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
       } else {
-        // Público: IR DIRECTO A SELECCIÓN DE ASIENTOS (sin menú intermedio)
-        showView('view-select');
-        showLoading('Cargando asientos…');
-        refreshSeats('grid-select', () => hideLoading());
+        // Público: si es doble piso -> selección directa; si es convencional -> MENÚ
+        if (CURRENT_TRIP.hasFloors) {
+          showView('view-select');
+          showLoading('Cargando asientos…');
+          refreshSeats('grid-select', () => hideLoading());
+        } else {
+          goHome(); // MENÚ con "Seleccionar asiento" y "Buscar por CI"
+        }
       }
     }
 
@@ -712,14 +717,7 @@
 
     /* Vistas principales */
     function goSelect(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-select'); showLoading('Cargando asientos…'); refreshSeats('grid-select', () => hideLoading()); }
-
-    function goFind(){
-      // Convencional o planta ya elegida: flujo normal (view-find)
-      if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; }
-      showView('view-find');
-      clearFindView(); clearFindViewMulti();
-    }
-
+    function goFind(){ if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; } showView('view-find'); clearFindView(); clearFindViewMulti(); }
     function goControl(){ openStaffLogin(); }
 
     /* ===== Helpers para doble piso ===== */
@@ -971,10 +969,10 @@
     }
 
     /* —— BÚSQUEDA EN AMBAS PLANTAS (doble piso) —— */
-    let MULTI_SHEETS = [];                 // [{sheetName, label}]
-    let SEATS_BY_SHEET = new Map();        // sheetName -> seatsMap
-    let HIGHLIGHT_BY_SHEET = new Map();    // sheetName -> Set(codes)
-    let NUMS_BY_SHEET = new Map();         // sheetName -> [numbers]
+    let MULTI_SHEETS = [];
+    let SEATS_BY_SHEET = new Map();
+    let HIGHLIGHT_BY_SHEET = new Map();
+    let NUMS_BY_SHEET = new Map();
 
     async function findByCIAcrossFloors(){
       if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; }
@@ -988,7 +986,6 @@
         HIGHLIGHT_BY_SHEET = new Map();
         NUMS_BY_SHEET = new Map();
 
-        // Para cada hoja/planta: pedir asientos del CI y toda la ocupación
         for(const f of MULTI_SHEETS){
           const [respSeats, respRows] = await Promise.all([
             API.apiGetSeatsByCi(CURRENT_TRIP.fileId, f.sheetName, ci),
@@ -1050,7 +1047,6 @@
     }
 
     function renderFindFeedbackMulti(){
-      // Ocultar panel single y limpiar
       clearFindView();
       const panel = document.getElementById('multiFeedback');
       const wrap = document.getElementById('multiNums');
@@ -1100,7 +1096,6 @@
       const container = document.getElementById('multiCroquis');
       container.innerHTML = '';
 
-      // Construir croquis por planta
       for(const f of MULTI_SHEETS){
         const seatsMap = SEATS_BY_SHEET.get(f.sheetName) || {};
         const highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) || new Set();
@@ -1153,7 +1148,7 @@
             btn.setAttribute('data-code', code);
             btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             seatNumber++;
-            btn.disabled = true; // en croquis de consulta no se selecciona
+            btn.disabled = true; // croquis de consulta
           }else{
             btn.innerHTML = ' ';
             btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
@@ -1211,7 +1206,7 @@
           setStaffSession(true);
           updateAdminMenu();
           syncStaffBadge();
-          syncControlFormVisibility(); // oculto la caja de login
+          syncControlFormVisibility();
           toast('Acceso staff habilitado');
           showView('view-choose');
           await loadTrips();
@@ -1221,7 +1216,7 @@
           setStaffSession(false);
           updateAdminMenu();
           syncStaffBadge();
-          syncControlFormVisibility(); // muestro la caja de login
+          syncControlFormVisibility();
           hideControlBoard();
           toast('Usuario o contraseña inválidos');
         }
@@ -1243,7 +1238,7 @@
       setStaffSession(false);
       updateAdminMenu();
       syncStaffBadge();
-      syncControlFormVisibility(); // vuelvo a mostrar login
+      syncControlFormVisibility();
       hideControlBoard();
       toast('Sesión finalizada');
       backToChoose();
