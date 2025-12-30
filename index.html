@@ -18,7 +18,7 @@
     html{ scroll-padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
     body{
       margin:0; font-family: system-ui,-apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-      color:var(--text); background:var(--bg); overflow-x:hidden; /* evita scroll horizontal */
+      color:var(--text); background:var(--bg); overflow-x:hidden;
     }
     *, *::before, *::after{ box-sizing:border-box; }
 
@@ -57,7 +57,7 @@
     }
     .brand-chip img.ready{ opacity:1; }
 
-    /* Contenedor principal */
+    /* Contenedor principal y vistas */
     .app{padding:clamp(12px,3vw,20px);}
     .view{display:none;}
     .view.active{display:block; animation:fadeIn .4s ease both;}
@@ -211,7 +211,7 @@
     .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
     .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
 
-    /* ===== Píldora legal (ByC) ===== */
+    /* ===== Píldora legal (ByC) solo en view-choose ===== */
     .legal-wrap{ display:flex; justify-content:center; margin:14px auto 0; width:100%; }
     .legal-pill{
       display:inline-flex; align-items:center; gap:6px;
@@ -223,15 +223,15 @@
       white-space:normal;
       overflow-wrap:anywhere;
       text-align:center;
-      pointer-events:auto; /* aseguro que el contenedor no bloquee */
     }
     .legal-pill a{
       color:var(--primary);
       text-decoration:underline;
       font-weight:800;
-      pointer-events:auto; /* garantiza clic */
-      cursor:pointer;      /* feedback visual */
+      cursor:pointer;
     }
+    /* Seguridad extra: si por algún motivo se renderiza en otra vista, ocultar */
+    .view:not(#view-choose) .legal-wrap { display:none !important; }
 
     /* ===== Admin (Easter Egg en el logo) ===== */
     .admin-menu {
@@ -293,12 +293,12 @@
           <h2 class="view-title">Elegí tu viaje</h2>
           <div id="tripList" class="trip-list"></div>
 
-          <!-- PÍLDORA LEGAL ByC -->
+          <!-- PÍLDORA LEGAL ByC SOLO AQUÍ -->
           <div class="legal-wrap">
             <div class="legal-pill" role="note" aria-label="Bases y Condiciones">
               Podés leer nuestras Bases y Condiciones
-              <a href="https://drive.google.com/file/d/1j2VCdg6gRKpz1dpySOV9M3Fz4RGGBbzm/view?usp=drive_link"
-                >
+              <a href="https://drive.google.com/file/d/1j2VCdg6gOV9M3Fz4RGGBbzm/view?usp=drive_linkaquí</a>.
+            </div>
           </div>
         </div>
       </div>
@@ -317,7 +317,7 @@
 
           <h2 class="view-title">Elegí planta</h2>
 
-          <!-- Tarjetas de selección de planta + Buscar por CI -->
+          <!-- Tarjetas de selección de planta + Buscar por CI (mismo tamaño) -->
           <div class="floors" id="floorCards"></div>
 
           <div class="actions" style="margin-top:12px;">
@@ -1326,4 +1326,3 @@
   </script>
 </body>
 </html>
-
