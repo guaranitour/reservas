@@ -120,15 +120,18 @@
     .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
     .seat:active{transform:scale(0.98);}
 
-    /* Resaltado (buscar por CI) */
+    /* Resaltado (Mirá tu asiento) */
     .seat.mine{ outline:3px solid #6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15) inset; }
     .seat.mine::after{ content:""; position:absolute; inset:0; border-radius:12px; box-shadow:0 0 0 0 rgba(99,102,241,.25); animation:pulse 1.8s ease-in-out infinite; }
     @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(99,102,241,.25);} 70%{box-shadow:0 0 0 10px rgba(99,102,241,0);} 100%{box-shadow:0 0 0 0 rgba(99,102,241,0);} }
     .nums{display:flex; gap:10px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
-    #findFeedback .actions{margin-top:14px;}
-    #findFeedback{ margin-bottom: 16px; }
-    #grid-find{ margin-top: 8px; }
+
+    /* Más espacio debajo del botón “Ver croquis” y encima del croquis */
+    #findFeedback .actions,
+    #multiFeedback .actions { margin-top:14px; margin-bottom:18px; }
+    #grid-find,
+    #multiCroquis { margin-top:16px; }
 
     /* Asignación múltiple */
     .assign{ margin-top: 12px; padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
@@ -204,37 +207,6 @@
     .floors .card h2{ font-size:1rem; }
     .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
     .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
-
-    /* Admin menu (easter egg) */
-    .admin-menu {
-      position: absolute;
-      top: calc(100% + 8px);
-      right: 8px;
-      z-index: 40;
-      width: min(92vw, 320px);
-      border-radius: 14px;
-      padding: 14px;
-      background: rgba(255,255,255,.72);
-      border: 1px solid rgba(255,255,255,.80);
-      box-shadow: 0 12px 28px rgba(17,24,39,.16);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      pointer-events: auto;
-    }
-    .admin-title { margin: 0 0 10px 0; font-weight: 800; color: var(--text); }
-    .btn-admin { width: 100%; }
-    .admin-menu.hidden { display: none; }
-
-    /* Staff badge */
-    .staff-badge{
-      position:fixed; top:10px; right:10px; z-index:60;
-      display:inline-flex; align-items:center; gap:6px;
-      background:#fde68a; color:#92400e;
-      padding:6px 10px; border-radius:999px;
-      font-size:.85rem; font-weight:800;
-      box-shadow:0 8px 20px rgba(17,24,39,.16), inset 0 0 0 1px rgba(146,64,14,.20);
-      border:1px solid rgba(255,255,255,.65);
-    }
   </style>
 </head>
 <body>
@@ -980,7 +952,10 @@
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', () => {
         hideLoading();
-        document.getElementById('grid-find').scrollIntoView({behavior:'smooth'});
+        // Auto-scroll al primer marcado (si hay)
+        const firstMarked = document.getElementById('grid-find').querySelector('.seat.mine');
+        if (firstMarked) firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
+        else document.getElementById('grid-find').scrollIntoView({ behavior:'smooth', block:'start' });
         toast(`Resaltados: ${HIGHLIGHT_CODES.size}`);
       });
     }
@@ -1118,13 +1093,27 @@
       panel.scrollIntoView({behavior:'smooth'});
     }
 
-    function showCroquisForCIMulti(){
-      showLoading('Cargando croquis de ambas plantas…');
+    /* === Mostrar croquis solo de planta(s) con resultados + auto-scroll === */
+    async function showCroquisForCIMulti(){
+      showLoading('Cargando croquis…');
       const container = document.getElementById('multiCroquis');
       container.innerHTML = '';
 
-      for(const f of MULTI_SHEETS){
-        const seatsMap = SEATS_BY_SHEET.get(f.sheetName) || {};
+      // Solo plantas con asientos para ese CI
+      const floorsWithResults = MULTI_SHEETS.filter(f => {
+        const found = NUMS_BY_SHEET.get(f.sheetName) || [];
+        return found.length > 0;
+      });
+
+      if (!floorsWithResults.length) {
+        hideLoading();
+        toast('Tu CI no tiene asientos en ninguna planta de este viaje.');
+        return;
+      }
+
+      // Construir croquis para cada planta con resultados
+      for(const f of floorsWithResults){
+        const seatsMap   = SEATS_BY_SHEET.get(f.sheetName) || {};
         const highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) || new Set();
 
         const form = document.createElement('div');
@@ -1149,7 +1138,14 @@
       }
 
       hideLoading();
-      container.scrollIntoView({behavior:'smooth'});
+
+      // Auto-scroll global al primer asiento marcado
+      const firstMarked = container.querySelector('.seat.mine');
+      if (firstMarked) {
+        firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
+      } else {
+        container.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
     }
 
     function buildGridCustom(targetId, seatsMap, highlightSet){
@@ -1196,6 +1192,7 @@
         grid.appendChild(rowEl);
       }
 
+      // Scroll al primer resaltado dentro del croquis
       const first = grid.querySelector('.seat.mine');
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
     }
