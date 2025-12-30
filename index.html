@@ -36,7 +36,6 @@
       border-radius:16px; background: rgba(255,255,255,.55);
       border:1px solid rgba(255,255,255,.65); box-shadow:0 8px 24px rgba(17,24,39,.12);
       max-width:92vw;
-      /* Permitir que el menú se muestre fuera del chip */
       overflow: visible;
     }
     /* Skeleton del logo */
@@ -78,13 +77,13 @@
 
     /* Título discreto y centrado para secciones */
     .view-title{
-      margin:0 0 16px 0; /* más espacio debajo del título */
-      font-size:1rem; /* más pequeño que el h2 por defecto */
+      margin:0 0 16px 0;
+      font-size:1rem;
       line-height:1.25;
       font-weight:800;
       letter-spacing:.2px;
       color:var(--text);
-      text-align:center; /* centrado */
+      text-align:center;
     }
 
     /* Formularios */
@@ -207,7 +206,7 @@
 
     .floors{ display:grid; grid-template-columns:1fr; gap:12px; max-width:min(560px, 92vw); margin:12px auto 0; }
     @media (min-width:520px){ .floors{ grid-template-columns:1fr 1fr; } }
-    .floors .card h2{ font-size:1rem; } /* iguala jerarquía de tarjetas de planta */
+    .floors .card h2{ font-size:1rem; }
 
     .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
     .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
@@ -221,14 +220,16 @@
       font-size:.9rem; font-weight:700;
       box-shadow:0 8px 20px rgba(17,24,39,.08), inset 0 0 0 1px rgba(146,64,14,.20);
       max-width:min(560px, 92vw);
-      white-space:normal; /* permite salto de línea */
-      overflow-wrap:anywhere; /* evita desbordes y scroll horizontal */
+      white-space:normal;
+      overflow-wrap:anywhere;
       text-align:center;
     }
     .legal-pill a{
       color:var(--primary);
       text-decoration:underline;
       font-weight:800;
+      pointer-events:auto;   /* garantiza clic */
+      cursor:pointer;        /* feedback visual */
     }
 
     /* ===== Admin (Easter Egg en el logo) ===== */
@@ -245,7 +246,7 @@
       box-shadow: 0 12px 28px rgba(17,24,39,.16);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
-      pointer-events: auto; /* interactuable */
+      pointer-events: auto;
     }
     .admin-title { margin: 0 0 10px 0; font-weight: 800; color: var(--text); }
     .btn-admin { width: 100%; }
@@ -273,7 +274,8 @@
         <p class="admin-title">Acceso staff</p>
         <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
           <button type="button" id="btnAdminLogin" class="btn primary btn-admin" onclick="openStaffLogin()">Control interno</button>
-          <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="goHome()">Panel de control</button>
+          <!-- (opcional) Acceso directo al panel si ya estás logueado -->
+          <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="goToControlBoard()">Panel de control</button>
           <button type="button" id="btnAdminLogout" class="btn danger btn-admin hidden" onclick="doControlLogout()">Cerrar sesión staff</button>
         </div>
       </div>
@@ -291,10 +293,11 @@
           <h2 class="view-title">Elegí tu viaje</h2>
           <div id="tripList" class="trip-list"></div>
 
-          <!-- PÍLDORA LEGAL ByC (sin scroll horizontal) -->
+          <!-- PÍLDORA LEGAL ByC (link clickeable en “aquí”) -->
           <div class="legal-wrap">
             <div class="legal-pill" role="note" aria-label="Bases y Condiciones">
-              Podés leer nuestras Bases y Condiciones https://drive.google.com/file/d/1j2VCdg6gRKpz1dpySOV9M3Fz4RGGBbzm/view?usp=drive_linkaquí</a>.
+              Podés leer nuestras Bases y Condiciones
+              <a href="https://drive.google.com/file/d/1j2VCdg6gRKpz1dpySOV9M3Fz4RGGBbzm/view?_linkaquí</a>.
             </div>
           </div>
         </div>
@@ -314,7 +317,7 @@
 
           <h2 class="view-title">Elegí planta</h2>
 
-          <!-- Tarjetas de selección de planta + Buscar por CI (mismo tamaño) -->
+          <!-- Tarjetas de selección de planta + Buscar por CI -->
           <div class="floors" id="floorCards"></div>
 
           <div class="actions" style="margin-top:12px;">
@@ -325,7 +328,7 @@
       </div>
     </section>
 
-    <!-- Menú principal -->
+    <!-- Menú principal (convencional) -->
     <section id="view-home" class="view" aria-label="Inicio">
       <div class="home-center">
         <div style="max-width:min(560px, 92vw); width:100%; margin-bottom:12px;">
@@ -575,7 +578,7 @@
     /* Viaje/hoja actual */
     let CURRENT_TRIP = { fileId: null, name: null, sheets: [], sheetName: null, hasFloors: false };
 
-    /* ===== Persistencia del perfil staff ===== */
+    /* Persistencia del perfil staff */
     const STAFF_KEY = 'app_staff_mode';
     function setStaffSession(enabled){
       try { if (enabled) localStorage.setItem(STAFF_KEY, '1'); else localStorage.removeItem(STAFF_KEY); }
@@ -599,12 +602,12 @@
     function firstName(full){ const t = (full || '').trim(); if(!t) return ''; const name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
-    /* ===== Admin (Easter Egg) ===== */
+    /* Admin (Easter Egg) */
     function showAdminMenu(){ document.getElementById('adminMenu').classList.remove('hidden'); }
     function hideAdminMenu(){ document.getElementById('adminMenu').classList.add('hidden'); }
     function toggleAdminMenu(){ document.getElementById('adminMenu').classList.toggle('hidden'); }
 
-    /* Mostrar/ocultar opciones del panel del logo según login */
+    /* Admin menu según login */
     function updateAdminMenu(){
       const bLogin = document.getElementById('btnAdminLogin');
       const bPanel = document.getElementById('btnAdminControl');
@@ -616,7 +619,7 @@
       bLogout.classList.toggle('hidden', !isAuth);
     }
 
-    /* Insignia (pill) fija arriba a la derecha */
+    /* Insignia Staff */
     function syncStaffBadge(){
       const el = document.getElementById('staffBadge');
       if (!el) return;
@@ -627,7 +630,7 @@
     function syncControlFormVisibility(){
       const form = document.getElementById('controlForm');
       if (!form) return;
-      form.hidden = CONTROL_AUTH; // oculto si está logueado, muestro si no
+      form.hidden = CONTROL_AUTH; // oculto si está logueado
     }
 
     /* Elegir viaje */
@@ -656,6 +659,7 @@
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
 
       if(CURRENT_TRIP.hasFloors){
+        /* Doble piso: mostrar “Elegí planta” + tarjeta Buscar CI del mismo tamaño */
         updateTripTags();
 
         const floorBox = document.getElementById('floorCards'); floorBox.innerHTML = '';
@@ -666,6 +670,7 @@
         if(altaName) candidates.push({ label:'Planta alta', sheetName:altaName, desc:'Mayor altura y vista panorámica.' });
         if(!candidates.length){ tr.sheets.forEach(s => candidates.push({ label:s, sheetName:s, desc:null })); }
 
+        /* Tarjetas de planta */
         candidates.forEach(c => {
           const card = document.createElement('article'); card.className='card'; card.tabIndex=0;
           const h2 = document.createElement('h2'); h2.textContent = c.label;
@@ -676,23 +681,34 @@
           floorBox.appendChild(card);
         });
 
-        /* Tarjeta Buscar por CI con mismo tamaño */
+        /* Tarjeta Buscar por CI (mismo tamaño) */
         const ciCard = document.createElement('article'); ciCard.className='card'; ciCard.tabIndex=0;
         const ciH2 = document.createElement('h2'); ciH2.textContent='Buscar por CI';
         const ciP = document.createElement('p'); ciP.textContent='Ingresa tu CI para ver tus números y el croquis.';
         ciCard.appendChild(ciH2); ciCard.appendChild(ciP);
-        ciCard.onclick = () => goFind();
-        ciCard.onkeypress = (ev) => { if(ev.key==='Enter') goFind(); };
+        ciCard.onclick = () => openFindFromFloor();
+        ciCard.onkeypress = (ev) => { if(ev.key==='Enter') openFindFromFloor(); };
         floorBox.appendChild(ciCard);
 
         showView('view-floor');
       }else{
+        /* Convencional: elegir hoja por defecto y mostrar MENÚ (no saltar directo a reservar) */
         const sheet = tr.sheets.find(s => s.toLowerCase() === 'asientos') || tr.sheets[0];
-        chooseFloor(sheet);
+        chooseFloor(sheet, /*fromConventional*/true);
       }
     }
 
-    function chooseFloor(sheetName){
+    /* Abre Buscar por CI desde la vista de planta, cuidando que haya hoja elegida */
+    function openFindFromFloor(){
+      if(!CURRENT_TRIP.sheetName){
+        toast('Elegí una planta primero');
+        return;
+      }
+      goFind();
+    }
+
+    /* Elegir hoja/planta */
+    function chooseFloor(sheetName, fromConventional=false){
       CURRENT_TRIP.sheetName = sheetName;
       updateTripTags();
 
@@ -701,7 +717,15 @@
         showLoading('Cargando ocupación…');
         refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
       } else {
-        goSelect(); /* directo a selección de asientos */
+        /* Público:
+           - Doble piso: ir directo a seleccionar asientos
+           - Convencional: mostrar MENÚ con las tarjetas (como antes)
+        */
+        if (CURRENT_TRIP.hasFloors && !fromConventional) {
+          goSelect();
+        } else {
+          goHome();
+        }
       }
     }
 
@@ -710,6 +734,7 @@
       showView('view-choose');
     }
 
+    /* Actualiza todas las píldoras de viaje visibles */
     function updateTripTags(){
       document.querySelectorAll('.trip-tag-trip').forEach(el => {
         el.textContent = `Viaje: ${CURRENT_TRIP.name || '—'}`;
@@ -972,6 +997,13 @@
       if(u) u.value = ''; if(p) p.value = '';
     }
 
+    /* (Opcional) botón del panel dentro del menú del logo */
+    function goToControlBoard(){
+      if(!CONTROL_AUTH){ openStaffLogin(); return; }
+      showView('view-control');
+      renderControlBoard();
+    }
+
     async function doControlLogin(){
       const u = document.getElementById('ctlUser').value.trim();
       const p = document.getElementById('ctlPass').value.trim();
@@ -1194,7 +1226,7 @@
       }
     }
 
-    /* ===== Inicio (carga logo + easter egg) ===== */
+    /* ===== Inicio ===== */
     (async function init(){
       const chip = document.querySelector('.brand-chip');
       chip.childNodes.forEach(n => { if (n.nodeType === Node.TEXT_NODE) n.remove(); });
@@ -1246,3 +1278,4 @@
   </script>
 </body>
 </html>
+``
