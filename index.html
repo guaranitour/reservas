@@ -612,7 +612,7 @@
     function syncControlFormVisibility(){
       const form = document.getElementById('controlForm');
       if (!form) return;
-      form.hidden = CONTROL_AUTH;
+      form.hidden = CONTROL_AUTH; // oculto si está logueado, muestro si no
     }
 
     /* Elegir viaje */
@@ -662,7 +662,15 @@
           return card;
         };
 
-        candidates.forEach(c => floorBox.appendChild(makeCard(c.label, c.desc ? c.desc : `Hoja: ${c.sheetName}`, () => chooseFloor(c.sheetName))));
+        // Pintar tarjetas de plantas: ahora VAN DIRECTO a seleccionar asientos
+        candidates.forEach(c => {
+          const el = makeCard(
+            c.label,
+            c.desc ? c.desc : `Hoja: ${c.sheetName}`,
+            () => chooseFloor(c.sheetName) // lleva directo a view-select
+          );
+          floorBox.appendChild(el);
+        });
 
         // Tarjeta "Buscar por CI" DEBAJO de las plantas
         const findCard = makeCard('Buscar por CI', 'Buscá tus asientos por CI en ambas plantas.', () => goFind());
@@ -679,11 +687,15 @@
       CURRENT_TRIP.sheetName = sheetName;
       updateTripTags();
       if (CONTROL_AUTH) {
+        // Staff: tablero de control
         showView('view-control');
         showLoading('Cargando ocupación…');
         refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
       } else {
-        goHome();
+        // Público: IR DIRECTO A SELECCIÓN DE ASIENTOS (sin menú intermedio)
+        showView('view-select');
+        showLoading('Cargando asientos…');
+        refreshSeats('grid-select', () => hideLoading());
       }
     }
 
@@ -702,7 +714,7 @@
     function goSelect(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-select'); showLoading('Cargando asientos…'); refreshSeats('grid-select', () => hideLoading()); }
 
     function goFind(){
-      // Convencional o planta ya elegida: flujo normal
+      // Convencional o planta ya elegida: flujo normal (view-find)
       if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; }
       showView('view-find');
       clearFindView(); clearFindViewMulti();
@@ -712,7 +724,6 @@
 
     /* ===== Helpers para doble piso ===== */
     function getFloorSheets(){
-      // Prioriza nombres estándar; si no hay, usa todas las hojas
       const sheets = CURRENT_TRIP.sheets || [];
       const baja = sheets.find(s => s.toLowerCase() === 'asientos baja');
       const alta = sheets.find(s => s.toLowerCase() === 'asientos alta');
@@ -1161,7 +1172,6 @@
         grid.appendChild(rowEl);
       }
 
-      // Scroll al primer resaltado
       const first = grid.querySelector('.seat.mine');
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
     }
@@ -1201,7 +1211,7 @@
           setStaffSession(true);
           updateAdminMenu();
           syncStaffBadge();
-          syncControlFormVisibility();
+          syncControlFormVisibility(); // oculto la caja de login
           toast('Acceso staff habilitado');
           showView('view-choose');
           await loadTrips();
@@ -1211,7 +1221,7 @@
           setStaffSession(false);
           updateAdminMenu();
           syncStaffBadge();
-          syncControlFormVisibility();
+          syncControlFormVisibility(); // muestro la caja de login
           hideControlBoard();
           toast('Usuario o contraseña inválidos');
         }
@@ -1233,7 +1243,7 @@
       setStaffSession(false);
       updateAdminMenu();
       syncStaffBadge();
-      syncControlFormVisibility();
+      syncControlFormVisibility(); // vuelvo a mostrar login
       hideControlBoard();
       toast('Sesión finalizada');
       backToChoose();
