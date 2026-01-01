@@ -278,8 +278,8 @@
       <div id="adminMenu" class="admin-menu hidden" role="dialog" aria-modal="false" aria-label="Acceso staff">
         <p class="admin-title">Acceso staff</p>
         <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
+          <!-- Podés dejar los onclick inline; igual cableamos por JS para mayor compatibilidad -->
           <button type="button" id="btnAdminLogin" class="btn primary btn-admin" onclick="openStaffLogin()">Control interno</button>
-          <!-- “Inicio” te lleva a Elegir viaje -->
           <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="backToChoose(); hideAdminMenu();">Inicio</button>
           <button type="button" id="btnAdminLogout" class="btn danger btn-admin hidden" onclick="doControlLogout()">Cerrar sesión staff</button>
         </div>
@@ -292,7 +292,7 @@
 
   <main id="app" class="app">
     <!-- Elegir viaje -->
-    <section id="view-choose" class="view active" aria-label="Elegí el viaje">
+    <section id="view-choose" class="view active" aria-label="Elegí tu viaje">
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí tu viaje</h2>
@@ -306,11 +306,8 @@
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí planta</h2>
-          <!-- Tarjetas de plantas -->
           <div class="floors" id="floorCards"></div>
-          <!-- “Mirá tu asiento” debajo de las plantas -->
           <div class="cards" id="floorFindCard" style="margin-top:16px;"></div>
-          <!-- Solo “Cambiar viaje” -->
           <div class="actions" style="margin-top:32px; justify-content:center;">
             <button type="button" class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
           </div>
@@ -593,7 +590,7 @@
     function setStaffSession(enabled){ try { if (enabled) localStorage.setItem(STAFF_KEY, '1'); else localStorage.removeItem(STAFF_KEY); } catch(e){} }
     function isStaffSession(){ try { return localStorage.getItem(STAFF_KEY) === '1'; } catch(e){ return false; } }
 
-    /* ===== Staff (nombre propio para evitar conflictos) ===== */
+    /* ===== Staff (nombres propios para evitar conflictos) ===== */
     let STAFF_CONTROL_MULTI = false;
     let STAFF_ACTIVE_SHEET = null;
     let STAFF_SHEETS = [];
@@ -1656,6 +1653,22 @@
       await refreshSeatsWithSpinner('grid-select', () => {}, opts);
     }
 
+    /* ===== FIX: cablear botones del menú admin y exponer funciones al window ===== */
+    function wireAdminMenuButtons(){
+      const bLogin  = document.getElementById('btnAdminLogin');
+      const bInicio = document.getElementById('btnAdminControl');
+      const bLogout = document.getElementById('btnAdminLogout');
+
+      bLogin?.addEventListener('click',  () => { try { openStaffLogin();  hideAdminMenu(); } catch(e){} });
+      bInicio?.addEventListener('click', () => { try { backToChoose();    hideAdminMenu(); } catch(e){} });
+      bLogout?.addEventListener('click', () => { try { doControlLogout(); hideAdminMenu(); } catch(e){} });
+    }
+    // Exponer funciones al scope global por si el entorno bloquea inline handlers
+    window.openStaffLogin  = openStaffLogin;
+    window.doControlLogout = doControlLogout;
+    window.backToChoose    = backToChoose;
+    window.hideAdminMenu   = hideAdminMenu;
+
     /* ===== Inicio ===== */
     (async function init(){
       const chip = document.querySelector('.brand-chip');
@@ -1691,6 +1704,9 @@
 
       document.getElementById('ciPrincipal')?.addEventListener('input', e => onlyDigits(e.target));
       document.getElementById('ciSearch')?.addEventListener('input', e => onlyDigits(e.target));
+
+      // Cablear botones del menú admin (fix robusto)
+      wireAdminMenuButtons();
 
       if (isStaffSession()) {
         CONTROL_AUTH = true;
