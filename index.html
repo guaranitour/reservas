@@ -62,9 +62,9 @@
     /* ===== Admin Menu (dropdown) ===== */
     .admin-menu{
       position: absolute;
-      top: calc(100% + 10px);        /* debajo del logo/chip */
+      top: calc(100% + 10px);
       left: 50%;
-      transform: translateX(-50%);   /* centrado */
+      transform: translateX(-50%);
       width: min(92vw, 360px);
       padding: 12px;
       border-radius: 14px;
@@ -134,7 +134,7 @@
     .badge.libre{background:#d1fae5; color:#065f46;}
     .badge.ocupado{background:#fee2e2; color:#7f1d1d;}
     .badge.seleccionado{background:#dbeafe; color:#1e40af;}
-    .badge.inexistente{background:#e5e7eb; color:#374151;}
+    .badge.inexistente,.badge.inhabilitado{background:#e5e7eb; color:#374151;}
 
     /* Croquis 2+2 */
     .grid{display:flex; flex-direction:column; gap:8px;}
@@ -149,7 +149,15 @@
     .seat.libre{background:#e6fffa; color:#0f766e;}
     .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;}
     .seat.seleccionado{background:#dbeafe; color:#1e40af; transform:scale(1.02);}
-    .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
+    .seat.inhabilitado{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
+    .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;} /* legacy */
+
+    /* Placeholder invisible para celdas sin asiento real en la hoja actual */
+    .seat-placeholder{
+      width:100%; min-height:48px; border-radius:12px;
+      background:transparent; box-shadow:none; border:none; pointer-events:none;
+    }
+
     .seat:active{transform:scale(0.98);}
 
     /* Resaltado (Mirá tu asiento) */
@@ -271,7 +279,7 @@
         <p class="admin-title">Acceso staff</p>
         <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
           <button type="button" id="btnAdminLogin" class="btn primary btn-admin" onclick="openStaffLogin()">Control interno</button>
-          <!-- Cambiado: de “Panel de control” a “Inicio” -->
+          <!-- Mantiene “Inicio” que te lleva a Elegir viaje -->
           <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="backToChoose()">Inicio</button>
           <button type="button" id="btnAdminLogout" class="btn danger btn-admin hidden" onclick="doControlLogout()">Cerrar sesión staff</button>
         </div>
@@ -347,7 +355,8 @@
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Reservar</button>
-          <button type="button" class="btn ghost" onclick="refreshSeatsWithSpinner('grid-select')">Actualizar</button>
+          <!-- Ahora usa wrapper para respetar offset y filtro -->
+          <button type="button" class="btn ghost" onclick="refreshSelectGrid()">Actualizar</button>
         </div>
         <p class="hint">Presiona “Actualizar” para ver reservas recientes.</p>
       </form>
@@ -356,7 +365,7 @@
         <span class="badge libre">Libre</span>
         <span class="badge ocupado">Ocupado</span>
         <span class="badge seleccionado">Seleccionado</span>
-        <span class="badge inexistente">Gris: Inhabilitado / No disponible</span>
+        <span class="badge inhabilitado">Gris: Inhabilitado en esta planta</span>
       </div>
 
       <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
@@ -604,6 +613,17 @@
     function firstName(full){ const t = (full ?? '').trim(); if(!t) return ''; const name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
+    /* ===== NUEVO: estado detallado del asiento ===== */
+    function getSeatState(code){
+      const key = normalize(code);
+      const s = SEATS[key];
+      if(!s) return 'missing'; // no existe en esta hoja/planta
+      const st = (s.estado ?? '').toLowerCase().trim();
+      if(st === 'ocupado') return 'ocupado';
+      if(st === 'inhabilitado') return 'inhabilitado';
+      return 'libre';
+    }
+
     /* Admin (Easter Egg) */
     function showAdminMenu(){ document.getElementById('adminMenu').classList.remove('hidden'); }
     function hideAdminMenu(){ document.getElementById('adminMenu').classList.add('hidden'); }
@@ -615,11 +635,8 @@
       if(!bLogin || !bPanel || !bLogout) return;
       const isAuth = CONTROL_AUTH;
       bLogin.classList.toggle('hidden', isAuth);
-      bPanel.classList.toggle('hidden', !isAuth);   // cuando hay sesión, aparece “Inicio”
+      bPanel.classList.toggle('hidden', !isAuth);
       bLogout.classList.toggle('hidden', !isAuth);
-      // Por si en algún momento querés alternar el texto dinámicamente:
-      // bPanel.textContent = 'Inicio';
-      // bPanel.onclick = backToChoose;
     }
     function syncStaffBadge(){
       const el = document.getElementById('staffBadge');
@@ -676,7 +693,6 @@
           return card;
         };
 
-        // Plantas: DIRECTO a seleccionar asientos
         candidates.forEach(c => {
           const el = makeCard(
             c.label,
@@ -686,20 +702,65 @@
           floorBox.appendChild(el);
         });
 
-        // “Mirá tu asiento” (busca en ambas si no hay planta elegida)
         const findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', () => goFind());
         extraBox.appendChild(findCard);
         showView('view-floor');
       }else{
-        // Convencional: fijar hoja por defecto y MENÚ
         const sheet = tr.sheets.find(s => s.toLowerCase() === 'asientos') ?? tr.sheets[0];
         chooseFloor(sheet);
       }
     }
 
-    function chooseFloor(sheetName){
+    /* ===== NUEVO: calcular offset al seleccionar planta ===== */
+    function getFloorSheets(){
+      const sheets = CURRENT_TRIP.sheets ?? [];
+      const baja = sheets.find(s => s.toLowerCase() === 'asientos baja');
+      const alta = sheets.find(s => s.toLowerCase() === 'asientos alta');
+      const result = [];
+      if(baja) result.push({ sheetName:baja, label:'Planta baja' });
+      if(alta) result.push({ sheetName:alta, label:'Planta alta' });
+      if(!result.length) result.push(...sheets.map(s => ({ sheetName:s, label:s })));
+      return result;
+    }
+
+    async function countActiveNumbers(fileId, sheetName){
+      try{
+        const resp = await API.apiGetSeats(fileId, sheetName);
+        const rows = resp.rows ?? [];
+        // construir mapa simple y contar asientos numerables
+        const map = {};
+        rows.forEach(r => { map[ normalize(r.asiento) ] = { estado: r.estado }; });
+        // mismas reglas de numeración: libre/ocupado
+        const rowsActive = getRowsToRenderFromMap(map);
+        let count = 0;
+        for(const row of rowsActive){
+          for(const letter of ['A','B','C','D']){
+            const code = `${row}${letter}`;
+            const st = computeClassForWith(map, code);
+            if(st === 'libre' || st === 'ocupado') count++;
+          }
+        }
+        return count;
+      }catch(e){ return 0; }
+    }
+
+    async function computeGridOptions(){
+      if(!CURRENT_TRIP.hasFloors) return { offset:0, hideMissing:true };
+      const floors = getFloorSheets();
+      const alta = floors.find(f => f.sheetName.toLowerCase() === 'asientos alta')?.sheetName;
+      const baja = floors.find(f => f.sheetName.toLowerCase() === 'asientos baja')?.sheetName;
+      if(alta && baja && CURRENT_TRIP.sheetName?.toLowerCase() === baja.toLowerCase()){
+        const offset = await countActiveNumbers(CURRENT_TRIP.fileId, alta);
+        return { offset, hideMissing:true };
+      }
+      return { offset:0, hideMissing:true };
+    }
+
+    /* ===== Vistas principales ===== */
+    async function chooseFloor(sheetName){
       CURRENT_TRIP.sheetName = sheetName;
       updateTripTags();
+
       if (CONTROL_AUTH) {
         showView('view-control');
         showLoading('Cargando ocupación…');
@@ -708,9 +769,10 @@
         if (CURRENT_TRIP.hasFloors) {
           showView('view-select');
           showLoading('Cargando asientos…');
-          refreshSeats('grid-select', () => hideLoading());
+          const opts = await computeGridOptions();
+          refreshSeats('grid-select', () => hideLoading(), opts);
         } else {
-          goHome(); // MENÚ (convencional)
+          goHome();
         }
       }
     }
@@ -726,8 +788,14 @@
       syncStaffBadge();
     }
 
-    /* Vistas principales */
-    function goSelect(){ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; } showView('view-select'); showLoading('Cargando asientos…'); refreshSeats('grid-select', () => hideLoading()); }
+    async function goSelect(){
+      if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ showView('view-choose'); return; }
+      showView('view-select');
+      showLoading('Cargando asientos…');
+      const opts = await computeGridOptions();
+      refreshSeats('grid-select', () => hideLoading(), opts);
+    }
+
     function goFind(){ if(!CURRENT_TRIP.fileId){ showView('view-choose'); return; } showView('view-find'); clearFindView(); clearFindViewMulti(); }
     function goControl(){ openStaffLogin(); }
 
@@ -738,20 +806,8 @@
       refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
     }
 
-    /* Helpers doble piso */
-    function getFloorSheets(){
-      const sheets = CURRENT_TRIP.sheets ?? [];
-      const baja = sheets.find(s => s.toLowerCase() === 'asientos baja');
-      const alta = sheets.find(s => s.toLowerCase() === 'asientos alta');
-      const result = [];
-      if(baja) result.push({ sheetName:baja, label:'Planta baja' });
-      if(alta) result.push({ sheetName:alta, label:'Planta alta' });
-      if(!result.length) result.push(...sheets.map(s => ({ sheetName:s, label:s })));
-      return result;
-    }
-
     /* ====== Datos (una hoja) ====== */
-    async function refreshSeats(targetId, onDone){
+    async function refreshSeats(targetId, onDone, gridOptions){
       const gridEl = targetId ? document.getElementById(targetId) : null;
       if(gridEl) gridEl.setAttribute('aria-busy','true');
       try{
@@ -759,29 +815,19 @@
         const rows = resp.rows ?? [];
         SEATS = {};
         rows.forEach(r => { SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
-        if(gridEl){ buildGrid(targetId); }
+        if(gridEl){ buildGrid(targetId, gridOptions); }
       }catch(err){
-        toast('Error al cargar asientos'); if(gridEl){ buildGrid(targetId); }
+        toast('Error al cargar asientos'); if(gridEl){ buildGrid(targetId, gridOptions); }
       }finally{
         if (typeof onDone === 'function') { try { onDone(); } catch(e){} }
       }
     }
 
-    function refreshSeatsWithSpinner(targetId, onDone){ showLoading('Actualizando asientos…'); refreshSeats(targetId, () => { hideLoading(); if (typeof onDone === 'function') onDone(); }); }
-
-    function getMaxRow(){ let maxRow = 0; Object.keys(SEATS).forEach(code => { const m = code.match(/^(\d+)[A-Z]$/); if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow ?? 0; }
-
-    function computeClassFor(code){
-      const key = normalize(code);
-      const s = SEATS[key];
-      if(!s) return 'inexistente';
-      const st = (s.estado ?? '').toLowerCase().trim();
-      if(st === 'ocupado') return 'ocupado';
-      if(st === 'inhabilitado') return 'inexistente';
-      return 'libre';
+    async function refreshSeatsWithSpinner(targetId, onDone, gridOptions){
+      showLoading('Actualizando asientos…');
+      await refreshSeats(targetId, () => { hideLoading(); if (typeof onDone === 'function') onDone(); }, gridOptions);
     }
 
-    /* ====== Filas activas (ocultar filas totalmente inhabilitadas) ====== */
     function getRowsToRenderFromMap(seatsMap){
       const rows = new Set();
       Object.entries(seatsMap ?? {}).forEach(([code, seat]) => {
@@ -795,48 +841,86 @@
     }
     function getRowsToRender(){ return getRowsToRenderFromMap(SEATS); }
 
-    /* ====== Croquis (una hoja) ====== */
-    function buildGrid(targetId){
+    function computeClassFor(code){
+      const key = normalize(code);
+      const s = SEATS[key];
+      if(!s) return 'inexistente';
+      const st = (s.estado ?? '').toLowerCase().trim();
+      if(st === 'ocupado') return 'ocupado';
+      if(st === 'inhabilitado') return 'inexistente';
+      return 'libre';
+    }
+
+    /* ====== Croquis (una hoja) — actualizado con offset y ocultar missing ====== */
+    function buildGrid(targetId, options = {}){
+      const { offset = 0, hideMissing = true } = options;
       const grid = document.getElementById(targetId ?? 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
+
       const rows = getRowsToRender(); // solo filas con al menos un asiento no inhabilitado
       if(rows.length === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
-      let seatNumber = 1;
+
+      let seatNumber = 1 + (offset || 0);
+
       for(const row of rows){
         const rowEl = document.createElement('div'); rowEl.className = 'row';
         const left = document.createElement('div'); left.className = 'block';
         const right = document.createElement('div'); right.className = 'block';
+
         const renderSeat = (letter, container)=>{
           const code = `${row}${letter}`;
-          const klass = computeClassFor(code);
-          const btn = document.createElement('button'); btn.type='button'; btn.className = `seat ${klass}`;
-          const isNum = (klass === 'libre' || klass === 'ocupado');
+          const state = getSeatState(code);
+          const isNum = (state === 'libre' || state === 'ocupado');
           const norm = normalize(code);
+
           if(isNum){
+            const btn = document.createElement('button'); btn.type='button'; btn.className = `seat ${state}`;
             btn.textContent = seatNumber;
             btn.setAttribute('data-code', code);
-            btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
+            btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${state}`);
             NUM_LABELS.set(norm, seatNumber); seatNumber++;
             if(targetId === 'grid-select'){
-              if(klass === 'libre'){ btn.onclick = () => toggleSeat(code, btn); }
+              if(state === 'libre'){ btn.onclick = () => toggleSeat(code, btn); }
               else { btn.disabled = true; }
-            } else {
-              btn.disabled = true; // grillas informativas (find)
-            }
-          }else{
+            } else { btn.disabled = true; }
+            if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); }
+            container.appendChild(btn);
+            return;
+          }
+
+          // Inhabilitado explícito en esta hoja: mostrar gris
+          if(state === 'inhabilitado'){
+            const btn = document.createElement('button'); btn.type='button'; btn.className = `seat inhabilitado`;
             btn.innerHTML = ' ';
             btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
             btn.disabled = true;
+            container.appendChild(btn);
+            return;
           }
-          if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); }
+
+          // Missing (no existe en esta hoja/planta): ocultar
+          if(state === 'missing' && hideMissing){
+            const ph = document.createElement('div'); ph.className = 'seat-placeholder'; ph.setAttribute('aria-hidden','true');
+            container.appendChild(ph);
+            return;
+          }
+
+          // Fallback legacy (no debería entrar si hideMissing=true)
+          const btn = document.createElement('button'); btn.type='button'; btn.className = `seat inexistente`;
+          btn.innerHTML = ' ';
+          btn.setAttribute('aria-label', `Asiento ${code} inexistente/no disponible`);
+          btn.disabled = true;
           container.appendChild(btn);
         };
+
         ['A','B'].forEach(l => renderSeat(l, left));
         const aisle = document.createElement('div'); aisle.className = 'aisle';
         ['C','D'].forEach(l => renderSeat(l, right));
+
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
       }
+
       if(HIGHLIGHT_CODES.size){
         const first = grid.querySelector('.seat.mine');
         if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
@@ -844,6 +928,9 @@
     }
 
     /* Selección (público) */
+    function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
+    function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
+
     function toggleSeat(code, el){
       const key = normalize(code);
       const isSel = selected.has(key);
@@ -851,9 +938,6 @@
       else { selected.add(key); el.classList.add('seleccionado'); }
       updateAssignVisibility();
     }
-
-    function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
-    function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
 
     async function startSelection(){
       if(BUSY) return;
@@ -866,8 +950,11 @@
         const only = Array.from(selected)[0]; const onlyNorm = normalize(only);
         const pairs = [{ asiento: onlyNorm, pasajero: nombre, ci }];
         BUSY = true; showLoading('Reservando…');
-        try{ await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs); showReserveFeedbackDetailed(pairs); refreshSeats('grid-select'); }
-        catch(err){ toast('No se pudo reservar'); }
+        try{
+          await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
+          showReserveFeedbackDetailed(pairs);
+          await refreshSelectGrid(); // respeta offset y filtro
+        }catch(err){ toast('No se pudo reservar'); }
         finally{ hideLoading(); BUSY = false; }
         return;
       }
@@ -913,8 +1000,12 @@
         pairs.push({ asiento: codeNorm, pasajero, ci });
       }
       BUSY = true; showLoading('Reservando…');
-      try{ await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs); showReserveFeedbackDetailed(pairs); refreshSeats('grid-select'); document.getElementById('view-assign').classList.add('hidden'); }
-      catch(err){ toast('No se pudo reservar'); }
+      try{
+        await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
+        showReserveFeedbackDetailed(pairs);
+        document.getElementById('view-assign').classList.add('hidden');
+        await refreshSelectGrid(); // respeta offset y filtro
+      }catch(err){ toast('No se pudo reservar'); }
       finally{ hideLoading(); BUSY = false; }
     }
 
@@ -960,7 +1051,7 @@
 
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map();
-      const rows = getRowsToRender(); // solo filas activas
+      const rows = getRowsToRender();
       let seatNumber = 1;
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
       for(const row of rows){
@@ -991,7 +1082,6 @@
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', () => {
         hideLoading();
-        // Auto-scroll al primer marcado (si hay)
         const firstMarked = document.getElementById('grid-find').querySelector('.seat.mine');
         if (firstMarked) firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
         else document.getElementById('grid-find').scrollIntoView({ behavior:'smooth', block:'start' });
@@ -1051,7 +1141,7 @@
     }
 
     function computeNumbersForCodesWith(seatsMap, codes){
-      const rows = getRowsToRenderFromMap(seatsMap); // solo filas activas
+      const rows = getRowsToRenderFromMap(seatsMap);
       let seatNumber = 1;
       const labels = new Map();
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
@@ -1129,13 +1219,11 @@
       panel.scrollIntoView({behavior:'smooth'});
     }
 
-    /* === Mostrar croquis solo de planta(s) con resultados + auto-scroll === */
     async function showCroquisForCIMulti(){
       showLoading('Cargando croquis…');
       const container = document.getElementById('multiCroquis');
       container.innerHTML = '';
 
-      // Solo plantas con asientos para ese CI
       const floorsWithResults = MULTI_SHEETS.filter(f => {
         const found = NUMS_BY_SHEET.get(f.sheetName) ?? [];
         return found.length > 0;
@@ -1147,7 +1235,6 @@
         return;
       }
 
-      // Construir croquis para cada planta con resultados
       for(const f of floorsWithResults){
         const seatsMap = SEATS_BY_SHEET.get(f.sheetName) ?? {};
         const highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) ?? new Set();
@@ -1174,7 +1261,6 @@
 
       hideLoading();
 
-      // Auto-scroll global al primer asiento marcado
       const firstMarked = container.querySelector('.seat.mine');
       if (firstMarked) {
         firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
@@ -1204,7 +1290,7 @@
             btn.setAttribute('data-code', code);
             btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             seatNumber++;
-            btn.disabled = true; // croquis informativo
+            btn.disabled = true;
           }else{
             btn.innerHTML = ' ';
             btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
@@ -1219,7 +1305,6 @@
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
       }
-      // Scroll al primer resaltado dentro del croquis
       const first = grid.querySelector('.seat.mine');
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
     }
@@ -1344,6 +1429,8 @@
       attachStickyAnimation();
     }
 
+    function getMaxRow(){ let maxRow = 0; Object.keys(SEATS).forEach(code => { const m = code.match(/^(\d+)[A-Z]$/); if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow ?? 0; }
+
     function attachStickyAnimation(){
       const toolbar = document.getElementById('controlToolbar');
       function onScroll(){ const y=window.scrollY; if(y>24){ toolbar.classList.add('scrolled'); } else { toolbar.classList.remove('scrolled'); } }
@@ -1462,6 +1549,12 @@
       }finally{
         hideLoading();
       }
+    }
+
+    /* ===== Wrapper para actualizar respetando offset y filtro ===== */
+    async function refreshSelectGrid(){
+      const opts = await computeGridOptions();
+      await refreshSeatsWithSpinner('grid-select', () => {}, opts);
     }
 
     /* ===== Inicio ===== */
