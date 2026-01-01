@@ -62,9 +62,9 @@
     /* ===== Admin Menu (dropdown) ===== */
     .admin-menu{
       position: absolute;
-      top: calc(100% + 10px);        /* debajo del logo/chip */
+      top: calc(100% + 10px);
       left: 50%;
-      transform: translateX(-50%);   /* centrado */
+      transform: translateX(-50%);
       width: min(92vw, 360px);
       padding: 12px;
       border-radius: 14px;
@@ -280,7 +280,7 @@
         <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
           <button type="button" id="btnAdminLogin" class="btn primary btn-admin" onclick="openStaffLogin()">Control interno</button>
           <!-- Mantiene “Inicio” que te lleva a Elegir viaje -->
-          <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="backToChoose()">Inicio</button>
+          <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="backToChoose(); hideAdminMenu();">Inicio</button>
           <button type="button" id="btnAdminLogout" class="btn danger btn-admin hidden" onclick="doControlLogout()">Cerrar sesión staff</button>
         </div>
       </div>
@@ -292,7 +292,7 @@
 
   <main id="app" class="app">
     <!-- Elegir viaje -->
-    <section id="view-choose" class="view active" aria-label="Elegí el viaje">
+    <section id="view-choose" class="view active" aria-label="Elegí tu viaje">
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí tu viaje</h2>
@@ -451,8 +451,9 @@
         <h4 class="control-title">Ocupación por número</h4>
         <div id="controlToolbar" class="control-toolbar">
           <div class="control-actions">
-            <button type="button" class="btn ghost" onclick="refreshSeatsWithSpinner(null, renderControlBoard)">Actualizar</button>
-            <button type="button" class="btn primary" onclick="doExportPdf()">Exportar PDF</button>
+            <!-- Actualizar inteligente: single o multi -->
+            <button type="button" class="btn ghost" onclick="refreshControlBoardSmart()">Actualizar</button>
+            <button type="button" class="btn primary" onclick="doExportPdfSmart()">Exportar PDF</button>
             <button id="btnEditMode" type="button" class="btn success" onclick="toggleControlEdit()">Modo edición</button>
           </div>
           <div class="sel-tags">
@@ -466,7 +467,12 @@
           </div>
         </div>
 
+        <!-- Croquis single (convencional) -->
         <div id="controlCroquis" class="grid" aria-live="polite"></div>
+
+        <!-- Croquis multi (doble piso) -->
+        <div id="controlCroquisMulti"></div>
+
         <div id="pdfLinkFallback" class="hint hidden"></div>
       </div>
     </section>
@@ -592,6 +598,12 @@
     function setStaffSession(enabled){ try { if (enabled) localStorage.setItem(STAFF_KEY, '1'); else localStorage.removeItem(STAFF_KEY); } catch(e){} }
     function isStaffSession(){ try { return localStorage.getItem(STAFF_KEY) === '1'; } catch(e){ return false; } }
 
+    /* ===== Staff: multi-planta ===== */
+    let CONTROL_MULTI = false;
+    let CONTROL_ACTIVE_SHEET = null; // planta activa por última interacción
+    let MULTI_SHEETS = [];            // [{sheetName,label},...]
+    let SEATS_BY_SHEET = new Map();   // sheetName -> map de asientos
+
     /* Navegación */
     function showView(id){ document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function goHome(){
@@ -613,11 +625,11 @@
     function firstName(full){ const t = (full ?? '').trim(); if(!t) return ''; const name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
-    /* ===== NUEVO: estado detallado del asiento ===== */
+    /* ===== Estado detallado del asiento (público) ===== */
     function getSeatState(code){
       const key = normalize(code);
       const s = SEATS[key];
-      if(!s) return 'missing'; // no existe en esta hoja/planta
+      if(!s) return 'missing';
       const st = (s.estado ?? '').toLowerCase().trim();
       if(st === 'ocupado') return 'ocupado';
       if(st === 'inhabilitado') return 'inhabilitado';
@@ -673,6 +685,16 @@
 
     function selectTrip(tr){
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
+
+      // === STAFF: si es doble piso, ir directo al panel multi (sin elegir planta ni buscar CI)
+      if (CONTROL_AUTH && CURRENT_TRIP.hasFloors) {
+        showView('view-control');
+        showLoading('Cargando ocupación (ambas plantas)…');
+        refreshControlMulti().then(() => hideLoading());
+        return;
+      }
+
+      // Público (o staff en convencional): comportamiento normal
       if(CURRENT_TRIP.hasFloors){
         const floorBox = document.getElementById('floorCards'); floorBox.innerHTML = '';
         const extraBox = document.getElementById('floorFindCard'); extraBox.innerHTML = '';
@@ -702,6 +724,7 @@
           floorBox.appendChild(el);
         });
 
+        // “Mirá tu asiento” para público
         const findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', () => goFind());
         extraBox.appendChild(findCard);
         showView('view-floor');
@@ -711,7 +734,7 @@
       }
     }
 
-    /* ===== NUEVO: calcular offset al seleccionar planta ===== */
+    /* Helpers doble piso */
     function getFloorSheets(){
       const sheets = CURRENT_TRIP.sheets ?? [];
       const baja = sheets.find(s => s.toLowerCase() === 'asientos baja');
@@ -721,6 +744,141 @@
       if(alta) result.push({ sheetName:alta, label:'Planta alta' });
       if(!result.length) result.push(...sheets.map(s => ({ sheetName:s, label:s })));
       return result;
+    }
+
+    /* ===== STAFF: cargar ambas plantas ===== */
+    async function refreshControlMulti(){
+      CONTROL_MULTI = true;
+      CONTROL_ACTIVE_SHEET = null;
+      MULTI_SHEETS = getFloorSheets();
+      SEATS_BY_SHEET = new Map();
+
+      const container = document.getElementById('controlCroquisMulti');
+      const single = document.getElementById('controlCroquis');
+      container.innerHTML = ''; single.innerHTML = ''; // limpiar cualquier modo previo
+
+      for (const f of MULTI_SHEETS) {
+        const resp = await API.apiGetSeats(CURRENT_TRIP.fileId, f.sheetName);
+        const rows = resp.rows ?? [];
+        const seatsMap = {};
+        rows.forEach(r => { seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
+        SEATS_BY_SHEET.set(f.sheetName, seatsMap);
+      }
+      renderControlBoardMulti();
+      attachStickyAnimation();
+    }
+
+    function renderControlBoardMulti(){
+      const board = document.getElementById('controlBoard');
+      const container = document.getElementById('controlCroquisMulti');
+      const fb = document.getElementById('pdfLinkFallback');
+
+      board.hidden = false;
+      container.innerHTML = '';
+      fb.classList.add('hidden'); fb.innerHTML = '';
+      CONTROL_EDIT = false; EDIT_SRC = null; EDIT_DST = null; updateEditTags(); syncToolbarUI();
+
+      // Construir secciones: Planta alta (arriba), Planta baja (abajo)
+      const ordered = [];
+      const alta = MULTI_SHEETS.find(f => f.label.toLowerCase().includes('alta'));
+      const baja = MULTI_SHEETS.find(f => f.label.toLowerCase().includes('baja'));
+      if (alta) ordered.push(alta);
+      if (baja) ordered.push(baja);
+      // agregar cualquier otra hoja (fallback)
+      MULTI_SHEETS.forEach(f => { if (!ordered.find(o => o.sheetName === f.sheetName)) ordered.push(f); });
+
+      for (const f of ordered) {
+        const section = document.createElement('div');
+        section.className = 'form';
+        section.style.marginBottom = '12px';
+
+        const title = document.createElement('h4');
+        title.textContent = f.label;
+        title.style.margin = '0 0 8px 0';
+
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        grid.setAttribute('aria-live','polite');
+
+        section.appendChild(title);
+        section.appendChild(grid);
+        container.appendChild(section);
+
+        buildControlGridForSheet(grid, f.sheetName, SEATS_BY_SHEET.get(f.sheetName) ?? {});
+      }
+
+      board.scrollIntoView({behavior:'smooth'});
+    }
+
+    function buildControlGridForSheet(gridEl, sheetName, seatsMap){
+      gridEl.innerHTML = '';
+
+      const rows = getRowsToRenderFromMap(seatsMap);
+      if(rows.length === 0){ gridEl.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
+
+      let seatNumber = 1;
+      const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
+
+      const computeClassForWith = (seatsMapLocal, code) => {
+        const key = normalize(code);
+        if(!seatsMapLocal.hasOwnProperty(key)) return 'inexistente';
+        const st = (seatsMapLocal[key].estado ?? '').toLowerCase().trim();
+        if(st === 'ocupado') return 'ocupado';
+        if(st === 'inhabilitado') return 'inexistente';
+        return 'libre';
+      };
+
+      for (const row of rows) {
+        const rowEl = document.createElement('div'); rowEl.className = 'row';
+        const left = document.createElement('div'); left.className = 'block';
+        const right = document.createElement('div'); right.className = 'block';
+
+        const renderSeat = (letter, container)=>{
+          const code = `${row}${letter}`;
+          const norm = normalize(code);
+          const klass= computeClassForWith(seatsMap, code);
+          const btn=document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
+          btn.setAttribute('data-code',code);
+          btn.setAttribute('data-sheet',sheetName);
+
+          if(isNum(klass)){
+            const occFull = seatsMap[norm]?.pasajero ?? '';
+            const occName = (klass==='ocupado') ? firstName(occFull) : '';
+            btn.innerHTML = `<span class="num">${seatNumber}</span>` + (occName ? `<span class="occ-name">${occName}</span>` : '');
+            btn.setAttribute('data-status',klass);
+            btn.setAttribute('data-num',seatNumber);
+            btn.setAttribute('aria-label',`[${sheetName}] Asiento ${code} (${seatNumber}) ${klass}` + (occName ? ` — Ocupa: ${occName}` : ''));
+            seatNumber++;
+          }else{
+            btn.innerHTML=' ';
+            btn.setAttribute('data-status','inexistente');
+            btn.setAttribute('aria-label',`[${sheetName}] Asiento ${code} inhabilitado/no disponible`);
+            btn.disabled=true;
+          }
+
+          btn.onclick = () => onControlSeatClick(btn);
+          container.appendChild(btn);
+        };
+
+        ['A','B'].forEach(l=>renderSeat(l,left));
+        const aisle=document.createElement('div'); aisle.className='aisle';
+        ['C','D'].forEach(l=>renderSeat(l,right));
+        rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
+        gridEl.appendChild(rowEl);
+      }
+    }
+
+    /* ===== Público: selección y numeración continua ===== */
+    async function computeGridOptions(){
+      if(!CURRENT_TRIP.hasFloors) return { offset:0, hideMissing:true };
+      const floors = getFloorSheets();
+      const alta = floors.find(f => f.sheetName.toLowerCase() === 'asientos alta')?.sheetName;
+      const baja = floors.find(f => f.sheetName.toLowerCase() === 'asientos baja')?.sheetName;
+      if(alta && baja && CURRENT_TRIP.sheetName?.toLowerCase() === baja.toLowerCase()){
+        const offset = await countActiveNumbers(CURRENT_TRIP.fileId, alta);
+        return { offset, hideMissing:true };
+      }
+      return { offset:0, hideMissing:true };
     }
 
     async function countActiveNumbers(fileId, sheetName){
@@ -742,41 +900,44 @@
       }catch(e){ return 0; }
     }
 
-    async function computeGridOptions(){
-      if(!CURRENT_TRIP.hasFloors) return { offset:0, hideMissing:true };
-      const floors = getFloorSheets();
-      const alta = floors.find(f => f.sheetName.toLowerCase() === 'asientos alta')?.sheetName;
-      const baja = floors.find(f => f.sheetName.toLowerCase() === 'asientos baja')?.sheetName;
-      if(alta && baja && CURRENT_TRIP.sheetName?.toLowerCase() === baja.toLowerCase()){
-        const offset = await countActiveNumbers(CURRENT_TRIP.fileId, alta);
-        return { offset, hideMissing:true };
-      }
-      return { offset:0, hideMissing:true };
+    function computeClassForWith(seatsMap, code){
+      const key = normalize(code);
+      if(!seatsMap.hasOwnProperty(key)) return 'inexistente';
+      const st = (seatsMap[key].estado ?? '').toLowerCase().trim();
+      if(st === 'ocupado') return 'ocupado';
+      if(st === 'inhabilitado') return 'inexistente';
+      return 'libre';
     }
 
-    /* ===== Vistas principales ===== */
+    /* Vistas principales */
     async function chooseFloor(sheetName){
       CURRENT_TRIP.sheetName = sheetName;
       updateTripTags();
 
       if (CONTROL_AUTH) {
+        // STAFF: si el viaje es convencional, panel single; si es doble piso, panel multi
         showView('view-control');
         showLoading('Cargando ocupación…');
-        refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
+        if (CURRENT_TRIP.hasFloors) {
+          await refreshControlMulti();
+        } else {
+          await refreshSeats(null, () => {}, null);
+          renderControlBoard();
+        }
+        hideLoading();
       } else {
         if (CURRENT_TRIP.hasFloors) {
           showView('view-select');
           showLoading('Cargando asientos…');
           const opts = await computeGridOptions();
           refreshSeats('grid-select', () => hideLoading(), opts);
-        } else {
-          goHome();
-        }
+        } else { goHome(); }
       }
     }
 
     function backToChoose(){
       CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false };
+      CONTROL_MULTI = false; CONTROL_ACTIVE_SHEET = null;
       showView('view-choose');
     }
 
@@ -801,7 +962,11 @@
       if(!CONTROL_AUTH){ openStaffLogin(); return; }
       showView('view-control');
       showLoading('Cargando ocupación…');
-      refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
+      if (CURRENT_TRIP.hasFloors) {
+        refreshControlMulti().then(() => hideLoading());
+      } else {
+        refreshSeats(null, () => { renderControlBoard(); hideLoading(); });
+      }
     }
 
     /* ====== Datos (una hoja) ====== */
@@ -849,13 +1014,13 @@
       return 'libre';
     }
 
-    /* ====== Croquis (una hoja) — actualizado con offset y ocultar missing ====== */
+    /* ====== Croquis (público) ====== */
     function buildGrid(targetId, options = {}){
       const { offset = 0, hideMissing = true } = options;
       const grid = document.getElementById(targetId ?? 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
 
-      const rows = getRowsToRender(); // solo filas con al menos un asiento no inhabilitado
+      const rows = getRowsToRender();
       if(rows.length === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
 
       let seatNumber = 1 + (offset || 0);
@@ -886,7 +1051,6 @@
             return;
           }
 
-          // Inhabilitado explícito en esta hoja: mostrar gris
           if(state === 'inhabilitado'){
             const btn = document.createElement('button'); btn.type='button'; btn.className = `seat inhabilitado`;
             btn.innerHTML = ' ';
@@ -896,14 +1060,12 @@
             return;
           }
 
-          // Missing (no existe en esta hoja/planta): ocultar
           if(state === 'missing' && hideMissing){
             const ph = document.createElement('div'); ph.className = 'seat-placeholder'; ph.setAttribute('aria-hidden','true');
             container.appendChild(ph);
             return;
           }
 
-          // Fallback legacy
           const btn = document.createElement('button'); btn.type='button'; btn.className = `seat inexistente`;
           btn.innerHTML = ' ';
           btn.setAttribute('aria-label', `Asiento ${code} inexistente/no disponible`);
@@ -951,7 +1113,7 @@
         try{
           await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
           showReserveFeedbackDetailed(pairs);
-          await refreshSelectGrid(); // respeta offset y filtro
+          await refreshSelectGrid();
         }catch(err){ toast('No se pudo reservar'); }
         finally{ hideLoading(); BUSY = false; }
         return;
@@ -1002,7 +1164,7 @@
         await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
         showReserveFeedbackDetailed(pairs);
         document.getElementById('view-assign').classList.add('hidden');
-        await refreshSelectGrid(); // respeta offset y filtro
+        await refreshSelectGrid();
       }catch(err){ toast('No se pudo reservar'); }
       finally{ hideLoading(); BUSY = false; }
     }
@@ -1019,7 +1181,7 @@
       panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'});
     }
 
-    /* ====== Mirá tu asiento (una hoja o ambas plantas) ====== */
+    /* ====== Mirá tu asiento ====== */
     async function findByCI(){
       if(CURRENT_TRIP.hasFloors && !CURRENT_TRIP.sheetName){
         await findByCIAcrossFloors();
@@ -1049,7 +1211,7 @@
 
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map();
-      const rows = getRowsToRender(); // solo filas activas
+      const rows = getRowsToRender();
       let seatNumber = 1;
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
       for(const row of rows){
@@ -1080,7 +1242,6 @@
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', () => {
         hideLoading();
-        // Auto-scroll al primer marcado (si hay)
         const firstMarked = document.getElementById('grid-find').querySelector('.seat.mine');
         if (firstMarked) firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
         else document.getElementById('grid-find').scrollIntoView({ behavior:'smooth', block:'start' });
@@ -1096,9 +1257,7 @@
       LAST_FOUND_CODES = [];
     }
 
-    /* ====== BÚSQUEDA EN AMBAS PLANTAS (doble piso) ====== */
-    let MULTI_SHEETS = [];
-    let SEATS_BY_SHEET = new Map();
+    /* ====== BÚSQUEDA EN AMBAS PLANTAS ====== */
     let HIGHLIGHT_BY_SHEET = new Map();
     let NUMS_BY_SHEET = new Map();
 
@@ -1132,15 +1291,12 @@
         }
 
         renderFindFeedbackMulti();
-      }catch(err){
-        toast('Error al buscar en ambas plantas');
-      }finally{
-        hideLoading();
-      }
+      }catch(err){ toast('Error al buscar en ambas plantas'); }
+      finally{ hideLoading(); }
     }
 
     function computeNumbersForCodesWith(seatsMap, codes){
-      const rows = getRowsToRenderFromMap(seatsMap); // solo filas activas
+      const rows = getRowsToRenderFromMap(seatsMap);
       let seatNumber = 1;
       const labels = new Map();
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
@@ -1153,24 +1309,6 @@
         }
       }
       return codes.map(c => labels.get(c)).filter(n => typeof n !== 'undefined');
-    }
-
-    function getMaxRowFrom(seatsMap){
-      let maxRow = 0;
-      Object.keys(seatsMap ?? {}).forEach(code => {
-        const m = code.match(/^(\d+)[A-Z]$/);
-        if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; }
-      });
-      return maxRow ?? 0;
-    }
-
-    function computeClassForWith(seatsMap, code){
-      const key = normalize(code);
-      if(!seatsMap.hasOwnProperty(key)) return 'inexistente';
-      const st = (seatsMap[key].estado ?? '').toLowerCase().trim();
-      if(st === 'ocupado') return 'ocupado';
-      if(st === 'inhabilitado') return 'inexistente';
-      return 'libre';
     }
 
     function renderFindFeedbackMulti(){
@@ -1218,13 +1356,11 @@
       panel.scrollIntoView({behavior:'smooth'});
     }
 
-    /* === Mostrar croquis solo de planta(s) con resultados + auto-scroll === */
     async function showCroquisForCIMulti(){
       showLoading('Cargando croquis…');
       const container = document.getElementById('multiCroquis');
       container.innerHTML = '';
 
-      // Solo plantas con asientos para ese CI
       const floorsWithResults = MULTI_SHEETS.filter(f => {
         const found = NUMS_BY_SHEET.get(f.sheetName) ?? [];
         return found.length > 0;
@@ -1236,7 +1372,6 @@
         return;
       }
 
-      // Construir croquis para cada planta con resultados
       for(const f of floorsWithResults){
         const seatsMap = SEATS_BY_SHEET.get(f.sheetName) ?? {};
         const highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) ?? new Set();
@@ -1263,7 +1398,6 @@
 
       hideLoading();
 
-      // Auto-scroll global al primer asiento marcado
       const firstMarked = container.querySelector('.seat.mine');
       if (firstMarked) {
         firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
@@ -1293,7 +1427,7 @@
             btn.setAttribute('data-code', code);
             btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             seatNumber++;
-            btn.disabled = true; // croquis informativo
+            btn.disabled = true;
           }else{
             btn.innerHTML = ' ';
             btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
@@ -1308,7 +1442,6 @@
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
       }
-      // Scroll al primer resaltado dentro del croquis
       const first = grid.querySelector('.seat.mine');
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
     }
@@ -1323,77 +1456,19 @@
       NUMS_BY_SHEET = new Map();
     }
 
-    /* ====== Control interno ====== */
-    function openStaffLogin(){
-      hideAdminMenu();
-      CONTROL_AUTH = false;
-      setStaffSession(false);
-      updateAdminMenu();
-      syncStaffBadge();
-      syncControlFormVisibility();
-      hideControlBoard();
-      showView('view-control');
-      const u = document.getElementById('ctlUser'); const p = document.getElementById('ctlPass');
-      if(u) u.value = ''; if(p) p.value = '';
-    }
-
-    async function doControlLogin(){
-      const u = document.getElementById('ctlUser').value.trim();
-      const p = document.getElementById('ctlPass').value.trim();
-      showLoading('Verificando…');
-      try{
-        const resp = await API.apiLogin(u,p);
-        if(resp && resp.ok){
-          CONTROL_AUTH = true;
-          setStaffSession(true);
-          updateAdminMenu();
-          syncStaffBadge();
-          syncControlFormVisibility();
-          toast('Acceso staff habilitado');
-          showView('view-choose');
-          await loadTrips();
-          hideControlBoard();
-        }else{
-          CONTROL_AUTH = false;
-          setStaffSession(false);
-          updateAdminMenu();
-          syncStaffBadge();
-          syncControlFormVisibility();
-          hideControlBoard();
-          toast('Usuario o contraseña inválidos');
-        }
-      }catch(err){
-        CONTROL_AUTH = false;
-        setStaffSession(false);
-        updateAdminMenu();
-        syncStaffBadge();
-        syncControlFormVisibility();
-        hideControlBoard();
-        toast('Error de verificación');
-      }finally{
-        hideLoading();
-      }
-    }
-
-    function doControlLogout(){
-      CONTROL_AUTH = false;
-      setStaffSession(false);
-      updateAdminMenu();
-      syncStaffBadge();
-      syncControlFormVisibility();
-      hideControlBoard();
-      toast('Sesión finalizada');
-      backToChoose();
-    }
-
+    /* ====== Control interno (single) ====== */
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
+      CONTROL_MULTI = false; CONTROL_ACTIVE_SHEET = CURRENT_TRIP.sheetName;
+
       const board = document.getElementById('controlBoard');
       const croquis= document.getElementById('controlCroquis');
+      const multi = document.getElementById('controlCroquisMulti');
       const fb = document.getElementById('pdfLinkFallback');
-      board.hidden = false; croquis.innerHTML = '';
+      board.hidden = false; croquis.innerHTML = ''; multi.innerHTML = '';
       fb.classList.add('hidden'); fb.innerHTML = '';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
+
       const maxRow = getMaxRow(); if(maxRow === 0){ croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
       NUM_LABELS = new Map(); let seatNumber = 1;
 
@@ -1407,6 +1482,7 @@
           const klass= computeClassFor(code);
           const isNum= (klass==='libre' || klass==='ocupado');
           const btn=document.createElement('button'); btn.type='button'; btn.className=`seat ${klass}`;
+          btn.setAttribute('data-sheet', CURRENT_TRIP.sheetName ?? '');
           if(isNum){
             const occFull = SEATS[norm]?.pasajero ?? '';
             const occName = (klass==='ocupado') ? firstName(occFull) : '';
@@ -1433,8 +1509,6 @@
       attachStickyAnimation();
     }
 
-    function getMaxRow(){ let maxRow = 0; Object.keys(SEATS).forEach(code => { const m = code.match(/^(\d+)[A-Z]$/); if(m){ const row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow ?? 0; }
-
     function attachStickyAnimation(){
       const toolbar = document.getElementById('controlToolbar');
       function onScroll(){ const y=window.scrollY; if(y>24){ toolbar.classList.add('scrolled'); } else { toolbar.classList.remove('scrolled'); } }
@@ -1447,6 +1521,7 @@
       const board = document.getElementById('controlBoard');
       board.hidden = true;
       document.getElementById('controlCroquis').innerHTML='';
+      document.getElementById('controlCroquisMulti').innerHTML='';
       const fb=document.getElementById('pdfLinkFallback');
       fb.classList.add('hidden'); fb.innerHTML='';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
@@ -1459,12 +1534,17 @@
       const status=(btn.getAttribute('data-status') ?? 'libre').toLowerCase().trim();
       const num =parseInt(btn.getAttribute('data-num') ?? '0',10);
       const code =btn.getAttribute('data-code');
+      const sheet = btn.getAttribute('data-sheet') || CURRENT_TRIP.sheetName || null;
+
+      // Activar planta por interacción
+      CONTROL_ACTIVE_SHEET = sheet;
+
       if(status==='ocupado'){
-        document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
-        btn.classList.add('pick-source'); EDIT_SRC={num,code};
+        document.querySelectorAll('.seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
+        btn.classList.add('pick-source'); EDIT_SRC={num,code,sheet};
       }else if(status==='libre'){
-        document.querySelectorAll('#controlCroquis .seat.pick-target').forEach(el=>el.classList.remove('pick-target'));
-        btn.classList.add('pick-target'); EDIT_DST={num,code};
+        document.querySelectorAll('.seat.pick-target').forEach(el=>el.classList.remove('pick-target'));
+        btn.classList.add('pick-target'); EDIT_DST={num,code,sheet};
       }else{ return; }
       updateEditTags(); syncToolbarUI();
     }
@@ -1480,11 +1560,15 @@
       const btnMove=document.getElementById('btnMove');
       const btnFree=document.getElementById('btnFree');
       const btnCancel=document.getElementById('btnCancel');
+
       const toolbar=document.getElementById('controlToolbar');
       toolbar.classList.toggle('editing', CONTROL_EDIT);
+
       if(CONTROL_EDIT){
         btnEdit.classList.add('danger'); btnEdit.textContent='Salir de edición';
-        btnMove.disabled=!(EDIT_SRC && EDIT_DST);
+        // En multi, permitir mover solo si origen y destino son de la misma planta
+        const canMove = EDIT_SRC && EDIT_DST && (!CONTROL_MULTI || (EDIT_SRC.sheet === EDIT_DST.sheet));
+        btnMove.disabled=!canMove;
         btnFree.disabled=!EDIT_SRC;
         btnCancel.disabled=false;
       }else{
@@ -1495,8 +1579,8 @@
 
     function cancelEdit(silent=false){
       EDIT_SRC=null; EDIT_DST=null;
-      document.querySelectorAll('#controlCroquis .seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
-      document.querySelectorAll('#controlCroquis .seat.pick-target').forEach(el=>el.classList.remove('pick-target'));
+      document.querySelectorAll('.seat.pick-source').forEach(el=>el.classList.remove('pick-source'));
+      document.querySelectorAll('.seat.pick-target').forEach(el=>el.classList.remove('pick-target'));
       updateEditTags(); syncToolbarUI();
       if(!silent) toast('Edición cancelada.');
     }
@@ -1504,11 +1588,16 @@
     async function movePassenger(){
       showLoading('Moviendo pasajero…');
       if(!EDIT_SRC || !EDIT_DST){ hideLoading(); toast('Selecciona origen (ocupado) y destino (libre).'); return; }
+      // En multi-planta, deben ser de la misma planta
+      if (CONTROL_MULTI && EDIT_SRC.sheet !== EDIT_DST.sheet) {
+        hideLoading(); toast('Debes elegir origen y destino en la misma planta.'); return;
+      }
       try{
-        const resp=await API.apiMove(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code, EDIT_DST.code);
+        const sheet = CONTROL_MULTI ? EDIT_SRC.sheet : CURRENT_TRIP.sheetName;
+        const resp=await API.apiMove(CURRENT_TRIP.fileId, sheet, EDIT_SRC.code, EDIT_DST.code);
         toast(resp && resp.message ? resp.message : 'Movimiento realizado');
         cancelEdit(true);
-        refreshSeatsWithSpinner(null, renderControlBoard);
+        await refreshControlBoardSmart();
       }catch(err){
         toast('No se pudo mover al pasajero');
       }finally{
@@ -1520,10 +1609,11 @@
       showLoading('Liberando asiento…');
       if(!EDIT_SRC){ hideLoading(); toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
       try{
-        const resp=await API.apiFree(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code);
+        const sheet = CONTROL_MULTI ? EDIT_SRC.sheet : CURRENT_TRIP.sheetName;
+        const resp=await API.apiFree(CURRENT_TRIP.fileId, sheet, EDIT_SRC.code);
         toast(resp && resp.message ? resp.message : 'Asiento liberado');
         cancelEdit(true);
-        refreshSeatsWithSpinner(null, renderControlBoard);
+        await refreshControlBoardSmart();
       }catch(err){
         toast('No se pudo liberar el asiento');
       }finally{
@@ -1531,11 +1621,13 @@
       }
     }
 
-    async function doExportPdf(){
+    async function doExportPdfSmart(){
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
+      const sheet = CONTROL_MULTI ? (CONTROL_ACTIVE_SHEET || null) : CURRENT_TRIP.sheetName;
+      if (CONTROL_MULTI && !sheet) { toast('Toca un asiento para elegir la planta a exportar.'); return; }
       showLoading('Generando PDF…');
       try{
-        const resp = await API.apiExportPdf(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
+        const resp = await API.apiExportPdf(CURRENT_TRIP.fileId, sheet);
         if(resp && resp.url){
           const newWin=window.open(resp.url,'_blank');
           if(!newWin){
@@ -1555,7 +1647,15 @@
       }
     }
 
-    /* ===== Wrapper para actualizar respetando offset y filtro ===== */
+    async function refreshControlBoardSmart(){
+      if (CONTROL_MULTI) {
+        await refreshControlMulti();
+      } else {
+        await refreshSeatsWithSpinner(null, renderControlBoard);
+      }
+    }
+
+    /* ===== Wrapper público: actualizar respetando offset y filtro ===== */
     async function refreshSelectGrid(){
       const opts = await computeGridOptions();
       await refreshSeatsWithSpinner('grid-select', () => {}, opts);
