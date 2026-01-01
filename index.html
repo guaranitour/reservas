@@ -5,6 +5,16 @@
   <meta charset="utf-8" />
   <title>Selección de Asientos</title>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+
+  <!-- ===== FAVICONS (Project site) ===== -->
+  ./favicon.ico
+  ./favicon.ico
+  <!-- Opcionales (si los tenés en el repo): -->
+  ./favicon.png
+  ./apple-touch-icon.png
+  <!-- Safari pinned tab (opcional):
+  <linkari-pinned-tab.svg -->
+
   <style>
     :root{
       --bg:#f7f9fc; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
@@ -701,7 +711,9 @@
         var candidates = [];
         if(bajaName) candidates.push({ label:'Planta baja', sheetName:bajaName, desc:'Acceso rápido, usualmente cerca del conductor.' });
         if(altaName) candidates.push({ label:'Planta alta', sheetName:altaName, desc:'Mayor altura y vista panorámica.' });
-        if(!candidates.length){ tr.sheets.forEach(function(s){ candidates.push({ label:s, sheetName:s, desc:null }); }); }
+        if(!candidates.length){ tr.sheets.forEach(function(s){ candidates.push({ label:s, sheetName:s, desc:null }); });
+
+        }
 
         function makeCard(label, desc, onClick){
           var card = document.createElement('article'); card.className='card'; card.tabIndex=0; card.setAttribute('role','button');
