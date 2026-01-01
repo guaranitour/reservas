@@ -266,6 +266,23 @@
       border: 1px solid var(--staff-border);
       box-shadow: var(--shadow);
     }
+
+    /* ===== Píldora dorada en “Elegí tu viaje” (Bases y Condiciones) ===== */
+    .terms-cta{
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+    }
+    .link-pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:999px;
+      font-weight:800; font-size:.9rem; text-decoration:none;
+      background:var(--staff-bg); color:var(--staff-text);
+      border:1px solid var(--staff-border);
+      box-shadow:var(--shadow);
+      transition: transform .12s ease, box-shadow .15s ease, filter .15s ease;
+    }
+    .link-pill:hover{ transform: translateY(-1px); box-shadow:0 10px 24px rgba(17,24,39,.12); filter: brightness(1.02); }
   </style>
 </head>
 <body>
@@ -297,7 +314,14 @@
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí tu viaje</h2>
           <div id="tripList" class="trip-list"></div>
-        </div>
+
+          <!-- Píldora dorada: Bases y Condiciones -->
+          <div class="terms-cta" role="region" aria-label="Bases y Condiciones">
+            <a
+              class="link-pill"
+              href="https://drive.google.com/file/d/1j2VCdg6gRKpz1dpySOV9M3Fz4RGGBbzm/view?usp=drive_link"
+              target="_blank"
+              </div>
       </div>
     </section>
 
@@ -355,7 +379,7 @@
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Reservar</button>
-          <!-- Ahora usa wrapper para respetar offset y filtro -->
+          <!-- Usa wrapper para respetar offset y filtro -->
           <button type="button" class="btn ghost" onclick="refreshSelectGrid()">Actualizar</button>
         </div>
         <p class="hint">Presiona “Actualizar” para ver reservas recientes.</p>
@@ -727,10 +751,8 @@
       try{
         const resp = await API.apiGetSeats(fileId, sheetName);
         const rows = resp.rows ?? [];
-        // construir mapa simple y contar asientos numerables
         const map = {};
         rows.forEach(r => { map[ normalize(r.asiento) ] = { estado: r.estado }; });
-        // mismas reglas de numeración: libre/ocupado
         const rowsActive = getRowsToRenderFromMap(map);
         let count = 0;
         for(const row of rowsActive){
@@ -857,7 +879,7 @@
       const grid = document.getElementById(targetId ?? 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
 
-      const rows = getRowsToRender(); // solo filas con al menos un asiento no inhabilitado
+      const rows = getRowsToRender();
       if(rows.length === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
 
       let seatNumber = 1 + (offset || 0);
@@ -888,7 +910,6 @@
             return;
           }
 
-          // Inhabilitado explícito en esta hoja: mostrar gris
           if(state === 'inhabilitado'){
             const btn = document.createElement('button'); btn.type='button'; btn.className = `seat inhabilitado`;
             btn.innerHTML = ' ';
@@ -898,14 +919,12 @@
             return;
           }
 
-          // Missing (no existe en esta hoja/planta): ocultar
           if(state === 'missing' && hideMissing){
             const ph = document.createElement('div'); ph.className = 'seat-placeholder'; ph.setAttribute('aria-hidden','true');
             container.appendChild(ph);
             return;
           }
 
-          // Fallback legacy (no debería entrar si hideMissing=true)
           const btn = document.createElement('button'); btn.type='button'; btn.className = `seat inexistente`;
           btn.innerHTML = ' ';
           btn.setAttribute('aria-label', `Asiento ${code} inexistente/no disponible`);
