@@ -22,178 +22,38 @@
     }
     *, *::before, *::after{ box-sizing:border-box; }
     /* ===== Header ===== */
-<!-- Reemplaza el bloque de estilos del .brand-chip y .admin-menu en tu CSS -->
-<style>
-  /* ===== Header ===== */
-  .hero {
-    width: 100%;
-    background: linear-gradient(180deg, var(--brandA) 0%, var(--brandB) 45%, rgba(255,255,255,0) 100%);
-    padding: clamp(12px, 4vw, 24px);
-    display: grid;
-    place-items: center;
-    min-height: clamp(110px, 24vw, 210px);
-  }
-
-  .brand-chip {
-    position: relative;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: clamp(8px, 2.4vw, 16px) clamp(12px, 3vw, 20px);
-    border-radius: 16px;
-    background: rgba(255, 255, 255, .55);
-    border: 1px solid rgba(255, 255, 255, .65);
-    box-shadow: 0 8px 24px rgba(17, 24, 39, .12);
-    max-width: 92vw;
-    overflow: visible;
-    gap: 12px;
-  }
-
-  .logo-skeleton {
-    width: min(var(--logo-w-ideal), var(--logo-w-max));
-    height: clamp(64px, 18vw, 140px);
-    border-radius: 12px;
-    background: linear-gradient(90deg, #eef2ff 0%, #f7f9fc 40%, #eef2ff 80%);
-    background-size: 200% 100%;
-    animation: shimmer 1.2s ease-in-out infinite;
-  }
-
-  @keyframes shimmer {
-    0% { background-position: 0% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  .brand-chip img {
-    width: min(var(--logo-w-ideal), var(--logo-w-max));
-    max-width: 100%;
-    height: auto;
-    display: block;
-    object-fit: contain;
-    margin: 0 auto;
-    filter: drop-shadow(0 3px 8px rgba(17, 24, 39, .14));
-    opacity: 0;
-    transition: opacity .25s ease;
-    cursor: pointer;
-  }
-
-  .brand-chip img.ready {
-    opacity: 1;
-  }
-
-  /* Admin Menu - Dropdown */
-  .admin-menu {
-    position: relative;
-    width: 100%;
-    max-width: min(var(--logo-w-ideal), var(--logo-w-max));
-    background: rgba(255, 255, 255, .95);
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 4px 16px rgba(17, 24, 39, .15);
-    border: 1px solid rgba(99, 102, 241, .2);
-    opacity: 0;
-    transform: translateY(-8px) scale(0.95);
-    pointer-events: none;
-    transition: opacity .25s ease, transform .25s ease;
-  }
-
-  .admin-menu:not(.hidden) {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
-  }
-
-  .admin-title {
-    margin: 0 0 12px 0;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--text);
-    text-align: center;
-    letter-spacing: 0.3px;
-  }
-
-  .admin-menu .actions {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .admin-menu .btn-admin {
-    width: 100%;
-    font-size: 0.9rem;
-    padding: 10px 14px;
-    min-height: 40px;
-  }
-
-  /* Staff badge (opcional - para cuando esté logueado) */
-  .staff-badge {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    z-index: 100;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: white;
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, .3);
-    opacity: 0;
-    transform: translateY(-20px);
-    pointer-events: none;
-    transition: opacity .3s ease, transform .3s ease;
-  }
-
-  .staff-badge:not(.hidden) {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-</style>
-
-<!-- Reemplaza el bloque del header en tu HTML -->
-<header class="hero" aria-label="Cabecera">
-  <div class="brand-chip">
-    <div id="logoSkeleton" class="logo-skeleton" aria-hidden="true"></div>
-    <img id="heroLogo" alt="Logo" />
-    
-    <!-- Admin Menu - ahora dentro del brand-chip como hijo -->
-    <div id="adminMenu" class="admin-menu hidden" role="dialog" aria-modal="false" aria-label="Acceso staff">
-      <p class="admin-title">🔐 Acceso Staff</p>
-      <div class="actions">
-        <button type="button" id="btnAdminLogin" class="btn primary btn-admin" onclick="openStaffLogin()">
-          Control interno
-        </button>
-        <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="goToControlBoard()">
-          Panel de control
-        </button>
-        <button type="button" id="btnAdminLogout" class="btn danger btn-admin hidden" onclick="doControlLogout()">
-          Cerrar sesión staff
-        </button>
-      </div>
-    </div>
-  </div>
-</header>
-
-<!-- Staff badge (se muestra cuando hay sesión activa) -->
-<div id="staffBadge" class="staff-badge hidden" aria-label="Perfil Staff">
-  ⚡ Staff
-</div>
-
-<script>
-  // Asegurar que el logo-skeleton desaparece cuando carga la imagen
-  document.addEventListener('DOMContentLoaded', function() {
-    const img = document.getElementById('heroLogo');
-    const skel = document.getElementById('logoSkeleton');
-    
-    img.addEventListener('load', function() {
-      img.classList.add('ready');
-      if (skel) skel.style.display = 'none';
-    });
-  });
-</script>
+    .hero{
+      width:100%;
+      background: linear-gradient(180deg, var(--brandA) 0%, var(--brandB) 45%, rgba(255,255,255,0) 100%);
+      padding:clamp(12px,4vw,24px); display:grid; place-items:center;
+      min-height: clamp(110px, 24vw, 210px);
+    }
+    .brand-chip{
+      position:relative;
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:clamp(8px,2.4vw,16px) clamp(12px,3vw,20px);
+      border-radius:16px; background: rgba(255,255,255,.55);
+      border:1px solid rgba(255,255,255,.65); box-shadow:0 8px 24px rgba(17,24,39,.12);
+      max-width:92vw;
+      overflow: visible;
+    }
+    .logo-skeleton{
+      width: min(var(--logo-w-ideal), var(--logo-w-max));
+      height: clamp(64px, 18vw, 140px);
+      border-radius:12px;
+      background: linear-gradient(90deg, #eef2ff 0%, #f7f9fc 40%, #eef2ff 80%);
+      background-size: 200% 100%;
+      animation: shimmer 1.2s ease-in-out infinite;
+    }
+    @keyframes shimmer{ 0%{background-position: 0% 0;} 100%{background-position: 200% 0;} }
+    .brand-chip img{
+      width: min(var(--logo-w-ideal), var(--logo-w-max));
+      max-width:100%; height:auto; display:block; object-fit:contain; margin:0 auto;
+      filter: drop-shadow(0 3px 8px rgba(17,24,39,.14));
+      opacity:0; transition: opacity .25s ease;
+      cursor: pointer;
+    }
+    .brand-chip img.ready{ opacity:1; }
     /* Contenedor principal */
     .app{padding:clamp(12px,3vw,20px);}
     .view{display:none;}
