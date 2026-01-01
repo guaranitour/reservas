@@ -266,19 +266,20 @@
     <div class="brand-chip">
       <div id="logoSkeleton" class="logo-skeleton" aria-hidden="true"></div>
       <img id="heroLogo" alt="Logo" />
-      <!-- Menú admin: ahora dropdown debajo del logo -->
+      <!-- Menú admin: dropdown debajo del logo -->
       <div id="adminMenu" class="admin-menu hidden" role="dialog" aria-modal="false" aria-label="Acceso staff">
         <p class="admin-title">Acceso staff</p>
         <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
           <button type="button" id="btnAdminLogin" class="btn primary btn-admin" onclick="openStaffLogin()">Control interno</button>
-          <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="goToControlBoard()">Panel de control</button>
+          <!-- Cambiado: de “Panel de control” a “Inicio” -->
+          <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="backToChoose()">Inicio</button>
           <button type="button" id="btnAdminLogout" class="btn danger btn-admin hidden" onclick="doControlLogout()">Cerrar sesión staff</button>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- Staff badge: vuelve a ser píldora dorada arriba a la derecha -->
+  <!-- Staff badge: píldora dorada arriba a la derecha -->
   <div id="staffBadge" class="staff-badge hidden" aria-label="Perfil Staff">Staff</div>
 
   <main id="app" class="app">
@@ -614,8 +615,11 @@
       if(!bLogin || !bPanel || !bLogout) return;
       const isAuth = CONTROL_AUTH;
       bLogin.classList.toggle('hidden', isAuth);
-      bPanel.classList.toggle('hidden', !isAuth);
+      bPanel.classList.toggle('hidden', !isAuth);   // cuando hay sesión, aparece “Inicio”
       bLogout.classList.toggle('hidden', !isAuth);
+      // Por si en algún momento querés alternar el texto dinámicamente:
+      // bPanel.textContent = 'Inicio';
+      // bPanel.onclick = backToChoose;
     }
     function syncStaffBadge(){
       const el = document.getElementById('staffBadge');
@@ -1513,4 +1517,3 @@
   </script>
 </body>
 </html>
-``
