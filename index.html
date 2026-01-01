@@ -12,7 +12,10 @@
       --brandA: rgba(44,123,229,.10); --brandB: rgba(16,185,129,.08);
       --logo-w-ideal: 84vw; --logo-w-max: 360px;
       --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
       --action-bar-h: 72px;
+      --staff-bg:#fef3c7; --staff-border:#fde68a; --staff-text:#92400e;
     }
     html,body{height:100%;}
     html{ scroll-padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
@@ -55,6 +58,36 @@
       cursor: pointer;
     }
     .brand-chip img.ready{ opacity:1; }
+
+    /* ===== Admin Menu (dropdown) ===== */
+    .admin-menu{
+      position: absolute;
+      top: calc(100% + 10px);        /* debajo del logo/chip */
+      left: 50%;
+      transform: translateX(-50%);   /* centrado */
+      width: min(92vw, 360px);
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.95);
+      border: 1px solid rgba(17,24,39,.08);
+      box-shadow: 0 12px 28px rgba(17,24,39,.16);
+      backdrop-filter: saturate(120%) blur(6px);
+      z-index: 40;
+    }
+    .admin-menu::before{
+      content:"";
+      position:absolute;
+      top:-8px; left:50%; transform:translateX(-50%);
+      width:0; height:0;
+      border-left:8px solid transparent;
+      border-right:8px solid transparent;
+      border-bottom:8px solid rgba(255,255,255,.95);
+      filter: drop-shadow(0 -1px 0 rgba(17,24,39,.08));
+    }
+    .admin-title{
+      margin:0 0 8px 0; font-weight:800; font-size:.95rem; color:var(--text); text-align:center;
+    }
+    .btn-admin{ width:100%; }
 
     /* Contenedor principal */
     .app{padding:clamp(12px,3vw,20px);}
@@ -206,6 +239,25 @@
     .floors .card h2{ font-size:1rem; }
     .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
     .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
+
+    /* ===== Staff Badge (dorada fija arriba a la derecha) ===== */
+    .staff-badge{
+      position: fixed;
+      top: calc(12px + var(--safe-top));
+      right: calc(12px + var(--safe-right));
+      z-index: 50;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: .85rem;
+      background: var(--staff-bg);
+      color: var(--staff-text);
+      border: 1px solid var(--staff-border);
+      box-shadow: var(--shadow);
+    }
   </style>
 </head>
 <body>
@@ -214,6 +266,7 @@
     <div class="brand-chip">
       <div id="logoSkeleton" class="logo-skeleton" aria-hidden="true"></div>
       <img id="heroLogo" alt="Logo" />
+      <!-- Menú admin: ahora dropdown debajo del logo -->
       <div id="adminMenu" class="admin-menu hidden" role="dialog" aria-modal="false" aria-label="Acceso staff">
         <p class="admin-title">Acceso staff</p>
         <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
@@ -223,10 +276,9 @@
         </div>
       </div>
     </div>
-    </div>
   </header>
 
-  <!-- Staff badge -->
+  <!-- Staff badge: vuelve a ser píldora dorada arriba a la derecha -->
   <div id="staffBadge" class="staff-badge hidden" aria-label="Perfil Staff">Staff</div>
 
   <main id="app" class="app">
@@ -1461,3 +1513,4 @@
   </script>
 </body>
 </html>
+``
