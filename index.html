@@ -62,9 +62,9 @@
     /* ===== Admin Menu (dropdown) ===== */
     .admin-menu{
       position: absolute;
-      top: calc(100% + 10px);
+      top: calc(100% + 10px);        /* debajo del logo/chip */
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%);   /* centrado */
       width: min(92vw, 360px);
       padding: 12px;
       border-radius: 14px;
@@ -266,23 +266,6 @@
       border: 1px solid var(--staff-border);
       box-shadow: var(--shadow);
     }
-
-    /* ===== Píldora dorada en “Elegí tu viaje” (Bases y Condiciones) ===== */
-    .terms-cta{
-      margin-top: 18px;
-      display: flex;
-      justify-content: center;
-    }
-    .link-pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:10px 14px; border-radius:999px;
-      font-weight:800; font-size:.9rem; text-decoration:none;
-      background:var(--staff-bg); color:var(--staff-text);
-      border:1px solid var(--staff-border);
-      box-shadow:var(--shadow);
-      transition: transform .12s ease, box-shadow .15s ease, filter .15s ease;
-    }
-    .link-pill:hover{ transform: translateY(-1px); box-shadow:0 10px 24px rgba(17,24,39,.12); filter: brightness(1.02); }
   </style>
 </head>
 <body>
@@ -314,14 +297,7 @@
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí tu viaje</h2>
           <div id="tripList" class="trip-list"></div>
-
-          <!-- Píldora dorada: Bases y Condiciones -->
-          <div class="terms-cta" role="region" aria-label="Bases y Condiciones">
-            <a
-              class="link-pill"
-              href="https://drive.google.com/file/d/1j2VCdg6gRKpz1dpySOV9M3Fz4RGGBbzm/view?usp=drive_link"
-              target="_blank"
-              </div>
+        </div>
       </div>
     </section>
 
@@ -879,7 +855,7 @@
       const grid = document.getElementById(targetId ?? 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
 
-      const rows = getRowsToRender();
+      const rows = getRowsToRender(); // solo filas con al menos un asiento no inhabilitado
       if(rows.length === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
 
       let seatNumber = 1 + (offset || 0);
@@ -910,6 +886,7 @@
             return;
           }
 
+          // Inhabilitado explícito en esta hoja: mostrar gris
           if(state === 'inhabilitado'){
             const btn = document.createElement('button'); btn.type='button'; btn.className = `seat inhabilitado`;
             btn.innerHTML = ' ';
@@ -919,12 +896,14 @@
             return;
           }
 
+          // Missing (no existe en esta hoja/planta): ocultar
           if(state === 'missing' && hideMissing){
             const ph = document.createElement('div'); ph.className = 'seat-placeholder'; ph.setAttribute('aria-hidden','true');
             container.appendChild(ph);
             return;
           }
 
+          // Fallback legacy
           const btn = document.createElement('button'); btn.type='button'; btn.className = `seat inexistente`;
           btn.innerHTML = ' ';
           btn.setAttribute('aria-label', `Asiento ${code} inexistente/no disponible`);
@@ -1070,7 +1049,7 @@
 
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map();
-      const rows = getRowsToRender();
+      const rows = getRowsToRender(); // solo filas activas
       let seatNumber = 1;
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
       for(const row of rows){
@@ -1101,6 +1080,7 @@
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', () => {
         hideLoading();
+        // Auto-scroll al primer marcado (si hay)
         const firstMarked = document.getElementById('grid-find').querySelector('.seat.mine');
         if (firstMarked) firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
         else document.getElementById('grid-find').scrollIntoView({ behavior:'smooth', block:'start' });
@@ -1160,7 +1140,7 @@
     }
 
     function computeNumbersForCodesWith(seatsMap, codes){
-      const rows = getRowsToRenderFromMap(seatsMap);
+      const rows = getRowsToRenderFromMap(seatsMap); // solo filas activas
       let seatNumber = 1;
       const labels = new Map();
       const isNum = (klass) => (klass === 'libre' || klass === 'ocupado');
@@ -1238,11 +1218,13 @@
       panel.scrollIntoView({behavior:'smooth'});
     }
 
+    /* === Mostrar croquis solo de planta(s) con resultados + auto-scroll === */
     async function showCroquisForCIMulti(){
       showLoading('Cargando croquis…');
       const container = document.getElementById('multiCroquis');
       container.innerHTML = '';
 
+      // Solo plantas con asientos para ese CI
       const floorsWithResults = MULTI_SHEETS.filter(f => {
         const found = NUMS_BY_SHEET.get(f.sheetName) ?? [];
         return found.length > 0;
@@ -1254,6 +1236,7 @@
         return;
       }
 
+      // Construir croquis para cada planta con resultados
       for(const f of floorsWithResults){
         const seatsMap = SEATS_BY_SHEET.get(f.sheetName) ?? {};
         const highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) ?? new Set();
@@ -1280,6 +1263,7 @@
 
       hideLoading();
 
+      // Auto-scroll global al primer asiento marcado
       const firstMarked = container.querySelector('.seat.mine');
       if (firstMarked) {
         firstMarked.scrollIntoView({ behavior:'smooth', block:'center' });
@@ -1309,7 +1293,7 @@
             btn.setAttribute('data-code', code);
             btn.setAttribute('aria-label', `Asiento ${code} (${seatNumber}) ${klass}`);
             seatNumber++;
-            btn.disabled = true;
+            btn.disabled = true; // croquis informativo
           }else{
             btn.innerHTML = ' ';
             btn.setAttribute('aria-label', `Asiento ${code} inhabilitado/no disponible`);
@@ -1324,6 +1308,7 @@
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
       }
+      // Scroll al primer resaltado dentro del croquis
       const first = grid.querySelector('.seat.mine');
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
     }
