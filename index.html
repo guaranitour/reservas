@@ -224,11 +224,17 @@
     @media (prefers-reduced-motion: reduce){ .view.active{animation:none} .spinner{animation:none} }
     .hidden{display:none !important;}
 
-    /* Croquis Control: número + primer nombre */
+    /* Croquis Control: número + primer nombre (SINGLE) */
     #controlCroquis .seat{ display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:56px; }
     #controlCroquis .seat .num{ font-size: 1rem; line-height: 1; font-weight: 800; }
     #controlCroquis .seat .occ-name{ margin-top:4px; font-size:.75rem; line-height:1.1; font-weight:600; color:#374151; letter-spacing:.2px; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     #controlCroquis .seat.ocupado .occ-name{ color:#7f1d1d; }
+
+    /* Croquis Control: número + primer nombre (MULTI - ambas plantas) */
+    #controlCroquisMulti .seat{ display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:56px; }
+    #controlCroquisMulti .seat .num{ font-size: 1rem; line-height: 1; font-weight: 800; }
+    #controlCroquisMulti .seat .occ-name{ margin-top:4px; font-size:.75rem; line-height:1.1; font-weight:600; color:#374151; letter-spacing:.2px; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #controlCroquisMulti .seat.ocupado .occ-name{ color:#7f1d1d; }
 
     /* Elegir viaje / elegir planta */
     .trip-list{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:0 auto; }
@@ -445,7 +451,7 @@
         <div id="controlToolbar" class="control-toolbar">
           <div class="control-actions">
             <button type="button" class="btn ghost" onclick="refreshControlBoardSmart()">Actualizar</button>
-            <!-- ID agregado para cambiar etiqueta en multi -->
+            <!-- ID para cambiar etiqueta en multi -->
             <button id="btnExportPdf" type="button" class="btn primary" onclick="doExportPdfSmart()">Exportar PDF</button>
             <button id="btnEditMode" type="button" class="btn success" onclick="toggleControlEdit()">Modo edición</button>
           </div>
