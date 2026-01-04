@@ -150,7 +150,7 @@
     .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;}
     .seat.seleccionado{background:#dbeafe; color:#1e40af; transform:scale(1.02);}
     .seat.inhabilitado{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
-    .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;} /* legacy */
+    .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
     .seat-placeholder{width:100%; min-height:48px; border-radius:12px; background:transparent; box-shadow:none; border:none; pointer-events:none;}
     .seat:active{transform:scale(0.98);}
 
@@ -161,7 +161,7 @@
     .nums{display:flex; gap:10px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
 
-    /* Más espacio debajo del botón “Ver croquis” y encima del croquis */
+    /* Espaciamiento */
     #findFeedback .actions,
     #multiFeedback .actions { margin-top:14px; margin-bottom:18px; }
     #grid-find,
@@ -180,7 +180,7 @@
     .field{ display:flex; flex-direction:column; gap:6px; }
     .field-label{ font-weight:600; font-size:.9rem; color:var(--muted); }
 
-    /* Bottom App Bar (solo botones) */
+    /* Bottom App Bar */
     .assign .action-bar{
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
       height: calc(var(--action-bar-h) + var(--safe-bottom));
@@ -224,7 +224,7 @@
     @media (prefers-reduced-motion: reduce){ .view.active{animation:none} .spinner{animation:none} }
     .hidden{display:none !important;}
 
-    /* Croquis de Control: número + primer nombre */
+    /* Croquis Control: número + primer nombre */
     #controlCroquis .seat{ display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:56px; }
     #controlCroquis .seat .num{ font-size: 1rem; line-height: 1; font-weight: 800; }
     #controlCroquis .seat .occ-name{ margin-top:4px; font-size:.75rem; line-height:1.1; font-weight:600; color:#374151; letter-spacing:.2px; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -242,7 +242,7 @@
     .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
     .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
 
-    /* ===== Staff Badge ===== */
+    /* Staff Badge */
     .staff-badge{
       position: fixed;
       top: calc(12px + var(--safe-top));
@@ -300,7 +300,7 @@
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí planta</h2>
 
-          <!-- NUEVO: Píldora con nombre de viaje en la vista de plantas -->
+          <!-- Píldora del viaje en vista de plantas -->
           <div class="trip-tags">
             <span class="tag" id="tagTripFloor">Viaje: —</span>
           </div>
@@ -382,7 +382,7 @@
         <h4>Reserva confirmada</h4>
         <div id="reserveNums" class="nums"></div>
         <div class="actions" style="margin-top:8px;">
-          <!-- Manteniendo la mejora anterior: vuelve al menú del viaje (en doble piso muestra planta) -->
+          <!-- Mejora: Inicio => goTripMenu() -->
           <button type="button" class="btn ghost" onclick="goTripMenu()">Inicio</button>
         </div>
       </div>
@@ -714,7 +714,6 @@
         var findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', function(){ goFind(); });
         extraBox.appendChild(findCard);
 
-        /* NUEVO: actualizar las etiquetas antes de mostrar la vista de plantas */
         updateTripTags();
         showView('view-floor');
       }else{
@@ -735,7 +734,7 @@
       return result;
     }
 
-    /* ===== STAFF: cargar ambas plantas ===== */
+    /* ===== STAFF: cargar ambas plantas con numeración continua ===== */
     async function refreshStaffMulti(){
       STAFF_CONTROL_MULTI = true;
       STAFF_ACTIVE_SHEET = null;
@@ -757,6 +756,20 @@
       attachStickyAnimation();
     }
 
+    /* Cuenta solo asientos numerables (libre/ocupado) en un seatsMap */
+    function countActiveNumbersInMap(seatsMap){
+      var rows = getRowsToRenderFromMap(seatsMap);
+      var count = 0;
+      rows.forEach(function(row){
+        ['A','B','C','D'].forEach(function(letter){
+          var code = row + letter;
+          var st = computeClassForWith(seatsMap, code);
+          if(st === 'libre' || st === 'ocupado') count++;
+        });
+      });
+      return count;
+    }
+
     function renderControlBoardMulti(){
       var board = document.getElementById('controlBoard');
       var container = document.getElementById('controlCroquisMulti');
@@ -766,6 +779,7 @@
       fb.classList.add('hidden'); fb.innerHTML = '';
       CONTROL_EDIT = false; EDIT_SRC = null; EDIT_DST = null; updateEditTags(); syncToolbarUI();
 
+      /* Orden preferente: Alta -> Baja -> resto */
       var ordered = [];
       var alta = STAFF_SHEETS.find(function(f){ return f.label.toLowerCase().indexOf('alta')>=0; });
       var baja = STAFF_SHEETS.find(function(f){ return f.label.toLowerCase().indexOf('baja')>=0; });
@@ -773,30 +787,44 @@
       if (baja) ordered.push(baja);
       STAFF_SHEETS.forEach(function(f){ if (!ordered.find(function(o){ return o.sheetName === f.sheetName; })) ordered.push(f); });
 
+      var seatOffset = 1; // numeración continua
+
       for (var i=0;i<ordered.length;i++){
         var f = ordered[i];
+        var seatsMap = STAFF_SEATS_BY_SHEET.get(f.sheetName) || {};
+
         var section = document.createElement('div');
         section.className = 'form';
         section.style.marginBottom = '12px';
+
         var title = document.createElement('h4');
         title.textContent = f.label;
         title.style.margin = '0 0 8px 0';
+
         var grid = document.createElement('div');
         grid.className = 'grid';
         grid.setAttribute('aria-live','polite');
+
         section.appendChild(title);
         section.appendChild(grid);
         container.appendChild(section);
-        buildControlGridForSheet(grid, f.sheetName, STAFF_SEATS_BY_SHEET.get(f.sheetName) || {});
+
+        /* Render con offset actual */
+        buildControlGridForSheet(grid, f.sheetName, seatsMap, seatOffset);
+
+        /* Aumentar offset para la siguiente planta */
+        var added = countActiveNumbersInMap(seatsMap);
+        seatOffset += added;
       }
       board.scrollIntoView({behavior:'smooth'});
     }
 
-    function buildControlGridForSheet(gridEl, sheetName, seatsMap){
+    function buildControlGridForSheet(gridEl, sheetName, seatsMap, startNumber){
       gridEl.innerHTML = '';
       var rows = getRowsToRenderFromMap(seatsMap);
       if(rows.length === 0){ gridEl.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
-      var seatNumber = 1;
+      var seatNumber = (typeof startNumber === 'number' && startNumber > 0) ? startNumber : 1;
+
       function isNum(klass){ return (klass === 'libre' || klass === 'ocupado'); }
       function computeClassForWith(seatsMapLocal, code){
         var key = normalize(code);
@@ -806,10 +834,12 @@
         if(st === 'inhabilitado') return 'inexistente';
         return 'libre';
       }
+
       rows.forEach(function(row){
         var rowEl = document.createElement('div'); rowEl.className = 'row';
         var left = document.createElement('div'); left.className = 'block';
         var right = document.createElement('div'); right.className = 'block';
+
         function renderSeat(letter, container){
           var code = row + letter;
           var norm = normalize(code);
@@ -817,6 +847,7 @@
           var btn=document.createElement('button'); btn.type='button'; btn.className='seat ' + klass;
           btn.setAttribute('data-code',code);
           btn.setAttribute('data-sheet',sheetName);
+
           if(isNum(klass)){
             var occFull = (seatsMap[norm] && seatsMap[norm].pasajero) || '';
             var occName = (klass==='ocupado') ? firstName(occFull) : '';
@@ -834,6 +865,7 @@
           btn.onclick = function(){ onControlSeatClick(btn); };
           container.appendChild(btn);
         }
+
         ['A','B'].forEach(function(l){ renderSeat(l, left); });
         var aisle=document.createElement('div'); aisle.className='aisle';
         ['C','D'].forEach(function(l){ renderSeat(l, right); });
@@ -842,7 +874,7 @@
       });
     }
 
-    /* ===== Público: numeración continua en doble piso ===== */
+    /* ===== Público: numeración continua (cliente) ===== */
     async function countActiveNumbers(fileId, sheetName){
       try{
         var resp = await API.apiGetSeats(fileId, sheetName);
