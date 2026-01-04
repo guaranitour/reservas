@@ -382,7 +382,6 @@
         <h4>Reserva confirmada</h4>
         <div id="reserveNums" class="nums"></div>
         <div class="actions" style="margin-top:8px;">
-          <!-- Mejora: Inicio => goTripMenu() -->
           <button type="button" class="btn ghost" onclick="goTripMenu()">Inicio</button>
         </div>
       </div>
@@ -446,7 +445,8 @@
         <div id="controlToolbar" class="control-toolbar">
           <div class="control-actions">
             <button type="button" class="btn ghost" onclick="refreshControlBoardSmart()">Actualizar</button>
-            <button type="button" class="btn primary" onclick="doExportPdfSmart()">Exportar PDF</button>
+            <!-- ID agregado para cambiar etiqueta en multi -->
+            <button id="btnExportPdf" type="button" class="btn primary" onclick="doExportPdfSmart()">Exportar PDF</button>
             <button id="btnEditMode" type="button" class="btn success" onclick="toggleControlEdit()">Modo edición</button>
           </div>
           <div class="sel-tags">
@@ -778,6 +778,9 @@
       container.innerHTML = '';
       fb.classList.add('hidden'); fb.innerHTML = '';
       CONTROL_EDIT = false; EDIT_SRC = null; EDIT_DST = null; updateEditTags(); syncToolbarUI();
+
+      /* Cambiar etiqueta del botón Exportar */
+      var btnExp = document.getElementById('btnExportPdf'); if (btnExp) btnExp.textContent = 'Exportar PDF (todas las plantas)';
 
       /* Orden preferente: Alta -> Baja -> resto */
       var ordered = [];
@@ -1454,6 +1457,9 @@
       fb.classList.add('hidden'); fb.innerHTML = '';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
 
+      /* Restaurar etiqueta del botón Exportar */
+      var btnExp = document.getElementById('btnExportPdf'); if (btnExp) btnExp.textContent = 'Exportar PDF';
+
       var maxRow = getMaxRow(); if(maxRow === 0){ croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
       NUM_LABELS = new Map(); var seatNumber = 1;
       for(var row=1; row<=maxRow; row++){
@@ -1605,24 +1611,58 @@
       }
     }
 
+    /* ===== Exportar PDFs ===== */
     async function doExportPdfSmart(){
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
-      var sheet = STAFF_CONTROL_MULTI ? (STAFF_ACTIVE_SHEET || null) : CURRENT_TRIP.sheetName;
-      if (STAFF_CONTROL_MULTI && !sheet) { toast('Toca un asiento para elegir la planta a exportar.'); return; }
       showLoading('Generando PDF…');
+
       try{
-        var resp = await API.apiExportPdf(CURRENT_TRIP.fileId, sheet);
-        if(resp && resp.url){
-          var newWin=window.open(resp.url,'_blank');
-          if(!newWin){
-            var fb=document.getElementById('pdfLinkFallback');
-            fb.innerHTML='Tu PDF está listo: <a href="'+resp.url+'" target="_blank" rel="noopener">Abrir PDF</a>';
-            fb.classList.remove('hidden');
-          }else{
-            toast('PDF listo');
+        if (STAFF_CONTROL_MULTI) {
+          /* Exportar todas las plantas */
+          var floors = getFloorSheets();
+          var urls = [];
+          for (var i=0;i<floors.length;i++){
+            var f = floors[i];
+            var resp = await API.apiExportPdf(CURRENT_TRIP.fileId, f.sheetName);
+            if(resp && resp.url){ urls.push({ label: f.label, url: resp.url }); }
           }
-        }else{
-          toast(resp && resp.message ? resp.message : 'No se pudo generar el PDF');
+          if(urls.length){
+            var openedAll = true;
+            for (var j=0;j<urls.length;j++){
+              var w = window.open(urls[j].url,'_blank');
+              if(!w) openedAll = false;
+            }
+            if(!openedAll){
+              var fb=document.getElementById('pdfLinkFallback');
+              var listHtml = '';
+              for(var k=0;k<urls.length;k++){
+                var u = urls[k];
+                listHtml += '<li><a href="'+u.url+'" target="_blank" rel="noopener">'+u.label+'</a></li>';
+              }
+              fb.innerHTML='Tus PDFs están listos:<ul style="margin:8px 0;padding-left:16px;">'+listHtml+'</ul>';
+              fb.classList.remove('hidden');
+            } else {
+              toast('PDFs listos ('+urls.length+')');
+            }
+          } else {
+            toast('No se pudo generar los PDFs');
+          }
+        } else {
+          /* Exportar solo la hoja actual (convencional) */
+          var sheet = CURRENT_TRIP.sheetName;
+          var resp2 = await API.apiExportPdf(CURRENT_TRIP.fileId, sheet);
+          if(resp2 && resp2.url){
+            var newWin=window.open(resp2.url,'_blank');
+            if(!newWin){
+              var fb2=document.getElementById('pdfLinkFallback');
+              fb2.innerHTML='Tu PDF está listo: <a href="'+resp2.url+'" target="_blank" rel="noopener">Abrir PDF</a>';
+              fb2.classList.remove('hidden');
+            }else{
+              toast('PDF listo');
+            }
+          }else{
+            toast(resp2 && resp2.message ? resp2.message : 'No se pudo generar el PDF');
+          }
         }
       }catch(err){
         toast('Error al generar PDF');
