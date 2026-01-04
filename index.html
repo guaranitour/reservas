@@ -24,7 +24,6 @@
       color:var(--text); background:var(--bg); overflow-x:hidden;
     }
     *, *::before, *::after{ box-sizing:border-box; }
-
     /* ===== Header ===== */
     .hero{
       width:100%;
@@ -58,7 +57,6 @@
       cursor: pointer;
     }
     .brand-chip img.ready{ opacity:1; }
-
     /* ===== Admin Menu (dropdown) ===== */
     .admin-menu{
       position: absolute;
@@ -88,13 +86,11 @@
       margin:0 0 8px 0; font-weight:800; font-size:.95rem; color:var(--text); text-align:center;
     }
     .btn-admin{ width:100%; }
-
     /* Contenedor principal */
     .app{padding:clamp(12px,3vw,20px);}
     .view{display:none;}
     .view.active{display:block; animation:fadeIn .4s ease both;}
     @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
-
     /* Inicio + cards */
     .home-center{min-height:calc(100dvh - 160px); display:grid; place-items:center;}
     .cards{display:grid; grid-template-columns:1fr; gap:14px; max-width:480px; width:100%;}
@@ -115,7 +111,6 @@
       color:var(--text);
       text-align:center;
     }
-
     /* Formularios */
     .form{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px; margin-bottom:12px;}
     .form-row{display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
@@ -127,7 +122,6 @@
     .btn.ghost{background:transparent; border:1px solid #e5e7eb; color:var(--text);}
     .btn.success{background:var(--success); color:white;}
     .btn.danger{background:#ef4444; color:white;}
-
     /* Legend / chips */
     .legend{display:flex; gap:8px; margin:8px 0 12px; flex-wrap:wrap;}
     .badge{display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:6px 10px; font-size:.875rem;}
@@ -135,7 +129,6 @@
     .badge.ocupado{background:#fee2e2; color:#7f1d1d;}
     .badge.seleccionado{background:#dbeafe; color:#1e40af;}
     .badge.inexistente,.badge.inhabilitado{background:#e5e7eb; color:#374151;}
-
     /* Croquis 2+2 */
     .grid{display:flex; flex-direction:column; gap:8px;}
     .row{ display:grid; grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr); gap:8px; align-items:center; width:100%; }
@@ -153,21 +146,17 @@
     .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;} /* legacy */
     .seat-placeholder{width:100%; min-height:48px; border-radius:12px; background:transparent; box-shadow:none; border:none; pointer-events:none;}
     .seat:active{transform:scale(0.98);}
-
     /* Resaltado (Mirá tu asiento) */
     .seat.mine{ outline:3px solid #6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15) inset; }
     .seat.mine::after{ content:""; position:absolute; inset:0; border-radius:12px; box-shadow:0 0 0 0 rgba(99,102,241,.25); animation:pulse 1.8s ease-in-out infinite; }
     @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(99,102,241,.25);} 70%{box-shadow:0 0 0 10px rgba(99,102,241,0);} 100%{box-shadow:0 0 0 0 rgba(99,102,241,0);} }
-
     .nums{display:flex; gap:10px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
-
     /* Más espacio debajo del botón “Ver croquis” y encima del croquis */
     #findFeedback .actions,
     #multiFeedback .actions { margin-top:14px; margin-bottom:18px; }
     #grid-find,
     #multiCroquis { margin-top:16px; }
-
     /* Asignación múltiple */
     .assign{ margin-top: 12px; padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
     .assign-list{ display:flex; flex-direction:column; gap:16px; }
@@ -180,7 +169,6 @@
     @media (min-width:560px){ .assign-grid{ grid-template-columns:1fr 1fr; } }
     .field{ display:flex; flex-direction:column; gap:6px; }
     .field-label{ font-weight:600; font-size:.9rem; color:var(--muted); }
-
     /* Bottom App Bar (solo botones) */
     .assign .action-bar{
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
@@ -194,7 +182,6 @@
       padding: 0 12px var(--safe-bottom) 12px; pointer-events: auto;
     }
     .assign .action-bar .btn{ flex: 1; min-height: 44px; }
-
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
     .control-title{margin:0 0 12px 0; font-size:1.1rem; font-weight:700;}
@@ -212,7 +199,6 @@
     .sel-tags .tag.dst{background:#dbeafe; color:#1e40af;}
     .edit-actions{display:none; gap:8px; flex-wrap:wrap;}
     .control-toolbar.editing .edit-actions{display:flex;}
-
     /* Snackbar & Overlay */
     .snackbar{position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:#111827; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:var(--shadow); opacity:0; pointer-events:none;}
     .snackbar.show{opacity:1; transition:opacity .2s ease;}
@@ -224,13 +210,11 @@
     .loader-text{font-weight:600; color:#111827;}
     @media (prefers-reduced-motion: reduce){ .view.active{animation:none} .spinner{animation:none} }
     .hidden{display:none !important;}
-
     /* Croquis de Control: número + primer nombre */
     #controlCroquis .seat{ display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:56px; }
     #controlCroquis .seat .num{ font-size: 1rem; line-height: 1; font-weight: 800; }
     #controlCroquis .seat .occ-name{ margin-top:4px; font-size:.75rem; line-height:1.1; font-weight:600; color:#374151; letter-spacing:.2px; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     #controlCroquis .seat.ocupado .occ-name{ color:#7f1d1d; }
-
     /* Elegir viaje / elegir planta */
     .trip-list{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:0 auto; }
     .trip-card{ background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px; display:flex; flex-direction:column; gap:6px; cursor:pointer; }
@@ -242,7 +226,6 @@
     .floors .card h2{ font-size:1rem; }
     .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
     .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
-
     /* ===== Staff Badge (dorada fija arriba a la derecha) ===== */
     .staff-badge{
       position: fixed;
@@ -281,7 +264,6 @@
       </div>
     </div>
   </header>
-
   <!-- Staff badge -->
   <div id="staffBadge" class="staff-badge hidden" aria-label="Perfil Staff">Staff</div>
 
@@ -682,7 +664,6 @@
 
     function selectTrip(tr){
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
-
       // STAFF: si es doble piso, ir directo al panel con ambas plantas
       if (CONTROL_AUTH && CURRENT_TRIP.hasFloors) {
         showView('view-control');
@@ -690,12 +671,10 @@
         refreshStaffMulti().then(function(){ hideLoading(); });
         return;
       }
-
       // Público (o staff en convencional): comportamiento normal
       if(CURRENT_TRIP.hasFloors){
         var floorBox = document.getElementById('floorCards'); floorBox.innerHTML = '';
         var extraBox = document.getElementById('floorFindCard'); extraBox.innerHTML = '';
-
         var bajaName = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos baja'; });
         var altaName = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos alta'; });
         var candidates = [];
@@ -712,15 +691,12 @@
           card.onkeypress = function(ev){ if(ev.key==='Enter') onClick(); };
           return card;
         }
-
         candidates.forEach(function(c){
           var el = makeCard(c.label, c.desc ? c.desc : ('Hoja: ' + c.sheetName), function(){ chooseFloor(c.sheetName); });
           floorBox.appendChild(el);
         });
-
         var findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', function(){ goFind(); });
         extraBox.appendChild(findCard);
-
         showView('view-floor');
       }else{
         var sheet = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos'; }) || tr.sheets[0];
@@ -746,11 +722,9 @@
       STAFF_ACTIVE_SHEET = null;
       STAFF_SHEETS = getFloorSheets();
       STAFF_SEATS_BY_SHEET = new Map();
-
       var container = document.getElementById('controlCroquisMulti');
       var single = document.getElementById('controlCroquis');
       container.innerHTML = ''; single.innerHTML = '';
-
       for (var i=0;i<STAFF_SHEETS.length;i++){
         var f = STAFF_SHEETS[i];
         var resp = await API.apiGetSeats(CURRENT_TRIP.fileId, f.sheetName);
@@ -816,7 +790,6 @@
         var rowEl = document.createElement('div'); rowEl.className = 'row';
         var left = document.createElement('div'); left.className = 'block';
         var right = document.createElement('div'); right.className = 'block';
-
         function renderSeat(letter, container){
           var code = row + letter;
           var norm = normalize(code);
@@ -841,7 +814,6 @@
           btn.onclick = function(){ onControlSeatClick(btn); };
           container.appendChild(btn);
         }
-
         ['A','B'].forEach(function(l){ renderSeat(l, left); });
         var aisle=document.createElement('div'); aisle.className='aisle';
         ['C','D'].forEach(function(l){ renderSeat(l, right); });
@@ -895,7 +867,6 @@
     async function chooseFloor(sheetName){
       CURRENT_TRIP.sheetName = sheetName;
       updateTripTags();
-
       if (CONTROL_AUTH) {
         showView('view-control');
         showLoading('Cargando ocupación…');
@@ -999,8 +970,8 @@
       options = options || {};
       var offset = options.offset || 0;
       var hideMissing = (typeof options.hideMissing==='undefined') ? true : !!options.hideMissing;
-      var grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
 
+      var grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
       var rows = getRowsToRender();
       if(rows.length === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
@@ -1082,7 +1053,6 @@
     async function startSelection(){
       if(BUSY) return;
       if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
-
       var nombre = document.getElementById('nombrePrincipal').value.trim();
       var ci = document.getElementById('ciPrincipal').value.trim();
       if(!nombre || !ci){ toast('Completá nombre y CI'); return; }
@@ -1175,12 +1145,10 @@
         var respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci);
         var rawCodes = (respSeats.seats || []).map(function(s){ return normalize(s); });
         LAST_FOUND_CODES = Array.from(new Set(rawCodes));
-
         var respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
         var rows = respRows.rows || [];
         SEATS = {};
         rows.forEach(function(r){ SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
-
         var nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
         HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
@@ -1252,7 +1220,6 @@
         SEATS_BY_SHEET = new Map();
         HIGHLIGHT_BY_SHEET = new Map();
         NUMS_BY_SHEET = new Map();
-
         for(var i=0;i<MULTI_SHEETS.length;i++){
           var f = MULTI_SHEETS[i];
           var respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, f.sheetName, ci);
@@ -1298,11 +1265,9 @@
       var btn = document.getElementById('btnShowCroquisMulti');
       wrap.innerHTML = '';
       var totalResults = 0;
-
       MULTI_SHEETS.forEach(function(f){
         var nums = NUMS_BY_SHEET.get(f.sheetName) || [];
         totalResults += nums.length;
-
         var section = document.createElement('div');
         section.className = 'form';
         section.style.marginBottom = '12px';
@@ -1311,7 +1276,6 @@
         title.style.margin = '0 0 8px 0';
         var list = document.createElement('div');
         list.className = 'nums';
-
         if(nums.length){
           nums.forEach(function(n){
             var pill = document.createElement('span'); pill.className='pill';
@@ -1323,12 +1287,10 @@
           pill2.textContent = 'Sin asientos';
           list.appendChild(pill2);
         }
-
         section.appendChild(title);
         section.appendChild(list);
         wrap.appendChild(section);
       });
-
       panel.classList.remove('hidden');
       btn.disabled = (totalResults === 0);
       panel.scrollIntoView({behavior:'smooth'});
@@ -1342,38 +1304,31 @@
         var found = NUMS_BY_SHEET.get(f.sheetName) || [];
         return found.length > 0;
       });
-
       if (!floorsWithResults.length) {
         hideLoading();
         toast('Tu CI no tiene asientos en ninguna planta de este viaje.');
         return;
       }
-
       for(var i=0;i<floorsWithResults.length;i++){
         var f = floorsWithResults[i];
         var seatsMap = SEATS_BY_SHEET.get(f.sheetName) || {};
         var highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) || new Set();
-
         var form = document.createElement('div');
         form.className = 'form';
         form.style.marginBottom = '12px';
         var title = document.createElement('h4');
         title.textContent = f.label;
         title.style.margin = '0 0 8px 0';
-
         var gridId = 'grid-find-' + normalize(f.label).toLowerCase();
         var grid = document.createElement('div');
         grid.id = gridId;
         grid.className = 'grid';
         grid.setAttribute('aria-live','polite');
-
         form.appendChild(title);
         form.appendChild(grid);
         container.appendChild(form);
-
         buildGridCustom(gridId, seatsMap, highlights);
       }
-
       hideLoading();
       var firstMarked = container.querySelector('.seat.mine');
       if (firstMarked) {
@@ -1393,14 +1348,12 @@
         var rowEl = document.createElement('div'); rowEl.className = 'row';
         var left = document.createElement('div'); left.className = 'block';
         var right = document.createElement('div'); right.className = 'block';
-
         function renderSeat(letter, container){
           var code = row + letter;
           var klass = computeClassForWith(seatsMap, code);
           var btn = document.createElement('button'); btn.type='button'; btn.className = 'seat ' + klass;
           var isNum = (klass === 'libre' || klass === 'ocupado');
           var norm = normalize(code);
-
           if(isNum){
             btn.textContent = seatNumber;
             btn.setAttribute('data-code', code);
@@ -1415,14 +1368,12 @@
           if(highlightSet.has(norm)){ btn.classList.add('mine'); }
           container.appendChild(btn);
         }
-
         ['A','B'].forEach(function(l){ renderSeat(l, left); });
         var aisle = document.createElement('div'); aisle.className = 'aisle';
         ['C','D'].forEach(function(l){ renderSeat(l, right); });
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
       });
-
       var first = grid.querySelector('.seat.mine');
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
     }
@@ -1441,19 +1392,17 @@
     function renderControlBoard(){
       if(!CONTROL_AUTH){ hideControlBoard(); return; }
       STAFF_CONTROL_MULTI = false; STAFF_ACTIVE_SHEET = CURRENT_TRIP.sheetName;
-
       var board = document.getElementById('controlBoard');
       var croquis= document.getElementById('controlCroquis');
       var multi = document.getElementById('controlCroquisMulti');
       var fb = document.getElementById('pdfLinkFallback');
-
       board.hidden = false; croquis.innerHTML = ''; multi.innerHTML = '';
       fb.classList.add('hidden'); fb.innerHTML = '';
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
 
       var maxRow = getMaxRow(); if(maxRow === 0){ croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
-
       NUM_LABELS = new Map(); var seatNumber = 1;
+
       for(var row=1; row<=maxRow; row++){
         var rowEl=document.createElement('div'); rowEl.className='row';
         var left=document.createElement('div'); left.className='block';
@@ -1466,7 +1415,6 @@
           var isNum= (klass==='libre' || klass==='ocupado');
           var btn=document.createElement('button'); btn.type='button'; btn.className='seat ' + klass;
           btn.setAttribute('data-sheet', CURRENT_TRIP.sheetName || '');
-
           if(isNum){
             var occFull = (SEATS[norm] && SEATS[norm].pasajero) || '';
             var occName = (klass==='ocupado') ? firstName(occFull) : '';
@@ -1522,7 +1470,6 @@
       var num =parseInt(btn.getAttribute('data-num') || '0',10);
       var code =btn.getAttribute('data-code');
       var sheet = btn.getAttribute('data-sheet') || CURRENT_TRIP.sheetName || null;
-
       // Activar planta por interacción
       STAFF_ACTIVE_SHEET = sheet;
 
@@ -1533,7 +1480,6 @@
         var dstEls = document.querySelectorAll('.seat.pick-target'); for(var j=0;j<dstEls.length;j++){ dstEls[j].classList.remove('pick-target'); }
         btn.classList.add('pick-target'); EDIT_DST={num:num,code:code,sheet:sheet};
       }else{ return; }
-
       updateEditTags(); syncToolbarUI();
     }
 
@@ -1549,7 +1495,6 @@
       var btnFree=document.getElementById('btnFree');
       var btnCancel=document.getElementById('btnCancel');
       var toolbar=document.getElementById('controlToolbar');
-
       toolbar.classList.toggle('editing', CONTROL_EDIT);
       if(CONTROL_EDIT){
         btnEdit.classList.add('danger'); btnEdit.textContent='Salir de edición';
@@ -1610,7 +1555,6 @@
       if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
       var sheet = STAFF_CONTROL_MULTI ? (STAFF_ACTIVE_SHEET || null) : CURRENT_TRIP.sheetName;
       if (STAFF_CONTROL_MULTI && !sheet) { toast('Toca un asiento para elegir la planta a exportar.'); return; }
-
       showLoading('Generando PDF…');
       try{
         var resp = await API.apiExportPdf(CURRENT_TRIP.fileId, sheet);
@@ -1656,7 +1600,6 @@
       if (bInicio) bInicio.addEventListener('click', function(){ try { backToChoose(); hideAdminMenu(); } catch(e){} });
       if (bLogout) bLogout.addEventListener('click', function(){ try { doControlLogout(); hideAdminMenu(); } catch(e){} });
     }
-
     // Exponer funciones al scope global por compatibilidad
     window.openStaffLogin = openStaffLogin;
     window.doControlLogout = doControlLogout;
