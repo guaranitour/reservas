@@ -95,7 +95,7 @@
     .view.active{display:block; animation:fadeIn .4s ease both;}
     @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
 
-    /* Inicio + cards */
+    /* Inicio + cards (solo para convencional) */
     .home-center{min-height:calc(100dvh - 160px); display:grid; place-items:center;}
     .cards{display:grid; grid-template-columns:1fr; gap:14px; max-width:480px; width:100%;}
     .card{
@@ -242,7 +242,7 @@
     .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
     .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
 
-    /* ===== Staff Badge (dorada fija arriba a la derecha) ===== */
+    /* ===== Staff Badge ===== */
     .staff-badge{
       position: fixed;
       top: calc(12px + var(--safe-top));
@@ -268,11 +268,10 @@
     <div class="brand-chip">
       <div id="logoSkeleton" class="logo-skeleton" aria-hidden="true"></div>
       <img id="heroLogo" alt="Logo" />
-      <!-- Menú admin: dropdown debajo del logo -->
+      <!-- Menú admin -->
       <div id="adminMenu" class="admin-menu hidden" role="dialog" aria-modal="false" aria-label="Acceso staff">
         <p class="admin-title">Acceso staff</p>
         <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
-          <!-- Mantengo los onclick inline, y además cableo por JS abajo -->
           <button type="button" id="btnAdminLogin" class="btn primary btn-admin" onclick="openStaffLogin()">Control interno</button>
           <button type="button" id="btnAdminControl" class="btn ghost btn-admin hidden" onclick="backToChoose(); hideAdminMenu();">Inicio</button>
           <button type="button" id="btnAdminLogout" class="btn danger btn-admin hidden" onclick="doControlLogout()">Cerrar sesión staff</button>
@@ -300,6 +299,12 @@
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí planta</h2>
+
+          <!-- NUEVO: Píldora con nombre de viaje en la vista de plantas -->
+          <div class="trip-tags">
+            <span class="tag" id="tagTripFloor">Viaje: —</span>
+          </div>
+
           <div class="floors" id="floorCards"></div>
           <div class="cards" id="floorFindCard" style="margin-top:16px;"></div>
           <div class="actions" style="margin-top:32px; justify-content:center;">
@@ -377,7 +382,7 @@
         <h4>Reserva confirmada</h4>
         <div id="reserveNums" class="nums"></div>
         <div class="actions" style="margin-top:8px;">
-          <!-- CAMBIADO: goHome() -> goTripMenu() -->
+          <!-- Manteniendo la mejora anterior: vuelve al menú del viaje (en doble piso muestra planta) -->
           <button type="button" class="btn ghost" onclick="goTripMenu()">Inicio</button>
         </div>
       </div>
@@ -583,7 +588,7 @@
     function setStaffSession(enabled){ try { if (enabled) localStorage.setItem(STAFF_KEY, '1'); else localStorage.removeItem(STAFF_KEY); } catch(e){} }
     function isStaffSession(){ try { return localStorage.getItem(STAFF_KEY) === '1'; } catch(e){ return false; } }
 
-    /* ===== Staff (nombres propios para evitar conflictos) ===== */
+    /* ===== Staff ===== */
     var STAFF_CONTROL_MULTI = false;
     var STAFF_ACTIVE_SHEET = null;
     var STAFF_SHEETS = [];
@@ -708,6 +713,9 @@
 
         var findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', function(){ goFind(); });
         extraBox.appendChild(findCard);
+
+        /* NUEVO: actualizar las etiquetas antes de mostrar la vista de plantas */
+        updateTripTags();
         showView('view-floor');
       }else{
         var sheet = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos'; }) || tr.sheets[0];
@@ -727,7 +735,7 @@
       return result;
     }
 
-    /* ===== STAFF: cargar ambas plantas con nombres únicos ===== */
+    /* ===== STAFF: cargar ambas plantas ===== */
     async function refreshStaffMulti(){
       STAFF_CONTROL_MULTI = true;
       STAFF_ACTIVE_SHEET = null;
@@ -907,7 +915,10 @@
 
     function updateTripTags(){
       var tagTrip = document.getElementById('tagTrip');
-      if (tagTrip) tagTrip.textContent = 'Viaje: ' + (CURRENT_TRIP.name || '—');
+      var tagTripFloor = document.getElementById('tagTripFloor');
+      var text = 'Viaje: ' + (CURRENT_TRIP.name || '—');
+      if (tagTrip) tagTrip.textContent = text;
+      if (tagTripFloor) tagTripFloor.textContent = text;
       syncStaffBadge();
     }
 
@@ -1215,7 +1226,7 @@
       LAST_FOUND_CODES = [];
     }
 
-    /* ====== BÚSQUEDA EN AMBAS PLANTAS (público) ====== */
+    /* ====== BÚSQUEDA EN AMBAS PLANTAS ====== */
     var MULTI_SHEETS = [];
     var SEATS_BY_SHEET = new Map();
     var HIGHLIGHT_BY_SHEET = new Map();
@@ -1596,13 +1607,13 @@
       }
     }
 
-    /* ===== Wrapper público: actualizar respetando offset y filtro ===== */
+    /* ===== Wrapper público ===== */
     async function refreshSelectGrid(){
       var opts = await computeGridOptions();
       await refreshSeatsWithSpinner('grid-select', function(){}, opts);
     }
 
-    /* ===== FIX: cablear botones del menú admin y exponer funciones al window ===== */
+    /* ===== FIX: cablear botones del menú admin ===== */
     function wireAdminMenuButtons(){
       var bLogin = document.getElementById('btnAdminLogin');
       var bInicio = document.getElementById('btnAdminControl');
@@ -1612,7 +1623,7 @@
       if (bLogout) bLogout.addEventListener('click', function(){ try { doControlLogout(); hideAdminMenu(); } catch(e){} });
     }
 
-    // Exponer funciones al scope global por compatibilidad
+    // Exponer funciones al scope global
     window.openStaffLogin = openStaffLogin;
     window.doControlLogout = doControlLogout;
     window.backToChoose = backToChoose;
@@ -1721,7 +1732,7 @@
       var ciP = document.getElementById('ciPrincipal'); if (ciP) ciP.addEventListener('input', function(e){ onlyDigits(e.target); });
       var ciS = document.getElementById('ciSearch'); if (ciS) ciS.addEventListener('input', function(e){ onlyDigits(e.target); });
 
-      // Cablear botones del menú admin (fix robusto)
+      // Cablear botones del menú admin
       wireAdminMenuButtons();
 
       if (isStaffSession()) {
