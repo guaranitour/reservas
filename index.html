@@ -1114,7 +1114,9 @@
         rows.forEach(function(r){ SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
         if(gridEl){ buildGrid(targetId, gridOptions); }
       }catch(err){
-        toast('Error al cargar asientos'); if(gridEl){ buildGrid(targetId, gridOptions); }
+        console.error('refreshSeats error:', err);
+        toast('Error al cargar asientos: ' + (err && err.message ? err.message : 'desconocido'));
+        if(gridEl){ buildGrid(targetId, gridOptions); }
       }finally{
         if (typeof onDone === 'function') { try { onDone(); } catch(e){} }
       }
@@ -1148,6 +1150,17 @@
       return 'libre';
     }
 
+    /* ===== FIX público: estado detallado para buildGrid ===== */
+    function getSeatState(code){
+      var key = normalize(code);
+      var s = SEATS[key];
+      if(!s) return 'inexistente';
+      var st = (s.estado || '').toLowerCase().trim();
+      if(st === 'ocupado') return 'ocupado';
+      if(st === 'inhabilitado') return 'inhabilitado';
+      return 'libre';
+    }
+
     /* ====== Croquis (público) ====== */
     function buildGrid(targetId, options){
       options = options || {};
@@ -1164,7 +1177,7 @@
         var right = document.createElement('div'); right.className = 'block';
         function renderSeat(letter, container){
           var code = row + letter;
-          var state = getSeatState(code);
+          var state = getSeatState(code); // <-- FIX aplicado
           var isNum = (state === 'libre' || state === 'ocupado');
           var norm = normalize(code);
           if(isNum){
@@ -1189,7 +1202,7 @@
             container.appendChild(btn2);
             return;
           }
-          if(state === 'missing' && hideMissing){
+          if(state === 'inexistente' && hideMissing){
             var ph = document.createElement('div'); ph.className = 'seat-placeholder'; ph.setAttribute('aria-hidden','true');
             container.appendChild(ph);
             return;
