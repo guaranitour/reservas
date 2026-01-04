@@ -691,7 +691,7 @@
           if (!trSel){ toast('No se encontró el viaje "'+tripNameSel+'".'); backToChoose(); return; }
           CURRENT_TRIP = { fileId: trSel.fileId, name: trSel.name, sheets: trSel.sheets, sheetName: null, hasFloors: !!trSel.hasFloors };
           updateTripTags();
-          // Si hay planta especificada
+          // Si hay planta especificada (doble piso)
           if (segs[2]){
             var floorLbl = segs[2];
             var sheet = getSheetNameFromFloorLabel(trSel, floorLbl);
@@ -704,14 +704,15 @@
             // En dobles pisos, sin planta => mostrar "Elegí planta"
             selectTrip(trSel);
           }else{
-            // Convencional => ir al menú principal del viaje
+            // Convencional => ir a la vista de selección (se invoca desde goSelect)
             var sheetConv = getSheetNameFromFloorLabel(trSel, 'asientos');
-            await chooseFloor(sheetConv);
+            CURRENT_TRIP.sheetName = sheetConv; // fijar hoja
+            await goSelect(); // construir grid y dejar /Selección de asientos/<viaje>
           }
           return;
         }
 
-        // 4) /<Nombre del viaje> (doble piso: Elegí planta / convencional: menú)
+        // 4) /<Nombre del viaje> (doble piso: Elegí planta / convencional: menú Inicio)
         var trPlain = await resolveTripByName(head);
         if (!trPlain){
           // Desconocido => Inicio
@@ -727,19 +728,23 @@
 
     /* ===== Navegación (vistas) ===== */
     function showView(id){ var els=document.querySelectorAll('.view'); for(var i=0;i<els.length;i++){ els[i].classList.remove('active'); } document.getElementById(id).classList.add('active'); }
+
+    // Ajustado: siempre deja el hash en /<Nombre del viaje> para público
     function goHome(){
       if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; }
       updateTripTags(); showView('view-home');
-      if (CURRENT_TRIP.hasFloors) { setHash([CURRENT_TRIP.name]); } else { setHash(['Selección de asientos', CURRENT_TRIP.name]); }
+      setHash([CURRENT_TRIP.name]); // <- cambio: hash plano con el nombre del viaje
     }
+
     function goTripMenu(){
       if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; }
       if(CURRENT_TRIP.hasFloors){
         updateTripTags(); showView('view-floor'); setHash([CURRENT_TRIP.name]);
       }else{
-        updateTripTags(); showView('view-home'); setHash(['Selección de asientos', CURRENT_TRIP.name]);
+        updateTripTags(); showView('view-home'); setHash([CURRENT_TRIP.name]); // <- cambio
       }
     }
+
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
     /* ===== UI helpers ===== */
@@ -822,6 +827,9 @@
         showView('view-control');
         showLoading('Cargando ocupación…');
         setHash(['Staff', CURRENT_TRIP.name]);
+        // Fijar hoja para staff
+        var sheetStaff = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos'; }) || tr.sheets[0];
+        CURRENT_TRIP.sheetName = sheetStaff;
         refreshSeats(null, function(){ renderControlBoard(); hideLoading(); });
         return;
       }
@@ -857,10 +865,12 @@
         showView('view-floor');
         setHash([CURRENT_TRIP.name]); // /Nombre del viaje
       }else{
-        // Convencional: mostrar menú principal del viaje
+        // ⚙️ Convencional: fijar hoja y mostrar menú (Inicio)
         var sheet = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos'; }) || tr.sheets[0];
-        chooseFloor(sheet);
-        setHash(['Selección de asientos', CURRENT_TRIP.name]);
+        CURRENT_TRIP.sheetName = sheet;    // <- fijamos la hoja "Asientos"
+        updateTripTags();
+        showView('view-home');             // <- mostramos Inicio
+        setHash([CURRENT_TRIP.name]);      // <- hash plano /<Nombre del viaje>
       }
     }
 
@@ -1063,9 +1073,9 @@
           refreshSeats('grid-select', function(){ hideLoading(); }, opts);
           setHash(['Selección de asientos', CURRENT_TRIP.name, lbl]);
         } else {
-          // Convencional: mostrar menú principal
+          // ⚙️ Convencional: al fijar o cambiar hoja, seguimos mostrando Inicio
           goHome();
-          setHash(['Selección de asientos', CURRENT_TRIP.name]);
+          setHash([CURRENT_TRIP.name]); // <- cambio
         }
       }
     }
@@ -1085,8 +1095,9 @@
       showLoading('Cargando asientos…');
       var opts = await computeGridOptions();
       refreshSeats('grid-select', function(){ hideLoading(); }, opts);
+      // Hash correcto para público al entrar en selección:
       if (CURRENT_TRIP.hasFloors) setHash(['Selección de asientos', CURRENT_TRIP.name, getFloorLabelFromSheetName(CURRENT_TRIP.sheetName)]);
-      else setHash(['Selección de asientos', CURRENT_TRIP.name]);
+      else setHash(['Selección de asientos', CURRENT_TRIP.name]); // <- se usa recién acá
     }
 
     function goFind(){ if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; } showView('view-find'); clearFindView(); clearFindViewMulti(); }
@@ -1177,7 +1188,7 @@
         var right = document.createElement('div'); right.className = 'block';
         function renderSeat(letter, container){
           var code = row + letter;
-          var state = getSeatState(code); // <-- FIX aplicado
+          var state = getSeatState(code);
           var isNum = (state === 'libre' || state === 'ocupado');
           var norm = normalize(code);
           if(isNum){
