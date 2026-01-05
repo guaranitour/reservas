@@ -147,19 +147,12 @@
       width:100%; position:relative; overflow:hidden; min-height:48px;
     }
     .seat.libre{background:#e6fffa; color:#0f766e;}
-    .seat.ocupado{background:#fee2e2; color:#7f1d1d;}
+    .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;}
     .seat.seleccionado{background:#dbeafe; color:#1e40af; transform:scale(1.02);}
     .seat.inhabilitado{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
     .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
     .seat-placeholder{width:100%; min-height:48px; border-radius:12px; background:transparent; box-shadow:none; border:none; pointer-events:none;}
     .seat:active{transform:scale(0.98);}
-
-    /* Cursor por contexto */
-    #grid-select .seat.ocupado,
-    #grid-find .seat.ocupado,
-    #multiCroquis .seat.ocupado{ cursor:not-allowed; }
-    #controlCroquis .seat.ocupado,
-    #controlCroquisMulti .seat.ocupado{ cursor:pointer; }
 
     /* Resaltado (Mirá tu asiento) */
     .seat.mine{ outline:3px solid #6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15) inset; }
@@ -243,6 +236,18 @@
     #controlCroquisMulti .seat .occ-name{ margin-top:4px; font-size:.75rem; line-height:1.1; font-weight:600; color:#374151; letter-spacing:.2px; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     #controlCroquisMulti .seat.ocupado .occ-name{ color:#7f1d1d; }
 
+    /* Elegir viaje / elegir planta */
+    .trip-list{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:0 auto; }
+    .trip-card{ background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px; display:flex; flex-direction:column; gap:6px; cursor:pointer; }
+    .trip-card h3{ margin:0; font-size:1rem; }
+    .trip-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .trip-pill{ display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:4px 8px; font-size:.8rem; background:#eef2ff; color:#1e3a8a; }
+    .floors{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:12px auto 0; }
+    @media (min-width:520px){ .floors{ grid-template-columns:1fr 1fr; } }
+    .floors .card h2{ font-size:1rem; }
+    .trip-tags{ display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; }
+    .trip-tags .tag{ border-radius:999px; padding:6px 10px; font-weight:700; background:#e5e7eb; color:#374151; }
+
     /* Staff Badge */
     .staff-badge{
       position: fixed;
@@ -273,18 +278,18 @@
       color: #111827;
       white-space: nowrap;
       overflow: hidden;
-      max-width: 0;
+      max-width: 0;              /* oculto inicialmente */
       opacity: 0;
       transition: max-width .35s ease, opacity .22s ease;
     }
     #controlCroquis .seat.expanded .occ-full,
     #controlCroquisMulti .seat.expanded .occ-full{
-      max-width: 420px;
+      max-width: 420px;          /* ajustá el ancho máximo según tu layout */
       opacity: 1;
     }
     #controlCroquis .seat.expanded,
     #controlCroquisMulti .seat.expanded{
-      transform: scaleX(1.04);
+      transform: scaleX(1.04);   /* leve ensanche horizontal */
       box-shadow: 0 12px 26px rgba(17,24,39,.16);
       transition: transform .18s ease, box-shadow .22s ease;
     }
@@ -301,24 +306,6 @@
       0%   { box-shadow: 0 0 0 0 rgba(59,130,246,.28); }
       100% { box-shadow: 0 0 0 12px rgba(59,130,246,0); }
     }
-
-    /* ===== HOTFIX: Apariencia de tarjetas (Inicio) ===== */
-    .view-home .cards .card{
-      background: var(--card);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(17,24,39,.06);
-      transition: transform .15s ease, box-shadow .22s ease;
-    }
-    .view-home .cards .card:hover{
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgba(17,24,39,.12);
-    }
-    .view-home .cards .card[role="button"],
-    .view-home .cards .card{
-      cursor: pointer;
-    }
-    .view-home{ --shadow: 0 8px 20px rgba(17,24,39,.08); }
   </style>
 </head>
 <body>
@@ -358,6 +345,7 @@
       <div class="home-center" style="align-items:start;">
         <div style="max-width:680px; margin:0 auto; width:100%;">
           <h2 class="view-title">Elegí planta</h2>
+          <!-- Píldora del viaje en vista de plantas -->
           <div class="trip-tags">
             <span class="tag" id="tagTripFloor">Viaje: —</span>
           </div>
@@ -501,6 +489,7 @@
         <div id="controlToolbar" class="control-toolbar">
           <div class="control-actions">
             <button type="button" class="btn ghost" onclick="refreshControlBoardSmart()">Actualizar</button>
+            <!-- ID para cambiar etiqueta en multi -->
             <button id="btnExportPdf" type="button" class="btn primary" onclick="doExportPdfSmart()">Exportar PDF</button>
             <button id="btnEditMode" type="button" class="btn success" onclick="toggleControlEdit()">Modo edición</button>
           </div>
@@ -709,11 +698,14 @@
       var head = (segs[0] || '').trim();
       ROUTER_DRIVING = true;
       try{
+        // 1) /Inicio
         if (head.toLowerCase() === 'inicio'){
           showView('view-choose');
           await loadTrips();
           return;
         }
+
+        // 2) /Staff[/<Nombre del viaje>]
         if (head.toLowerCase() === 'staff'){
           if (segs.length === 1){
             openStaffLogin();
@@ -730,13 +722,15 @@
           selectTrip(trS);
           return;
         }
+
+        // 3) /Selección de asientos/<Nombre del viaje>[/Planta alta|Planta baja]
         if (head.toLowerCase() === 'selección de asientos'){
           var tripNameSel = segs[1];
           var trSel = await resolveTripByName(tripNameSel);
           if (!trSel){ toast('No se encontró el viaje "'+tripNameSel+'".'); backToChoose(); return; }
           CURRENT_TRIP = { fileId: trSel.fileId, name: trSel.name, sheets: trSel.sheets, sheetName: null, hasFloors: !!trSel.hasFloors };
           updateTripTags();
-          if (segs[2]){
+          if (segs[2]){ // planta en doble piso
             var floorLbl = segs[2];
             var sheet = getSheetNameFromFloorLabel(trSel, floorLbl);
             if (!sheet){ toast('No se encontró la planta en "'+trSel.name+'".'); selectTrip(trSel); return; }
@@ -752,6 +746,8 @@
           }
           return;
         }
+
+        // 4) /<Nombre del viaje> (doble piso: Elegí planta / convencional: menú Inicio)
         var trPlain = await resolveTripByName(head);
         if (!trPlain){
           backToChoose();
@@ -913,7 +909,7 @@
       return result;
     }
 
-    /* ===== Staff: expandir / colapsar detalle ===== */
+    /* ===== STAFF: expandir / colapsar detalle ===== */
     function collapseExpandedSeats(){
       var exps = document.querySelectorAll('#controlCroquis .seat.expanded, #controlCroquisMulti .seat.expanded');
       for(var i=0;i<exps.length;i++){
@@ -943,7 +939,7 @@
       }, { passive:true });
     }
 
-    /* ===== Staff: cargar ambas plantas con numeración continua ===== */
+    /* ===== STAFF: cargar ambas plantas con numeración continua ===== */
     async function refreshStaffMulti(){
       STAFF_CONTROL_MULTI = true;
       STAFF_ACTIVE_SHEET = null;
@@ -1041,7 +1037,6 @@
           btn.setAttribute('data-code',code);
           btn.setAttribute('data-sheet',sheetName);
           btn.setAttribute('data-status',klass);
-          btn.setAttribute('tabindex','0'); btn.setAttribute('role','button');
           if(isNum(klass)){
             var occFull = (seatsMap[norm] && seatsMap[norm].pasajero) || '';
             var occName = (klass==='ocupado') ? firstName(occFull) : '';
@@ -1062,10 +1057,6 @@
             if (CONTROL_EDIT) onControlSeatClick(btn);
             else toggleSeatExpand(btn);
           };
-          btn.addEventListener('touchend', function(){ if (CONTROL_EDIT) onControlSeatClick(btn); else toggleSeatExpand(btn); }, {passive:true});
-          btn.addEventListener('keydown', function(ev){
-            if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); if (CONTROL_EDIT) onControlSeatClick(btn); else toggleSeatExpand(btn); }
-          });
           container.appendChild(btn);
         }
         ['A','B'].forEach(function(l){ renderSeat(l, left); });
@@ -1670,7 +1661,6 @@
           btn.setAttribute('data-sheet', CURRENT_TRIP.sheetName || '');
           btn.setAttribute('data-code',code);
           btn.setAttribute('data-status',klass);
-          btn.setAttribute('tabindex','0'); btn.setAttribute('role','button');
           if(isNum){
             var occFull = (SEATS[norm] && SEATS[norm].pasajero) || '';
             var occName = (klass==='ocupado') ? firstName(occFull) : '';
@@ -1691,10 +1681,6 @@
             if (CONTROL_EDIT) onControlSeatClick(btn);
             else toggleSeatExpand(btn);
           };
-          btn.addEventListener('touchend', function(){ if (CONTROL_EDIT) onControlSeatClick(btn); else toggleSeatExpand(btn); }, {passive:true});
-          btn.addEventListener('keydown', function(ev){
-            if(ev.key==='Enter' || ev.key===' '){ ev.preventDefault(); if (CONTROL_EDIT) onControlSeatClick(btn); else toggleSeatExpand(btn); }
-          });
           container.appendChild(btn);
         }
         ['A','B'].forEach(function(l){ renderSeat(l,left); });
@@ -1728,7 +1714,7 @@
 
     function toggleControlEdit(){
       CONTROL_EDIT=!CONTROL_EDIT;
-      collapseExpandedSeats();
+      collapseExpandedSeats(); // asegura colapso al entrar/salir de edición
       updateEditTags(); syncToolbarUI();
       toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado');
     }
@@ -2000,7 +1986,7 @@
       var ciS = document.getElementById('ciSearch'); if (ciS) ciS.addEventListener('input', function(e){ onlyDigits(e.target); });
 
       wireAdminMenuButtons();
-      wireStaffExpandAutoCollapse();
+      wireStaffExpandAutoCollapse(); // auto-colapso global
 
       // Cargar viajes al inicio
       await loadTrips();
