@@ -144,10 +144,10 @@
     .seat{
       border:none; border-radius:12px; padding:12px; font-weight:700; box-shadow:var(--shadow);
       transition:transform .1s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
-      width:100%; position:relative; overflow:hidden; min-height:48px; /* público: hidden */
+      width:100%; position:relative; overflow:hidden; min-height:48px;
     }
     .seat.libre{background:#e6fffa; color:#0f766e;}
-    .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;} /* público: no-click */
+    .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;} /* público: bloqueado */
     .seat.seleccionado{background:#dbeafe; color:#1e40af; transform:scale(1.02);}
     .seat.inhabilitado{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
     .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
@@ -268,82 +268,47 @@
       box-shadow: var(--shadow);
     }
 
-    /* ===== Staff: expansión de asiento ocupado ===== */
-    #controlCroquis .seat .occ-full,
-    #controlCroquisMulti .seat .occ-full{
-      margin-top: 6px;
-      font-size: .82rem;
-      line-height: 1.2;
-      font-weight: 700;
-      letter-spacing: .2px;
-      color: #111827;
-      white-space: nowrap;
-      overflow: hidden;
-      max-width: 0; /* oculto inicialmente */
-      opacity: 0;
-      transition: max-width .35s ease, opacity .22s ease;
-    }
-    #controlCroquis .seat.expanded .occ-full,
-    #controlCroquisMulti .seat.expanded .occ-full{
-      max-width: 420px; /* ajustá el ancho máximo según tu layout */
-      opacity: 1;
-    }
-    #controlCroquis .seat.expanded,
-    #controlCroquisMulti .seat.expanded{
-      transform: scaleX(1.04); /* leve ensanche horizontal */
-      box-shadow: 0 12px 26px rgba(17,24,39,.16);
-      transition: transform .18s ease, box-shadow .22s ease;
-    }
-    #controlCroquis .seat.expanded::after,
-    #controlCroquisMulti .seat.expanded::after{
-      content: "";
-      position: absolute;
-      inset: -2px;
-      border-radius: 12px;
-      box-shadow: 0 0 0 0 rgba(59,130,246,.28);
-      animation: staffExpandPulse 1.4s ease-out 1;
-    }
-    @keyframes staffExpandPulse{
-      0% { box-shadow: 0 0 0 0 rgba(59,130,246,.28); }
-      100% { box-shadow: 0 0 0 12px rgba(59,130,246,0); }
-    }
+    /* ===== Staff: expansión (tooltip flotante) ===== */
 
-    /* ===== Staff overrides (PARCHE) =====
-       Estos estilos se aplican SOLO en el panel Staff para permitir clic + expansión horizontal
-       sin afectar la vista pública.
-    */
-    #controlCroquis .seat,
-    #controlCroquisMulti .seat {
-      overflow: visible;         /* habilitamos que la burbuja pueda sobresalir */
-      cursor: default;
-    }
+    /* En staff, los asientos ocupados son clickeables */
     #controlCroquis .seat.ocupado,
     #controlCroquisMulti .seat.ocupado {
-      cursor: pointer;           /* ocupados son clickeables en staff */
+      cursor: pointer;
     }
-    /* Burbuja de nombre completo: se muestra debajo del número y se anima en ancho */
-    #controlCroquis .seat .occ-full,
-    #controlCroquisMulti .seat .occ-full {
-      position: absolute;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 6px 10px;
+
+    /* Ocultar el nombre completo dentro del botón: lo usamos como fuente de texto */
+    .seat .occ-full { display:none; }
+
+    /* Tooltip flotante anclado al asiento */
+    .seat-tooltip {
+      position: fixed;
+      left: 0; top: 0;
+      transform: translate(-50%, -8px); /* centrado y un poco arriba */
       background: #fff;
-      border: 1px solid rgba(17,24,39,.10);
+      border: 1px solid rgba(17,24,39,.12);
       border-radius: 10px;
+      padding: 8px 12px;
       box-shadow: var(--shadow);
+      max-width: min(92vw, 420px);
+      white-space: nowrap;
+      font-weight: 700;
+      font-size: .9rem;
+      color: #111827;
+      opacity: 0;
       pointer-events: none;
-      z-index: 25;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index: 1000;
     }
-    #controlCroquis .seat.expanded .occ-full,
-    #controlCroquisMulti .seat.expanded .occ-full {
-      max-width: 420px;
+    .seat-tooltip.show {
       opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -12px);
     }
-    #controlCroquis .seat.expanded,
-    #controlCroquisMulti .seat.expanded {
-      transform: scaleX(1.06);
+    .seat-tooltip .meta {
+      margin-top: 4px;
+      font-weight: 600;
+      font-size: .8rem;
+      color: #6b7280;
     }
   </style>
 </head>
@@ -528,7 +493,6 @@
         <div id="controlToolbar" class="control-toolbar">
           <div class="control-actions">
             <button type="button" class="btn ghost" onclick="refreshControlBoardSmart()">Actualizar</button>
-            <!-- ID para cambiar etiqueta en multi -->
             <button id="btnExportPdf" type="button" class="btn primary" onclick="doExportPdfSmart()">Exportar PDF</button>
             <button id="btnEditMode" type="button" class="btn success" onclick="toggleControlEdit()">Modo edición</button>
           </div>
@@ -779,7 +743,7 @@
           }
           return;
         }
-        // 4) /<Nombre del viaje> (doble piso: Elegí planta / convencional: menú Inicio)
+        // 4) /<Nombre del viaje>
         var trPlain = await resolveTripByName(head);
         if (!trPlain){
           backToChoose();
@@ -797,7 +761,7 @@
     function goHome(){
       if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; }
       updateTripTags(); showView('view-home');
-      setHash([CURRENT_TRIP.name]); // hash plano /<Nombre del viaje>
+      setHash([CURRENT_TRIP.name]);
     }
     function goTripMenu(){
       if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; }
@@ -912,14 +876,13 @@
         extraBox.appendChild(findCard);
         updateTripTags();
         showView('view-floor');
-        setHash([CURRENT_TRIP.name]); // /Nombre del viaje
+        setHash([CURRENT_TRIP.name]);
       }else{
-        // Convencional: fijar hoja y mostrar Inicio
         var sheet = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos'; }) || tr.sheets[0];
         CURRENT_TRIP.sheetName = sheet;
         updateTripTags();
         showView('view-home');
-        setHash([CURRENT_TRIP.name]); // /Nombre del viaje
+        setHash([CURRENT_TRIP.name]);
       }
     }
 
@@ -935,6 +898,53 @@
       return result;
     }
 
+    /* ===== STAFF: tooltip para nombre completo ===== */
+
+    function ensureSeatTooltip(){
+      var t = document.getElementById('seatTooltip');
+      if(!t){
+        t = document.createElement('div');
+        t.id = 'seatTooltip';
+        t.className = 'seat-tooltip';
+        document.body.appendChild(t);
+      }
+      return t;
+    }
+
+    function showSeatTooltipFor(btn){
+      // solo en staff y para ocupados
+      var status = (btn.getAttribute('data-status') || '').toLowerCase().trim();
+      if (status !== 'ocupado') return;
+
+      var full = '';
+      var occSpan = btn.querySelector('.occ-full');
+      if (occSpan) full = (occSpan.textContent || '').trim();
+      if (!full) return;
+
+      var num = btn.getAttribute('data-num') || '';
+      var code = btn.getAttribute('data-code') || '';
+
+      var rect = btn.getBoundingClientRect();
+      var x = rect.left + rect.width/2;
+      var y = rect.top; // arriba del asiento
+
+      var tip = ensureSeatTooltip();
+      tip.innerHTML = '<div>'+full+'</div>' +
+                      '<div class="meta">Asiento '+code+(num?(' • N° '+num):'')+'</div>';
+      tip.style.left = Math.round(x) + 'px';
+      tip.style.top  = Math.round(y) + 'px';
+      tip.classList.add('show');
+
+      btn.classList.add('expanded');
+      btn.setAttribute('aria-expanded','true');
+    }
+
+    function hideSeatTooltip(){
+      var tip = document.getElementById('seatTooltip');
+      if (tip) tip.classList.remove('show');
+      collapseExpandedSeats();
+    }
+
     /* ===== STAFF: expandir / colapsar detalle ===== */
     function collapseExpandedSeats(){
       var exps = document.querySelectorAll('#controlCroquis .seat.expanded, #controlCroquisMulti .seat.expanded');
@@ -947,21 +957,22 @@
       if (CONTROL_EDIT) return;
       var status = (btn.getAttribute('data-status') || '').toLowerCase().trim();
       if (status !== 'ocupado') return;
+
       var isExpanded = btn.classList.contains('expanded');
-      collapseExpandedSeats();
+      hideSeatTooltip(); // cierra tooltip anterior y colapsa todas
       if (!isExpanded){
-        btn.classList.add('expanded');
-        btn.setAttribute('aria-expanded','true');
+        showSeatTooltipFor(btn);
         try { btn.scrollIntoView({behavior:'smooth', block:'center'}); } catch(e){}
       }
     }
     function wireStaffExpandAutoCollapse(){
-      window.addEventListener('scroll', collapseExpandedSeats, { passive:true });
-      window.addEventListener('touchmove', collapseExpandedSeats, { passive:true });
+      window.addEventListener('scroll', hideSeatTooltip, { passive:true });
+      window.addEventListener('touchmove', hideSeatTooltip, { passive:true });
+      window.addEventListener('resize', hideSeatTooltip, { passive:true });
       document.addEventListener('click', function(ev){
         var seat = ev.target.closest('.seat');
         var insideControl = ev.target.closest('#controlCroquis, #controlCroquisMulti');
-        if (!insideControl || !seat) collapseExpandedSeats();
+        if (!insideControl || !seat) hideSeatTooltip();
       }, { passive:true });
     }
 
@@ -1070,7 +1081,7 @@
             btn.setAttribute('data-num',seatNumber);
             btn.setAttribute('aria-label','['+sheetName+'] Asiento '+code+' ('+seatNumber+') '+klass + (occName ? (' — Ocupa: '+occName) : ''));
             btn.setAttribute('aria-expanded','false');
-            btn.disabled = false; // STAFF: ocupados y libres son clickeables
+            btn.disabled = false; // STAFF: clickeable
             seatNumber++;
           }else{
             btn.innerHTML=' ';
@@ -1276,7 +1287,7 @@
             NUM_LABELS.set(norm, seatNumber); seatNumber++;
             if(targetId === 'grid-select'){
               if(state === 'libre'){ btn.onclick = function(){ toggleSeat(code, btn); }; }
-              else { btn.disabled = true; } // PÚBLICO: ocupados no clickeables
+              else { btn.disabled = true; } // público: ocupado bloqueado
             } else { btn.disabled = true; }
             if(HIGHLIGHT_CODES.has(norm)){ btn.classList.add('mine'); }
             container.appendChild(btn);
@@ -1683,7 +1694,7 @@
             btn.setAttribute('data-num',seatNumber);
             btn.setAttribute('aria-label','Asiento '+code+' ('+seatNumber+') '+klass + (occName ? (' — Ocupa: '+occName) : ''));
             btn.setAttribute('aria-expanded','false');
-            btn.disabled = false; // STAFF: ocupados y libres son clickeables
+            btn.disabled = false; // STAFF: clickeable
             NUM_LABELS.set(norm,seatNumber); seatNumber++;
           }else{
             btn.innerHTML=' ';
@@ -1720,12 +1731,12 @@
       document.getElementById('controlCroquisMulti').innerHTML='';
       var fb=document.getElementById('pdfLinkFallback');
       fb.classList.add('hidden'); fb.innerHTML='';
-      collapseExpandedSeats();
+      hideSeatTooltip();
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
     }
     function toggleControlEdit(){
       CONTROL_EDIT=!CONTROL_EDIT;
-      collapseExpandedSeats(); // asegura colapso al entrar/salir de edición
+      hideSeatTooltip(); // asegura colapso al entrar/salir de edición
       updateEditTags(); syncToolbarUI();
       toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado');
     }
@@ -1994,12 +2005,10 @@
       var ciS = document.getElementById('ciSearch'); if (ciS) ciS.addEventListener('input', function(e){ onlyDigits(e.target); });
 
       wireAdminMenuButtons();
-      wireStaffExpandAutoCollapse(); // auto-colapso global
+      wireStaffExpandAutoCollapse();
 
-      // Cargar viajes al inicio
       await loadTrips();
 
-      // Enrutado inicial + cambios de hash
       window.addEventListener('hashchange', function(){ if (!ROUTER_DRIVING) routeTo(location.hash); }, { passive:true });
       await routeTo(location.hash);
 
