@@ -147,7 +147,7 @@
       width:100%; position:relative; overflow:hidden; min-height:48px;
     }
     .seat.libre{background:#e6fffa; color:#0f766e;}
-    .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;} /* público: bloqueado */
+    .seat.ocupado{background:#fee2e2; color:#7f1d1d; cursor:not-allowed;} /* público */
     .seat.seleccionado{background:#dbeafe; color:#1e40af; transform:scale(1.02);}
     .seat.inhabilitado{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
     .seat.inexistente{background:#f3f4f6; color:#6b7280; cursor:not-allowed; opacity:.9;}
@@ -269,21 +269,16 @@
     }
 
     /* ===== Staff: expansión (tooltip flotante) ===== */
-
-    /* En staff, los asientos ocupados son clickeables */
     #controlCroquis .seat.ocupado,
     #controlCroquisMulti .seat.ocupado {
-      cursor: pointer;
+      cursor: pointer; /* en Staff, ocupados son clickeables */
     }
+    .seat .occ-full { display:none; } /* lo usamos sólo como fuente del texto */
 
-    /* Ocultar el nombre completo dentro del botón: lo usamos como fuente de texto */
-    .seat .occ-full { display:none; }
-
-    /* Tooltip flotante anclado al asiento */
     .seat-tooltip {
       position: fixed;
       left: 0; top: 0;
-      transform: translate(-50%, -8px); /* centrado y un poco arriba */
+      transform: translate(-50%, -8px); /* centrado horizontal y un poco arriba */
       background: #fff;
       border: 1px solid rgba(17,24,39,.12);
       border-radius: 10px;
@@ -309,6 +304,28 @@
       font-weight: 600;
       font-size: .8rem;
       color: #6b7280;
+    }
+
+    /* ===== Staff: expansión de asiento ocupado (visuales existentes) ===== */
+    #controlCroquis .seat .occ-full,
+    #controlCroquisMulti .seat .occ-full{
+      margin-top: 6px;
+      font-size: .82rem;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: .2px;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      max-width: 0; /* oculto inicialmente, pero lo reemplazamos por tooltip */
+      opacity: 0;
+      transition: max-width .35s ease, opacity .22s ease;
+    }
+    #controlCroquis .seat.expanded .occ-full,
+    #controlCroquisMulti .seat.expanded .occ-full{
+      /* mantenido por compatibilidad, aunque usamos tooltip */
+      max-width: 420px;
+      opacity: 1;
     }
   </style>
 </head>
@@ -899,7 +916,6 @@
     }
 
     /* ===== STAFF: tooltip para nombre completo ===== */
-
     function ensureSeatTooltip(){
       var t = document.getElementById('seatTooltip');
       if(!t){
@@ -910,9 +926,7 @@
       }
       return t;
     }
-
     function showSeatTooltipFor(btn){
-      // solo en staff y para ocupados
       var status = (btn.getAttribute('data-status') || '').toLowerCase().trim();
       if (status !== 'ocupado') return;
 
@@ -921,12 +935,12 @@
       if (occSpan) full = (occSpan.textContent || '').trim();
       if (!full) return;
 
-      var num = btn.getAttribute('data-num') || '';
+      var num  = btn.getAttribute('data-num')  || '';
       var code = btn.getAttribute('data-code') || '';
 
       var rect = btn.getBoundingClientRect();
       var x = rect.left + rect.width/2;
-      var y = rect.top; // arriba del asiento
+      var y = rect.top;
 
       var tip = ensureSeatTooltip();
       tip.innerHTML = '<div>'+full+'</div>' +
@@ -938,7 +952,6 @@
       btn.classList.add('expanded');
       btn.setAttribute('aria-expanded','true');
     }
-
     function hideSeatTooltip(){
       var tip = document.getElementById('seatTooltip');
       if (tip) tip.classList.remove('show');
@@ -959,10 +972,10 @@
       if (status !== 'ocupado') return;
 
       var isExpanded = btn.classList.contains('expanded');
-      hideSeatTooltip(); // cierra tooltip anterior y colapsa todas
+      hideSeatTooltip(); // cerramos lo anterior
       if (!isExpanded){
         showSeatTooltipFor(btn);
-        try { btn.scrollIntoView({behavior:'smooth', block:'center'}); } catch(e){}
+        // SIN scrollIntoView: mostramos de una y no disparamos el auto-colapso por scroll
       }
     }
     function wireStaffExpandAutoCollapse(){
@@ -1736,7 +1749,7 @@
     }
     function toggleControlEdit(){
       CONTROL_EDIT=!CONTROL_EDIT;
-      hideSeatTooltip(); // asegura colapso al entrar/salir de edición
+      hideSeatTooltip(); // colapsa tooltip al entrar/salir de edición
       updateEditTags(); syncToolbarUI();
       toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado');
     }
