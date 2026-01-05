@@ -158,6 +158,7 @@
     .seat.mine{ outline:3px solid #6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15) inset; }
     .seat.mine::after{ content:""; position:absolute; inset:0; border-radius:12px; box-shadow:0 0 0 0 rgba(99,102,241,.25); animation:pulse 1.8s ease-in-out infinite; }
     @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(99,102,241,.25);} 70%{box-shadow:0 0 0 10px rgba(99,102,241,0);} 100%{box-shadow:0 0 0 0 rgba(99,102,241,0);} }
+
     .nums{display:flex; gap:10px; flex-wrap:wrap;}
     .nums .pill{background:#eef2ff; color:#1e3a8a; border-radius:999px; padding:6px 10px; font-weight:700; display:inline-flex;}
 
@@ -278,18 +279,18 @@
       color: #111827;
       white-space: nowrap;
       overflow: hidden;
-      max-width: 0;              /* oculto inicialmente */
+      max-width: 0; /* oculto inicialmente */
       opacity: 0;
       transition: max-width .35s ease, opacity .22s ease;
     }
     #controlCroquis .seat.expanded .occ-full,
     #controlCroquisMulti .seat.expanded .occ-full{
-      max-width: 420px;          /* ajustá el ancho máximo según tu layout */
+      max-width: 420px; /* ajustá el ancho máximo según tu layout */
       opacity: 1;
     }
     #controlCroquis .seat.expanded,
     #controlCroquisMulti .seat.expanded{
-      transform: scaleX(1.04);   /* leve ensanche horizontal */
+      transform: scaleX(1.04); /* leve ensanche horizontal */
       box-shadow: 0 12px 26px rgba(17,24,39,.16);
       transition: transform .18s ease, box-shadow .22s ease;
     }
@@ -303,7 +304,7 @@
       animation: staffExpandPulse 1.4s ease-out 1;
     }
     @keyframes staffExpandPulse{
-      0%   { box-shadow: 0 0 0 0 rgba(59,130,246,.28); }
+      0% { box-shadow: 0 0 0 0 rgba(59,130,246,.28); }
       100% { box-shadow: 0 0 0 12px rgba(59,130,246,0); }
     }
   </style>
@@ -542,12 +543,10 @@
       }
       return '?' + q.join('&');
     }
-
     async function parseResponse(res) {
       const text = await res.text();
       try { return JSON.parse(text); } catch { return text; }
     }
-
     function withCommonParams(extra) {
       var base = { api: '1' };
       extra = extra || {};
@@ -555,11 +554,9 @@
       if (API_KEY) base.apiKey = API_KEY;
       return base;
     }
-
     function getUrl(action, extraParams) {
       return BASE_URL + QS(withCommonParams(Object.assign({ action: action }, (extraParams || {}))));
     }
-
     function postOptions(payloadObj) {
       return {
         method: 'POST',
@@ -642,10 +639,10 @@
     /* ===== Router por hash ===== */
     var TRIPS_CACHE = [];
     var ROUTER_DRIVING = false;
-    function buildHash(segments){ return '#/' + (segments||[]).map(function(s){ return encodeURIComponent(String(s||'')); }).join('/'); }
+    function buildHash(segments){ return '#/' + (segments || []).map(function(s){ return encodeURIComponent(String(s || '')); }).join('/'); }
     function setHash(segments){ if (ROUTER_DRIVING) return; location.hash = buildHash(segments); }
     function getHashSegments(h){
-      var raw = String(h || location.hash || '').replace(/^#\/?/, '');
+      var raw = String(h || location.hash || '').replace(/^\#\/?/, '');
       if (!raw) return [];
       return raw.split('/').map(function(p){ try { return decodeURIComponent(p); } catch(e){ return p; } });
     }
@@ -704,7 +701,6 @@
           await loadTrips();
           return;
         }
-
         // 2) /Staff[/<Nombre del viaje>]
         if (head.toLowerCase() === 'staff'){
           if (segs.length === 1){
@@ -722,7 +718,6 @@
           selectTrip(trS);
           return;
         }
-
         // 3) /Selección de asientos/<Nombre del viaje>[/Planta alta|Planta baja]
         if (head.toLowerCase() === 'selección de asientos'){
           var tripNameSel = segs[1];
@@ -746,7 +741,6 @@
           }
           return;
         }
-
         // 4) /<Nombre del viaje> (doble piso: Elegí planta / convencional: menú Inicio)
         var trPlain = await resolveTripByName(head);
         if (!trPlain){
@@ -762,13 +756,11 @@
 
     /* ===== Navegación (vistas) ===== */
     function showView(id){ var els=document.querySelectorAll('.view'); for(var i=0;i<els.length;i++){ els[i].classList.remove('active'); } document.getElementById(id).classList.add('active'); }
-
     function goHome(){
       if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; }
       updateTripTags(); showView('view-home');
       setHash([CURRENT_TRIP.name]); // hash plano /<Nombre del viaje>
     }
-
     function goTripMenu(){
       if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; }
       if(CURRENT_TRIP.hasFloors){
@@ -777,7 +769,6 @@
         updateTripTags(); showView('view-home'); setHash([CURRENT_TRIP.name]);
       }
     }
-
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
     /* ===== UI helpers ===== */
@@ -828,14 +819,12 @@
       }catch(err){ toast('No se pudieron cargar los viajes'); }
       finally{ hideLoading(); }
     }
-
     function backToChoose(){
       CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false };
       STAFF_CONTROL_MULTI = false; STAFF_ACTIVE_SHEET = null;
       showView('view-choose');
       setHash(['Inicio']);
     }
-
     function selectTrip(tr){
       CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
 
@@ -868,7 +857,6 @@
         if(bajaName) candidates.push({ label:'Planta baja', sheetName:bajaName, desc:'Acceso rápido, usualmente cerca del conductor.' });
         if(altaName) candidates.push({ label:'Planta alta', sheetName:altaName, desc:'Mayor altura y vista panorámica.' });
         if(!candidates.length){ tr.sheets.forEach(function(s){ candidates.push({ label:s, sheetName:s, desc:null }); }); }
-
         function makeCard(label, desc, onClick){
           var card = document.createElement('article'); card.className='card'; card.tabIndex=0; card.setAttribute('role','button');
           var h2 = document.createElement('h2'); h2.textContent = label;
@@ -959,7 +947,6 @@
       renderControlBoardMulti();
       attachStickyAnimation();
     }
-
     function countActiveNumbersInMap(seatsMap){
       var rows = getRowsToRenderFromMap(seatsMap);
       var count = 0;
@@ -972,7 +959,6 @@
       });
       return count;
     }
-
     function renderControlBoardMulti(){
       var board = document.getElementById('controlBoard');
       var container = document.getElementById('controlCroquisMulti');
@@ -1010,7 +996,6 @@
       }
       board.scrollIntoView({behavior:'smooth'});
     }
-
     function buildControlGridForSheet(gridEl, sheetName, seatsMap, startNumber){
       gridEl.innerHTML = '';
       var rows = getRowsToRenderFromMap(seatsMap);
@@ -1086,7 +1071,6 @@
         return count;
       }catch(e){ return 0; }
     }
-
     async function computeGridOptions(){
       if(!CURRENT_TRIP.hasFloors) return { offset:0, hideMissing:true };
       var floors = getFloorSheets();
@@ -1098,7 +1082,6 @@
       }
       return { offset:0, hideMissing:true };
     }
-
     function computeClassForWith(seatsMap, code){
       var key = normalize(code);
       if(!seatsMap.hasOwnProperty(key)) return 'inexistente';
@@ -1137,7 +1120,6 @@
         }
       }
     }
-
     function updateTripTags(){
       var tagTrip = document.getElementById('tagTrip');
       var tagTripFloor = document.getElementById('tagTripFloor');
@@ -1146,7 +1128,6 @@
       if (tagTripFloor) tagTripFloor.textContent = text;
       syncStaffBadge();
     }
-
     async function goSelect(){
       if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; }
       showView('view-select');
@@ -1156,7 +1137,6 @@
       if (CURRENT_TRIP.hasFloors) setHash(['Selección de asientos', CURRENT_TRIP.name, getFloorLabelFromSheetName(CURRENT_TRIP.sheetName)]);
       else setHash(['Selección de asientos', CURRENT_TRIP.name]);
     }
-
     function goFind(){ if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; } showView('view-find'); clearFindView(); clearFindViewMulti(); }
     function goControl(){ openStaffLogin(); }
     function goToControlBoard(){
@@ -1189,12 +1169,10 @@
         if (typeof onDone === 'function') { try { onDone(); } catch(e){} }
       }
     }
-
     async function refreshSeatsWithSpinner(targetId, onDone, gridOptions){
       showLoading('Actualizando asientos…');
       await refreshSeats(targetId, function(){ hideLoading(); if (typeof onDone === 'function') onDone(); }, gridOptions);
     }
-
     function getRowsToRenderFromMap(seatsMap){
       var rows = new Set();
       Object.keys(seatsMap || {}).forEach(function(code){
@@ -1207,7 +1185,6 @@
       return Array.from(rows).sort(function(a,b){ return a-b; });
     }
     function getRowsToRender(){ return getRowsToRenderFromMap(SEATS); }
-
     function computeClassFor(code){
       var key = normalize(code);
       var s = SEATS[key];
@@ -1234,15 +1211,19 @@
       options = options || {};
       var offset = options.offset || 0;
       var hideMissing = (typeof options.hideMissing==='undefined') ? true : !!options.hideMissing;
+
       var grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
+
       var rows = getRowsToRender();
       if(rows.length === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
+
       var seatNumber = 1 + offset;
       rows.forEach(function(row){
         var rowEl = document.createElement('div'); rowEl.className = 'row';
         var left = document.createElement('div'); left.className = 'block';
         var right = document.createElement('div'); right.className = 'block';
+
         function renderSeat(letter, container){
           var code = row + letter;
           var state = getSeatState(code);
@@ -1281,12 +1262,14 @@
           btn3.disabled = true;
           container.appendChild(btn3);
         }
+
         ['A','B'].forEach(function(l){ renderSeat(l, left); });
         var aisle = document.createElement('div'); aisle.className = 'aisle';
         ['C','D'].forEach(function(l){ renderSeat(l, right); });
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
         grid.appendChild(rowEl);
       });
+
       if(HIGHLIGHT_CODES.size){
         var first = grid.querySelector('.seat.mine');
         if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
@@ -1303,13 +1286,13 @@
       else { selected.add(key); el.classList.add('seleccionado'); }
       updateAssignVisibility();
     }
-
     async function startSelection(){
       if(BUSY) return;
       if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
       var nombre = document.getElementById('nombrePrincipal').value.trim();
       var ci = document.getElementById('ciPrincipal').value.trim();
       if(!nombre || !ci){ toast('Completá nombre y CI'); return; }
+
       if(selected.size === 1){
         var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
         var pairs = [{ asiento: onlyNorm, pasajero: nombre, ci: ci }];
@@ -1322,6 +1305,7 @@
         finally{ hideLoading(); BUSY = false; }
         return;
       }
+
       var assign = document.getElementById('assignList'); assign.innerHTML = '';
       var codes = Array.from(selected);
       for(var i=0;i<codes.length;i++){
@@ -1345,7 +1329,6 @@
       document.getElementById('view-assign').classList.remove('hidden');
       document.getElementById('view-assign').scrollIntoView({behavior:'smooth'});
     }
-
     async function confirmReservation(){
       if(BUSY) return;
       var inputs = document.querySelectorAll('#assignList .assign-row');
@@ -1367,7 +1350,6 @@
       }catch(err){ toast('No se pudo reservar'); }
       finally{ hideLoading(); BUSY = false; }
     }
-
     function showReserveFeedbackDetailed(pairs){
       var panel = document.getElementById('reserveFeedback'); var nums = document.getElementById('reserveNums'); nums.innerHTML = '';
       (pairs || []).forEach(function(p){
@@ -1404,7 +1386,6 @@
       }catch(err){ toast('Error al buscar por CI'); }
       finally{ hideLoading(); }
     }
-
     function computeNumbersForCodes(codes){
       NUM_LABELS = new Map();
       var rows = getRowsToRender();
@@ -1420,7 +1401,6 @@
       });
       return codes.map(function(c){ return NUM_LABELS.get(c); }).filter(function(n){ return typeof n !== 'undefined'; });
     }
-
     function renderFindFeedback(nums){
       var panel = document.getElementById('findFeedback');
       var list = document.getElementById('findNums');
@@ -1433,7 +1413,6 @@
         panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true;
       }
     }
-
     function showCroquisForCI(){
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', function(){
@@ -1444,7 +1423,6 @@
         toast('Resaltados: ' + HIGHLIGHT_CODES.size);
       });
     }
-
     function clearFindView(){
       document.getElementById('findFeedback').classList.add('hidden');
       document.getElementById('findNums').innerHTML = '';
@@ -1490,7 +1468,6 @@
         hideLoading();
       }
     }
-
     function computeNumbersForCodesWith(seatsMap, codes){
       var rows = getRowsToRenderFromMap(seatsMap);
       var seatNumber = 1;
@@ -1506,7 +1483,6 @@
       });
       return codes.map(function(c){ return labels.get(c); }).filter(function(n){ return typeof n !== 'undefined'; });
     }
-
     function renderFindFeedbackMulti(){
       clearFindView();
       var panel = document.getElementById('multiFeedback');
@@ -1544,7 +1520,6 @@
       btn.disabled = (totalResults === 0);
       panel.scrollIntoView({behavior:'smooth'});
     }
-
     async function showCroquisForCIMulti(){
       showLoading('Cargando croquis…');
       var container = document.getElementById('multiCroquis');
@@ -1583,7 +1558,6 @@
       if (firstMarked) { firstMarked.scrollIntoView({ behavior:'smooth', block:'center' }); }
       else { container.scrollIntoView({ behavior:'smooth', block:'start' }); }
     }
-
     function buildGridCustom(targetId, seatsMap, highlightSet){
       var grid = document.getElementById(targetId); if(!grid) return;
       grid.innerHTML = '';
@@ -1623,7 +1597,6 @@
       var first = grid.querySelector('.seat.mine');
       if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
     }
-
     function clearFindViewMulti(){
       document.getElementById('multiFeedback').classList.add('hidden');
       document.getElementById('multiNums').innerHTML = '';
@@ -1692,7 +1665,6 @@
       board.scrollIntoView({behavior:'smooth'});
       attachStickyAnimation();
     }
-
     function getMaxRow(){ var maxRow = 0; Object.keys(SEATS).forEach(function(code){ var m = code.match(/^(\d+)[A-Z]$/); if(m){ var row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow || 0; }
     function attachStickyAnimation(){
       var toolbar = document.getElementById('controlToolbar');
@@ -1711,14 +1683,12 @@
       collapseExpandedSeats();
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
     }
-
     function toggleControlEdit(){
       CONTROL_EDIT=!CONTROL_EDIT;
       collapseExpandedSeats(); // asegura colapso al entrar/salir de edición
       updateEditTags(); syncToolbarUI();
       toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado');
     }
-
     function onControlSeatClick(btn){
       if(!CONTROL_EDIT) return;
       var status=(btn.getAttribute('data-status') || 'libre').toLowerCase().trim();
@@ -1855,7 +1825,6 @@
         hideLoading();
       }
     }
-
     async function refreshControlBoardSmart(){
       if (STAFF_CONTROL_MULTI) {
         await refreshStaffMulti();
@@ -1879,7 +1848,6 @@
       if (bInicio) bInicio.addEventListener('click', function(){ try { backToChoose(); hideAdminMenu(); } catch(e){} });
       if (bLogout) bLogout.addEventListener('click', function(){ try { doControlLogout(); hideAdminMenu(); } catch(e){} });
     }
-
     // Exponer funciones al scope global
     window.openStaffLogin = openStaffLogin;
     window.doControlLogout = doControlLogout;
