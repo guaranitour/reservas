@@ -305,7 +305,7 @@
   </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
-  <script src="https://le.com/gsi/client</script>
+  https://accounts.google.com/gsi/client</script>
 </head>
 <body>
   <!-- Header -->
@@ -513,7 +513,7 @@
 
   <!-- ===== api.js ===== -->
   <script>
-    const BASE_URL = 'https://script.google.com/macros/s/AKfycbxp22XHzfE8JLdVkePwa6xq4ixw3xhCoxioqplh_BkzMCwLCiYAql52xwmYRnpcN475/exec';
+    const BASE_URL = 'https://script.google.com/macros/s/AKfycbwISHGDNXijS6OcLQ8j_afWZmTiPY-TFImEygbo8ZW5bipRYiI9e940LwYfeDKx0g2b/exec';
     const API_KEY = null;
 
     function QS(params){
@@ -548,7 +548,7 @@
       };
     }
 
-    // === API (público) ===
+    // === API (sin cambios públicos) ===
     async function apiGetTrips(folderId) {
       const res = await fetch(getUrl('trips', { folderId: folderId }));
       if (!res.ok) throw new Error('GET trips: ' + res.status);
@@ -739,7 +739,7 @@
     }
 
     /* ===== Navegación (vistas) ===== */
-    function showView(id){ var els=document.querySelectorAll('.view'); for(var i=0;i<els.length;i++){ els[i].classList.remove('active'); } document.getElementById(id).classList.add('active'); }
+    function showView(id){ var els=document.querySelectorAll('.view'); for(var i=0;i<els.length;i++){ els[i].classList.remove('active'); } var el = document.getElementById(id); if (el) el.classList.add('active'); }
     function goHome(){
       if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; }
       updateTripTags(); showView('view-home');
@@ -756,17 +756,17 @@
     function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); }
 
     /* ===== UI helpers ===== */
-    function toast(msg){ var bar = document.getElementById('snackbar'); bar.textContent = msg; bar.classList.add('show'); setTimeout(function(){ bar.classList.remove('show'); }, 2800); }
-    function showLoading(msg){ var ov = document.getElementById('overlay'); ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
-    function hideLoading(){ var ov = document.getElementById('overlay'); ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); }
+    function toast(msg){ var bar = document.getElementById('snackbar'); if(!bar) return; bar.textContent = msg; bar.classList.add('show'); setTimeout(function(){ bar.classList.remove('show'); }, 2800); }
+    function showLoading(msg){ var ov = document.getElementById('overlay'); if(!ov) return; ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
+    function hideLoading(){ var ov = document.getElementById('overlay'); if(!ov) return; ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); }
     function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
     function firstName(full){ var t = (full || '').trim(); if(!t) return ''; var name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
     /* ===== Admin (Easter Egg) ===== */
-    function showAdminMenu(){ document.getElementById('adminMenu').classList.remove('hidden'); }
-    function hideAdminMenu(){ document.getElementById('adminMenu').classList.add('hidden'); }
-    function toggleAdminMenu(){ document.getElementById('adminMenu').classList.toggle('hidden'); }
+    function showAdminMenu(){ var m = document.getElementById('adminMenu'); if (m) m.classList.remove('hidden'); }
+    function hideAdminMenu(){ var m = document.getElementById('adminMenu'); if (m) m.classList.add('hidden'); }
+    function toggleAdminMenu(){ var m = document.getElementById('adminMenu'); if (m) m.classList.toggle('hidden'); }
     function updateAdminMenu(){
       var bLogin = document.getElementById('btnAdminLogin');
       var bPanel = document.getElementById('btnAdminControl');
@@ -777,7 +777,7 @@
       bPanel.classList.toggle('hidden', !isAuth);
       bLogout.classList.toggle('hidden', !isAuth);
     }
-    function syncStaffBadge(){ var el = document.getElementById('staffBadge'); if (!el) return; el.classList.toggle('hidden', !CONTROL_AUTH); }
+    function syncStaffBadge(){ var el = document.getElementById('staffBadge'); if (el) el.classList.toggle('hidden', !CONTROL_AUTH); }
 
     // ====== GIS: estado Staff (frontend)
     const GOOGLE_CLIENT_ID = '273442733710-1eqf1erm1vl9vsad2lb4krennldt1jhf.apps.googleusercontent.com';
@@ -799,7 +799,7 @@
         var payload = await API.apiGetTrips();
         var trips = payload.trips || [];
         TRIPS_CACHE = trips;
-        var list = document.getElementById('tripList'); list.innerHTML = '';
+        var list = document.getElementById('tripList'); if(!list) return; list.innerHTML = '';
         trips.forEach(function(tr){
           var card = document.createElement('div'); card.className='trip-card'; card.tabIndex=0;
           var head = document.createElement('div'); head.className='trip-head';
@@ -842,8 +842,8 @@
         return;
       }
       if(CURRENT_TRIP.hasFloors){
-        var floorBox = document.getElementById('floorCards'); floorBox.innerHTML = '';
-        var extraBox = document.getElementById('floorFindCard'); extraBox.innerHTML = '';
+        var floorBox = document.getElementById('floorCards'); if (floorBox) floorBox.innerHTML = '';
+        var extraBox = document.getElementById('floorFindCard'); if (extraBox) extraBox.innerHTML = '';
         var bajaName = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos baja'; });
         var altaName = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos alta'; });
         var candidates = [];
@@ -861,10 +861,10 @@
         }
         candidates.forEach(function(c){
           var el = makeCard(c.label, c.desc ? c.desc : ('Hoja: ' + c.sheetName), function(){ chooseFloor(c.sheetName); });
-          floorBox.appendChild(el);
+          if (floorBox) floorBox.appendChild(el);
         });
         var findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', function(){ goFind(); });
-        extraBox.appendChild(findCard);
+        if (extraBox) extraBox.appendChild(findCard);
         updateTripTags();
         showView('view-floor');
         setHash([CURRENT_TRIP.name]);
@@ -962,7 +962,8 @@
       STAFF_SEATS_BY_SHEET = new Map();
       var container = document.getElementById('controlCroquisMulti');
       var single = document.getElementById('controlCroquis');
-      container.innerHTML = ''; single.innerHTML = '';
+      if (container) container.innerHTML = '';
+      if (single) single.innerHTML = '';
       for (var i=0;i<STAFF_SHEETS.length;i++){
         var f = STAFF_SHEETS[i];
         var resp = await API.apiGetSeats(CURRENT_TRIP.fileId, f.sheetName);
@@ -990,9 +991,9 @@
       var board = document.getElementById('controlBoard');
       var container = document.getElementById('controlCroquisMulti');
       var fb = document.getElementById('pdfLinkFallback');
-      board.hidden = false;
-      container.innerHTML = '';
-      fb.classList.add('hidden'); fb.innerHTML = '';
+      if (board) board.hidden = false;
+      if (container) container.innerHTML = '';
+      if (fb) { fb.classList.add('hidden'); fb.innerHTML = ''; }
       CONTROL_EDIT = false; EDIT_SRC = null; EDIT_DST = null; updateEditTags(); syncToolbarUI();
       var btnExp = document.getElementById('btnExportPdf'); if (btnExp) btnExp.textContent = 'Exportar PDF (todas las plantas)';
       var ordered = [];
@@ -1016,12 +1017,12 @@
         grid.setAttribute('aria-live','polite');
         section.appendChild(title);
         section.appendChild(grid);
-        container.appendChild(section);
+        if (container) container.appendChild(section);
         buildControlGridForSheet(grid, f.sheetName, seatsMap, seatOffset);
         var added = countActiveNumbersInMap(seatsMap);
         seatOffset += added;
       }
-      board.scrollIntoView({behavior:'smooth'});
+      if (board) board.scrollIntoView({behavior:'smooth'});
     }
     function buildControlGridForSheet(gridEl, sheetName, seatsMap, startNumber){
       gridEl.innerHTML = '';
@@ -1632,11 +1633,13 @@
       var croquis= document.getElementById('controlCroquis');
       var multi = document.getElementById('controlCroquisMulti');
       var fb = document.getElementById('pdfLinkFallback');
-      board.hidden = false; croquis.innerHTML = ''; multi.innerHTML = '';
-      fb.classList.add('hidden'); fb.innerHTML = '';
+      if (board) board.hidden = false;
+      if (croquis) croquis.innerHTML = '';
+      if (multi) multi.innerHTML = '';
+      if (fb) { fb.classList.add('hidden'); fb.innerHTML = ''; }
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
       var btnExp = document.getElementById('btnExportPdf'); if (btnExp) btnExp.textContent = 'Exportar PDF';
-      var maxRow = getMaxRow(); if(maxRow === 0){ croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
+      var maxRow = getMaxRow(); if(maxRow === 0){ if(croquis) croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
       NUM_LABELS = new Map(); var seatNumber = 1;
       for(var row=1; row<=maxRow; row++){
         var rowEl=document.createElement('div'); rowEl.className='row';
@@ -1679,26 +1682,28 @@
         var aisle=document.createElement('div'); aisle.className='aisle';
         ['C','D'].forEach(function(l){ renderSeat(l,right); });
         rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right);
-        croquis.appendChild(rowEl);
+        if (croquis) croquis.appendChild(rowEl);
       }
-      board.scrollIntoView({behavior:'smooth'});
+      if (board) board.scrollIntoView({behavior:'smooth'});
       attachStickyAnimation();
     }
     function getMaxRow(){ var maxRow = 0; Object.keys(SEATS).forEach(function(code){ var m = code.match(/^(\d+)[A-Z]$/); if(m){ var row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow || 0; }
     function attachStickyAnimation(){
       var toolbar = document.getElementById('controlToolbar');
-      function onScroll(){ var y=window.scrollY; if(y>24){ toolbar.classList.add('scrolled'); } else { toolbar.classList.remove('scrolled'); } }
+      function onScroll(){ var y=window.scrollY; if(y>24){ if(toolbar) toolbar.classList.add('scrolled'); } else { if(toolbar) toolbar.classList.remove('scrolled'); } }
       window.removeEventListener('scroll', onScroll);
       window.addEventListener('scroll', onScroll, { passive:true });
       onScroll();
     }
     function hideControlBoard(){
       var board = document.getElementById('controlBoard');
-      board.hidden = true;
-      document.getElementById('controlCroquis').innerHTML='';
-      document.getElementById('controlCroquisMulti').innerHTML='';
+      if (board) board.hidden = true;
+      var c1 = document.getElementById('controlCroquis');
+      var c2 = document.getElementById('controlCroquisMulti');
+      if (c1) c1.innerHTML='';
+      if (c2) c2.innerHTML='';
       var fb=document.getElementById('pdfLinkFallback');
-      fb.classList.add('hidden'); fb.innerHTML='';
+      if (fb) { fb.classList.add('hidden'); fb.innerHTML=''; }
       hideSeatTooltip();
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
     }
@@ -1727,8 +1732,8 @@
     }
     function updateEditTags(){
       var tagSrc=document.getElementById('tagSrc'), tagDst=document.getElementById('tagDst');
-      tagSrc.textContent='Origen: ' + (EDIT_SRC ? (EDIT_SRC.num + ' • ' + EDIT_SRC.code) : '—');
-      tagDst.textContent='Destino: ' + (EDIT_DST ? (EDIT_DST.num + ' • ' + EDIT_DST.code) : '—');
+      if (tagSrc) tagSrc.textContent='Origen: ' + (EDIT_SRC ? (EDIT_SRC.num + ' • ' + EDIT_SRC.code) : '—');
+      if (tagDst) tagDst.textContent='Destino: ' + (EDIT_DST ? (EDIT_DST.num + ' • ' + EDIT_DST.code) : '—');
     }
     function syncToolbarUI(){
       var btnEdit=document.getElementById('btnEditMode');
@@ -1747,16 +1752,18 @@
       }
 
       var toolbar=document.getElementById('controlToolbar');
-      toolbar.classList.toggle('editing', CONTROL_EDIT);
+      if (toolbar) toolbar.classList.toggle('editing', CONTROL_EDIT);
       if(CONTROL_EDIT){
-        btnEdit.classList.add('danger'); btnEdit.textContent='Salir de edición';
+        if (btnEdit){ btnEdit.classList.add('danger'); btnEdit.textContent='Salir de edición'; }
         var canMove = EDIT_SRC && EDIT_DST && (!STAFF_CONTROL_MULTI || (EDIT_SRC.sheet === EDIT_DST.sheet));
-        btnMove.disabled=!canMove;
-        btnFree.disabled=!EDIT_SRC;
-        btnCancel.disabled=false;
+        if (btnMove) btnMove.disabled=!canMove;
+        if (btnFree) btnFree.disabled=!EDIT_SRC;
+        if (btnCancel) btnCancel.disabled=false;
       }else{
-        btnEdit.classList.remove('danger'); btnEdit.textContent='Modo edición';
-        btnMove.disabled=true; btnFree.disabled=true; btnCancel.disabled=true;
+        if (btnEdit){ btnEdit.classList.remove('danger'); btnEdit.textContent='Modo edición'; }
+        if (btnMove) btnMove.disabled=true;
+        if (btnFree) btnFree.disabled=true;
+        if (btnCancel) btnCancel.disabled=true;
       }
     }
     function cancelEdit(silent){
@@ -1829,8 +1836,10 @@
                 var u = urls[k];
                 listHtml += '<li><a href="'+u.url+'" target="_blank" rel="noopener">'+u.label+'</a></li>';
               }
-              fb.innerHTML='Tus PDFs están listos:<ul style="margin:8px 0;padding-left:16px;">'+listHtml+'</ul>';
-              fb.classList.remove('hidden');
+              if (fb) {
+                fb.innerHTML='Tus PDFs están listos:<ul style="margin:8px 0;padding-left:16px;">'+listHtml+'</ul>';
+                fb.classList.remove('hidden');
+              }
             } else {
               toast('PDFs listos ('+urls.length+')');
             }
@@ -1844,8 +1853,10 @@
             var newWin=window.open(resp2.url,'_blank');
             if(!newWin){
               var fb2=document.getElementById('pdfLinkFallback');
-              fb2.innerHTML='Tu PDF está listo: <a href="'+resp2.url+'" target="_blank" rel="noopener">Abrir PDF</a>';
-              fb2.classList.remove('hidden');
+              if (fb2) {
+                fb2.innerHTML='Tu PDF está listo: <a href="'+resp2.url+'" target="_blank" rel="noopener">Abrir PDF</a>';
+                fb2.classList.remove('hidden');
+              }
             }else{
               toast('PDF listo');
             }
@@ -1892,6 +1903,7 @@
       const box = document.getElementById('googleSignIn');
       if (!box) return;
       box.innerHTML = '';
+      if (!(window.google && google.accounts && google.accounts.id)) return;
       google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse,
@@ -1967,54 +1979,69 @@
     }
 
     /* ===== Inicio ===== */
-    (async function init(){
-      var chip = document.querySelector('.brand-chip');
-      var childNodes = chip.childNodes;
-      for (var i = childNodes.length - 1; i >= 0; i--) {
-        var n = childNodes[i];
-        if (n.nodeType === Node.TEXT_NODE) chip.removeChild(n);
-      }
-      var img = document.getElementById('heroLogo');
-      var skel = document.getElementById('logoSkeleton');
-      img.addEventListener('click', function(ev){ ev.stopPropagation(); toggleAdminMenu(); });
-      document.addEventListener('click', function(ev){
-        var menu = document.getElementById('adminMenu');
-        if (!chip.contains(ev.target)) { menu.classList.add('hidden'); }
-      }, { passive:true });
-      var pressTimer = null;
-      img.addEventListener('touchstart', function(){ pressTimer = setTimeout(function(){ toggleAdminMenu(); }, 450); }, {passive:true});
-      img.addEventListener('touchend', function(){ clearTimeout(pressTimer); }, {passive:true});
-      try{
-        var payload = await API.apiGetLogo();
-        var src = '';
-        if (payload && payload.dataUrl) src = payload.dataUrl;
-        else if (payload && payload.publicUrl) src = payload.publicUrl;
-        if (src) {
-          img.onload = function(){ img.classList.add('ready'); skel.style.display='none'; };
-          img.src = src;
-        } else {
-          skel.style.display='block';
+    (function(){
+      function start(){
+        // Quitar nodos de texto sueltos dentro del chip (si existieran)
+        var chip = document.querySelector('.brand-chip');
+        if (chip){
+          var childNodes = chip.childNodes;
+          for (var i = childNodes.length - 1; i >= 0; i--) {
+            var n = childNodes[i];
+            if (n && n.nodeType === Node.TEXT_NODE) chip.removeChild(n);
+          }
         }
-      }catch(e){
-        skel.style.display='block';
+        // Logo + skeleton + admin menu
+        var img = document.getElementById('heroLogo'); var skel = document.getElementById('logoSkeleton');
+        if (img){
+          img.addEventListener('click', function(ev){ ev.stopPropagation(); toggleAdminMenu(); });
+          document.addEventListener('click', function(ev){
+            var menu = document.getElementById('adminMenu');
+            if (!menu) return;
+            if (!chip || !chip.contains(ev.target)) { menu.classList.add('hidden'); }
+          }, { passive:true });
+        }
+        // Cargar logo desde backend
+        (async function(){
+          try{
+            var payload = await API.apiGetLogo();
+            var src = '';
+            if (payload && payload.dataUrl) src = payload.dataUrl;
+            else if (payload && payload.publicUrl) src = payload.publicUrl;
+            if (src && img){
+              img.onload = function(){ img.classList.add('ready'); if(skel) skel.style.display='none'; };
+              img.src = src;
+            } else if (skel) {
+              skel.style.display='block';
+            }
+          }catch(e){
+            if (skel) skel.style.display='block';
+          }
+        })();
+
+        // Entradas de CI
+        var ciP = document.getElementById('ciPrincipal'); if (ciP) ciP.addEventListener('input', function(e){ onlyDigits(e.target); });
+        var ciS = document.getElementById('ciSearch'); if (ciS) ciS.addEventListener('input', function(e){ onlyDigits(e.target); });
+        wireAdminMenuButtons();
+        wireStaffExpandAutoCollapse();
+        // Cargar viajes
+        loadTrips();
+        // Router hash
+        window.addEventListener('hashchange', function(){ if (!ROUTER_DRIVING) routeTo(location.hash); }, { passive:true });
+        routeTo(location.hash);
+        // Sesión previa
+        if (isStaffSession()) {
+          CONTROL_AUTH = true;
+          updateAdminMenu();
+          syncStaffBadge();
+          syncControlFormVisibility();
+        } else {
+          updateAdminMenu();
+          syncStaffBadge();
+          syncControlFormVisibility();
+        }
       }
-      var ciP = document.getElementById('ciPrincipal'); if (ciP) ciP.addEventListener('input', function(e){ onlyDigits(e.target); });
-      var ciS = document.getElementById('ciSearch'); if (ciS) ciS.addEventListener('input', function(e){ onlyDigits(e.target); });
-      wireAdminMenuButtons();
-      wireStaffExpandAutoCollapse();
-      await loadTrips();
-      window.addEventListener('hashchange', function(){ if (!ROUTER_DRIVING) routeTo(location.hash); }, { passive:true });
-      await routeTo(location.hash);
-      if (isStaffSession()) {
-        CONTROL_AUTH = true;
-        updateAdminMenu();
-        syncStaffBadge();
-        syncControlFormVisibility();
-      } else {
-        updateAdminMenu();
-        syncStaffBadge();
-        syncControlFormVisibility();
-      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+      else start();
     })();
   </script>
 </body>
