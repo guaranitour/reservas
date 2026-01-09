@@ -305,7 +305,7 @@
   </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
-  https://accounts.google.com/gsi/client</script>
+  <script src="https://le.com/gsi/client</script>
 </head>
 <body>
   <!-- Header -->
@@ -460,7 +460,7 @@
       <div id="multiCroquis"></div>
     </section>
 
-    <!-- Control interno (reemplazado: botón Google) -->
+    <!-- Control interno (login con Google + panel) -->
     <section id="view-control" class="view" aria-label="Control interno">
       <!-- Bloque de login con Google -->
       <div id="googleSigninBox" class="form">
@@ -531,24 +531,24 @@
     }
     function withCommonParams(extra) {
       var base = { api: '1' };
-      extra = extra ?? {};
+      extra = extra || {};
       for (var k in extra){ if(extra.hasOwnProperty(k)) base[k] = extra[k]; }
       if (API_KEY) base.apiKey = API_KEY;
       return base;
     }
     function getUrl(action, extraParams) {
-      return BASE_URL + QS(withCommonParams(Object.assign({ action: action }, (extraParams ?? {}))));
+      return BASE_URL + QS(withCommonParams(Object.assign({ action: action }, (extraParams || {}))));
     }
     function postOptions(payloadObj) {
       return {
         method: 'POST',
         redirect: 'follow',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payloadObj ?? {})
+        body: JSON.stringify(payloadObj || {})
       };
     }
 
-    // === API (sin cambios públicos) ===
+    // === API (público) ===
     async function apiGetTrips(folderId) {
       const res = await fetch(getUrl('trips', { folderId: folderId }));
       if (!res.ok) throw new Error('GET trips: ' + res.status);
@@ -627,10 +627,10 @@
     /* ===== Router por hash ===== */
     var TRIPS_CACHE = [];
     var ROUTER_DRIVING = false;
-    function buildHash(segments){ return '#/' + (segments ?? []).map(function(s){ return encodeURIComponent(String(s ?? '')); }).join('/'); }
+    function buildHash(segments){ return '#/' + (segments || []).map(function(s){ return encodeURIComponent(String(s || '')); }).join('/'); }
     function setHash(segments){ if (ROUTER_DRIVING) return; location.hash = buildHash(segments); }
     function getHashSegments(h){
-      var raw = String(h ?? (location.hash ?? '')).replace(/^\#\/?/, '');
+      var raw = String(h || (location.hash || '')).replace(/^\#\/?/, '');
       if (!raw) return [];
       return raw.split('/').map(function(p){ try { return decodeURIComponent(p); } catch(e){ return p; } });
     }
@@ -638,7 +638,7 @@
       if (TRIPS_CACHE && TRIPS_CACHE.length) return TRIPS_CACHE;
       try{
         var payload = await API.apiGetTrips();
-        TRIPS_CACHE = payload.trips ?? [];
+        TRIPS_CACHE = payload.trips || [];
       }catch(e){
         TRIPS_CACHE = [];
       }
@@ -646,31 +646,31 @@
     }
     async function resolveTripByName(name){
       var trips = await ensureTripsCache();
-      var target = (name ?? '').trim().toLowerCase();
-      return trips.find(function(t){ return (t.name ?? '').trim().toLowerCase() === target; }) ?? null;
+      var target = (name || '').trim().toLowerCase();
+      return trips.find(function(t){ return (t.name || '').trim().toLowerCase() === target; }) || null;
     }
     function getFloorLabelFromSheetName(sheetName){
-      var s = String(sheetName ?? '').toLowerCase();
+      var s = String(sheetName || '').toLowerCase();
       if (s.indexOf('alta') >= 0) return 'Planta alta';
       if (s.indexOf('baja') >= 0) return 'Planta baja';
       return sheetName;
     }
     function getSheetNameFromFloorLabel(trip, floorLabel){
       if (!trip || !Array.isArray(trip.sheets)) return null;
-      var lbl = String(floorLabel ?? '').toLowerCase();
+      var lbl = String(floorLabel || '').toLowerCase();
       if (lbl.indexOf('alta') >= 0){
         return trip.sheets.find(function(s){ return s.toLowerCase() === 'asientos alta'; })
-               ?? trip.sheets.find(function(s){ return s.toLowerCase().indexOf('alta') >= 0; })
-               ?? null;
+               || trip.sheets.find(function(s){ return s.toLowerCase().indexOf('alta') >= 0; })
+               || null;
       }
       if (lbl.indexOf('baja') >= 0){
         return trip.sheets.find(function(s){ return s.toLowerCase() === 'asientos baja'; })
-               ?? trip.sheets.find(function(s){ return s.toLowerCase().indexOf('baja') >= 0; })
-               ?? null;
+               || trip.sheets.find(function(s){ return s.toLowerCase().indexOf('baja') >= 0; })
+               || null;
       }
       return trip.sheets.find(function(s){ return s.toLowerCase() === 'asientos'; })
-             ?? trip.sheets[0]
-             ?? null;
+             || trip.sheets[0]
+             || null;
     }
     async function routeTo(hash){
       var segs = getHashSegments(hash);
@@ -680,7 +680,7 @@
         await loadTrips();
         return;
       }
-      var head = (segs[0] ?? '').trim();
+      var head = (segs[0] || '').trim();
       ROUTER_DRIVING = true;
       try{
         if (head.toLowerCase() === 'inicio'){
@@ -757,10 +757,10 @@
 
     /* ===== UI helpers ===== */
     function toast(msg){ var bar = document.getElementById('snackbar'); bar.textContent = msg; bar.classList.add('show'); setTimeout(function(){ bar.classList.remove('show'); }, 2800); }
-    function showLoading(msg){ var ov = document.getElementById('overlay'); ov.querySelector('.loader-text').textContent = msg ?? 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
+    function showLoading(msg){ var ov = document.getElementById('overlay'); ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
     function hideLoading(){ var ov = document.getElementById('overlay'); ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); }
-    function normalize(code){ return (code ?? '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
-    function firstName(full){ var t = (full ?? '').trim(); if(!t) return ''; var name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
+    function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
+    function firstName(full){ var t = (full || '').trim(); if(!t) return ''; var name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
     /* ===== Admin (Easter Egg) ===== */
@@ -797,7 +797,7 @@
       showLoading('Cargando viajes…');
       try{
         var payload = await API.apiGetTrips();
-        var trips = payload.trips ?? [];
+        var trips = payload.trips || [];
         TRIPS_CACHE = trips;
         var list = document.getElementById('tripList'); list.innerHTML = '';
         trips.forEach(function(tr){
@@ -836,7 +836,7 @@
         showView('view-control');
         showLoading('Cargando ocupación…');
         setHash(['Staff', CURRENT_TRIP.name]);
-        var sheetStaff = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos'; }) ?? tr.sheets[0];
+        var sheetStaff = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos'; }) || tr.sheets[0];
         CURRENT_TRIP.sheetName = sheetStaff;
         refreshSeats(null, function(){ renderControlBoard(); hideLoading(); });
         return;
@@ -853,7 +853,7 @@
         function makeCard(label, desc, onClick){
           var card = document.createElement('article'); card.className='card'; card.tabIndex=0; card.setAttribute('role','button');
           var h2 = document.createElement('h2'); h2.textContent = label;
-          var p = document.createElement('p'); p.textContent = desc ?? '';
+          var p = document.createElement('p'); p.textContent = desc || '';
           card.appendChild(h2); card.appendChild(p);
           card.onclick = onClick;
           card.onkeypress = function(ev){ if(ev.key==='Enter') onClick(); };
@@ -869,7 +869,7 @@
         showView('view-floor');
         setHash([CURRENT_TRIP.name]);
       }else{
-        var sheet = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos'; }) ?? tr.sheets[0];
+        var sheet = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos'; }) || tr.sheets[0];
         CURRENT_TRIP.sheetName = sheet;
         updateTripTags();
         showView('view-home');
@@ -879,7 +879,7 @@
 
     /* ===== Helpers doble piso ===== */
     function getFloorSheets(){
-      var sheets = CURRENT_TRIP.sheets ?? [];
+      var sheets = CURRENT_TRIP.sheets || [];
       var baja = sheets.find(function(s){ return s.toLowerCase() === 'asientos baja'; });
       var alta = sheets.find(function(s){ return s.toLowerCase() === 'asientos alta'; });
       var result = [];
@@ -901,14 +901,14 @@
       return t;
     }
     function showSeatTooltipFor(btn){
-      var status = (btn.getAttribute('data-status') ?? '').toLowerCase().trim();
+      var status = (btn.getAttribute('data-status') || '').toLowerCase().trim();
       if (status !== 'ocupado') return;
       var full = '';
       var occSpan = btn.querySelector('.occ-full');
-      if (occSpan) full = (occSpan.textContent ?? '').trim();
+      if (occSpan) full = (occSpan.textContent || '').trim();
       if (!full) return;
-      var num = btn.getAttribute('data-num') ?? '';
-      var code = btn.getAttribute('data-code') ?? '';
+      var num = btn.getAttribute('data-num') || '';
+      var code = btn.getAttribute('data-code') || '';
       var rect = btn.getBoundingClientRect();
       var x = rect.left + rect.width/2;
       var y = rect.top;
@@ -935,7 +935,7 @@
     }
     function toggleSeatExpand(btn){
       if (CONTROL_EDIT) return;
-      var status = (btn.getAttribute('data-status') ?? '').toLowerCase().trim();
+      var status = (btn.getAttribute('data-status') || '').toLowerCase().trim();
       if (status !== 'ocupado') return;
       var isExpanded = btn.classList.contains('expanded');
       hideSeatTooltip();
@@ -966,9 +966,9 @@
       for (var i=0;i<STAFF_SHEETS.length;i++){
         var f = STAFF_SHEETS[i];
         var resp = await API.apiGetSeats(CURRENT_TRIP.fileId, f.sheetName);
-        var rows = resp.rows ?? [];
+        var rows = resp.rows || [];
         var seatsMap = {};
-        rows.forEach(function(r){ seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
+        rows.forEach(function(r){ seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
         STAFF_SEATS_BY_SHEET.set(f.sheetName, seatsMap);
       }
       renderControlBoardMulti();
@@ -1004,7 +1004,7 @@
       var seatOffset = 1;
       for (var i=0;i<ordered.length;i++){
         var f = ordered[i];
-        var seatsMap = STAFF_SEATS_BY_SHEET.get(f.sheetName) ?? {};
+        var seatsMap = STAFF_SEATS_BY_SHEET.get(f.sheetName) || {};
         var section = document.createElement('div');
         section.className = 'form';
         section.style.marginBottom = '12px';
@@ -1032,7 +1032,7 @@
       function computeClassForWith(seatsMapLocal, code){
         var key = normalize(code);
         if(!seatsMapLocal.hasOwnProperty(key)) return 'inexistente';
-        var st = (seatsMapLocal[key].estado ?? '').toLowerCase().trim();
+        var st = (seatsMapLocal[key].estado || '').toLowerCase().trim();
         if(st === 'ocupado') return 'ocupado';
         if(st === 'inhabilitado') return 'inexistente';
         return 'libre';
@@ -1050,7 +1050,7 @@
           btn.setAttribute('data-sheet',sheetName);
           btn.setAttribute('data-status',klass);
           if(isNum(klass)){
-            var occFull = (seatsMap[norm] && seatsMap[norm].pasajero) ?? '';
+            var occFull = (seatsMap[norm] && seatsMap[norm].pasajero) || '';
             var occName = (klass==='ocupado') ? firstName(occFull) : '';
             btn.innerHTML =
               '<span class="num">'+seatNumber+'</span>' +
@@ -1084,7 +1084,7 @@
     async function countActiveNumbers(fileId, sheetName){
       try{
         var resp = await API.apiGetSeats(fileId, sheetName);
-        var rows = resp.rows ?? [];
+        var rows = resp.rows || [];
         var map = {};
         rows.forEach(function(r){ map[ normalize(r.asiento) ] = { estado: r.estado }; });
         var rowsActive = getRowsToRenderFromMap(map);
@@ -1113,7 +1113,7 @@
     function computeClassForWith(seatsMap, code){
       var key = normalize(code);
       if(!seatsMap.hasOwnProperty(key)) return 'inexistente';
-      var st = (seatsMap[key].estado ?? '').toLowerCase().trim();
+      var st = (seatsMap[key].estado || '').toLowerCase().trim();
       if(st === 'ocupado') return 'ocupado';
       if(st === 'inhabilitado') return 'inexistente';
       return 'libre';
@@ -1151,7 +1151,7 @@
     function updateTripTags(){
       var tagTrip = document.getElementById('tagTrip');
       var tagTripFloor = document.getElementById('tagTripFloor');
-      var text = 'Viaje: ' + (CURRENT_TRIP.name ?? '—');
+      var text = 'Viaje: ' + (CURRENT_TRIP.name || '—');
       if (tagTrip) tagTrip.textContent = text;
       if (tagTripFloor) tagTripFloor.textContent = text;
       syncStaffBadge();
@@ -1171,7 +1171,7 @@
       if(!CONTROL_AUTH){ openStaffLogin(); return; }
       showView('view-control');
       showLoading('Cargando ocupación…');
-      setHash(['Staff', CURRENT_TRIP.name ?? '—']);
+      setHash(['Staff', CURRENT_TRIP.name || '—']);
       if (CURRENT_TRIP.hasFloors) {
         refreshStaffMulti().then(function(){ hideLoading(); });
       } else {
@@ -1185,9 +1185,9 @@
       if(gridEl) gridEl.setAttribute('aria-busy','true');
       try{
         var resp = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
-        var rows = resp.rows ?? [];
+        var rows = resp.rows || [];
         SEATS = {};
-        rows.forEach(function(r){ SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
+        rows.forEach(function(r){ SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
         if(gridEl){ buildGrid(targetId, gridOptions); }
       }catch(err){
         console.error('refreshSeats error:', err);
@@ -1203,11 +1203,11 @@
     }
     function getRowsToRenderFromMap(seatsMap){
       var rows = new Set();
-      Object.keys(seatsMap ?? {}).forEach(function(code){
+      Object.keys(seatsMap || {}).forEach(function(code){
         var m = code.match(/^(\d+)[A-Z]$/);
         if(!m) return;
         var row = parseInt(m[1], 10);
-        var estado = (seatsMap[code].estado ?? '').toLowerCase().trim();
+        var estado = (seatsMap[code].estado || '').toLowerCase().trim();
         if(estado !== 'inhabilitado') rows.add(row);
       });
       return Array.from(rows).sort(function(a,b){ return a-b; });
@@ -1217,7 +1217,7 @@
       var key = normalize(code);
       var s = SEATS[key];
       if(!s) return 'inexistente';
-      var st = (s.estado ?? '').toLowerCase().trim();
+      var st = (s.estado || '').toLowerCase().trim();
       if(st === 'ocupado') return 'ocupado';
       if(st === 'inhabilitado') return 'inexistente';
       return 'libre';
@@ -1226,7 +1226,7 @@
       var key = normalize(code);
       var s = SEATS[key];
       if(!s) return 'inexistente';
-      var st = (s.estado ?? '').toLowerCase().trim();
+      var st = (s.estado || '').toLowerCase().trim();
       if(st === 'ocupado') return 'ocupado';
       if(st === 'inhabilitado') return 'inhabilitado';
       return 'libre';
@@ -1234,10 +1234,10 @@
 
     /* ====== Croquis (público) ====== */
     function buildGrid(targetId, options){
-      options = options ?? {};
-      var offset = options.offset ?? 0;
+      options = options || {};
+      var offset = options.offset || 0;
       var hideMissing = (typeof options.hideMissing==='undefined') ? true : !!options.hideMissing;
-      var grid = document.getElementById(targetId ?? 'grid-select'); if(!grid) return;
+      var grid = document.getElementById(targetId || 'grid-select'); if(!grid) return;
       grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map();
       var rows = getRowsToRender();
       if(rows.length === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; }
@@ -1327,9 +1327,9 @@
       var assign = document.getElementById('assignList'); assign.innerHTML = '';
       var codes = Array.from(selected);
       for(var i=0;i<codes.length;i++){
-        var codeNorm = normalize(codes[i]); var num = NUM_LABELS.get(codeNorm) ?? '';
+        var codeNorm = normalize(codes[i]); var num = NUM_LABELS.get(codeNorm) || '';
         var row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
-        var title = document.createElement('div'); title.className = 'assign-title'; title.textContent = 'Asiento ' + (num ?? codeNorm);
+        var title = document.createElement('div'); title.className = 'assign-title'; title.textContent = 'Asiento ' + (num || codeNorm);
         var grid = document.createElement('div'); grid.className = 'assign-grid';
         var nameWrap = document.createElement('label'); nameWrap.className = 'field';
         var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
@@ -1370,7 +1370,7 @@
     }
     function showReserveFeedbackDetailed(pairs){
       var panel = document.getElementById('reserveFeedback'); var nums = document.getElementById('reserveNums'); nums.innerHTML = '';
-      (pairs ?? []).forEach(function(p){
+      (pairs || []).forEach(function(p){
         var norm = normalize(p.asiento);
         var num = NUM_LABELS.get(norm);
         var pill = document.createElement('span'); pill.className = 'pill';
@@ -1392,12 +1392,12 @@
       showLoading('Buscando…');
       try{
         var respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci);
-        var rawCodes = (respSeats.seats ?? []).map(function(s){ return normalize(s); });
+        var rawCodes = (respSeats.seats || []).map(function(s){ return normalize(s); });
         LAST_FOUND_CODES = Array.from(new Set(rawCodes));
         var respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName);
-        var rows = respRows.rows ?? [];
+        var rows = respRows.rows || [];
         SEATS = {};
-        rows.forEach(function(r){ SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
+        rows.forEach(function(r){ SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
         var nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
         HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
@@ -1468,11 +1468,11 @@
           var f = MULTI_SHEETS[i];
           var respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, f.sheetName, ci);
           var respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, f.sheetName);
-          var codesRaw = (respSeats.seats ?? []).map(function(s){ return normalize(s); });
+          var codesRaw = (respSeats.seats || []).map(function(s){ return normalize(s); });
           var codes = Array.from(new Set(codesRaw));
-          var rows = respRows.rows ?? [];
+          var rows = respRows.rows || [];
           var seatsMap = {};
-          rows.forEach(function(r){ seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero ?? '', ci: r.ci ?? '' }; });
+          rows.forEach(function(r){ seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
           SEATS_BY_SHEET.set(f.sheetName, seatsMap);
           HIGHLIGHT_BY_SHEET.set(f.sheetName, new Set(codes));
           var nums = computeNumbersForCodesWith(seatsMap, codes);
@@ -1508,7 +1508,7 @@
       wrap.innerHTML = '';
       var totalResults = 0;
       MULTI_SHEETS.forEach(function(f){
-        var nums = NUMS_BY_SHEET.get(f.sheetName) ?? [];
+        var nums = NUMS_BY_SHEET.get(f.sheetName) || [];
         totalResults += nums.length;
         var section = document.createElement('div');
         section.className = 'form';
@@ -1542,7 +1542,7 @@
       var container = document.getElementById('multiCroquis');
       container.innerHTML = '';
       var floorsWithResults = MULTI_SHEETS.filter(function(f){
-        var found = NUMS_BY_SHEET.get(f.sheetName) ?? [];
+        var found = NUMS_BY_SHEET.get(f.sheetName) || [];
         return found.length > 0;
       });
       if (!floorsWithResults.length) {
@@ -1552,8 +1552,8 @@
       }
       for(var i=0;i<floorsWithResults.length;i++){
         var f = floorsWithResults[i];
-        var seatsMap = SEATS_BY_SHEET.get(f.sheetName) ?? {};
-        var highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) ?? new Set();
+        var seatsMap = SEATS_BY_SHEET.get(f.sheetName) || {};
+        var highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) || new Set();
         var form = document.createElement('div');
         form.className = 'form';
         form.style.marginBottom = '12px';
@@ -1648,11 +1648,11 @@
           var klass= computeClassFor(code);
           var isNum= (klass==='libre' || klass==='ocupado');
           var btn=document.createElement('button'); btn.type='button'; btn.className='seat ' + klass;
-          btn.setAttribute('data-sheet', CURRENT_TRIP.sheetName ?? '');
+          btn.setAttribute('data-sheet', CURRENT_TRIP.sheetName || '');
           btn.setAttribute('data-code',code);
           btn.setAttribute('data-status',klass);
           if(isNum){
-            var occFull = (SEATS[norm] && SEATS[norm].pasajero) ?? '';
+            var occFull = (SEATS[norm] && SEATS[norm].pasajero) || '';
             var occName = (klass==='ocupado') ? firstName(occFull) : '';
             btn.innerHTML =
               '<span class="num">'+seatNumber+'</span>' +
@@ -1684,7 +1684,7 @@
       board.scrollIntoView({behavior:'smooth'});
       attachStickyAnimation();
     }
-    function getMaxRow(){ var maxRow = 0; Object.keys(SEATS).forEach(function(code){ var m = code.match(/^(\d+)[A-Z]$/); if(m){ var row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow ?? 0; }
+    function getMaxRow(){ var maxRow = 0; Object.keys(SEATS).forEach(function(code){ var m = code.match(/^(\d+)[A-Z]$/); if(m){ var row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow || 0; }
     function attachStickyAnimation(){
       var toolbar = document.getElementById('controlToolbar');
       function onScroll(){ var y=window.scrollY; if(y>24){ toolbar.classList.add('scrolled'); } else { toolbar.classList.remove('scrolled'); } }
@@ -1711,10 +1711,10 @@
     }
     function onControlSeatClick(btn){
       if(!CONTROL_EDIT) return;
-      var status=(btn.getAttribute('data-status') ?? 'libre').toLowerCase().trim();
-      var num =parseInt(btn.getAttribute('data-num') ?? '0',10);
+      var status=(btn.getAttribute('data-status') || 'libre').toLowerCase().trim();
+      var num =parseInt(btn.getAttribute('data-num') || '0',10);
       var code =btn.getAttribute('data-code');
-      var sheet = btn.getAttribute('data-sheet') ?? CURRENT_TRIP.sheetName ?? null;
+      var sheet = btn.getAttribute('data-sheet') || CURRENT_TRIP.sheetName || null;
       STAFF_ACTIVE_SHEET = sheet;
       if(status==='ocupado'){
         var srcEls = document.querySelectorAll('.seat.pick-source'); for(var i=0;i<srcEls.length;i++){ srcEls[i].classList.remove('pick-source'); }
