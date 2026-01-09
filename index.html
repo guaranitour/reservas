@@ -302,10 +302,21 @@
       transform: translate(-50%, -12px);
     }
     .seat-tooltip .meta { margin-top: 4px; font-weight: 600; font-size: .8rem; color: #6b7280; }
+    /* FIX Google Sign-In iframe sobre logo */
+#googleSignIn {
+  position: relative;
+  z-index: 1;
+}
+
+#heroLogo {
+  position: relative;
+  z-index: 2;
+}
+
   </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
-  https://accounts.google.com/gsi/client</script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
   <!-- Header -->
@@ -1899,20 +1910,32 @@
     window.hideAdminMenu = hideAdminMenu;
 
     /* ===== GIS: render del botón y manejo de login ===== */
-    function renderGoogleButton(){
-      const box = document.getElementById('googleSignIn');
-      if (!box) return;
-      box.innerHTML = '';
-      if (!(window.google && google.accounts && google.accounts.id)) return;
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleCredentialResponse,
-        cancel_on_tap_outside: true
-      });
-      google.accounts.id.renderButton(box, {
-        theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', logo_alignment: 'left'
-      });
-    }
+function renderGoogleButton(){
+  const box = document.getElementById('googleSignIn');
+  if (!box) return;
+
+  // FIX: aislar el iframe de Google
+  box.innerHTML = '';
+  box.style.position = 'relative';
+  box.style.zIndex = '1';
+
+  if (!(window.google && google.accounts && google.accounts.id)) return;
+
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleCredentialResponse,
+    cancel_on_tap_outside: true
+  });
+
+  google.accounts.id.renderButton(box, {
+    theme: 'outline',
+    size: 'large',
+    shape: 'pill',
+    text: 'signin_with',
+    logo_alignment: 'left'
+  });
+}
+
 
     async function handleCredentialResponse(resp){
       try{
