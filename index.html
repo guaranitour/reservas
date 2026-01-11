@@ -342,11 +342,6 @@
 .select-action-bar.scrolled .btn.primary{ box-shadow: 0 6px 18px rgba(44,123,229,.28); }
 .select-action-bar.scrolled .btn.ghost{ box-shadow: 0 6px 18px rgba(17,24,39,.12); }
 
-
-/* === Campos en dos columnas (responsive) === */
-.form-grid{display:grid; grid-template-columns:1fr; gap:10px;}
-@media(min-width:520px){.form-grid.two{grid-template-columns:1fr 1fr;}}
-
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -457,21 +452,21 @@
 
   <!-- Datos para una sola reserva (se muestra después de presionar Reservar) -->
   <form id="detailsSingle" class="form hidden" onsubmit="event.preventDefault(); confirmSingle();">
-  <h4>Datos del pasajero</h4>
-  <div class="form-grid two">
-    <div class="field">
-      <input id="nombreSingle" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" aria-label="Nombre y Apellido" />
+    <h4>Datos del pasajero</h4>
+    <div class="form-row">
+      <label for="nombreSingle">Nombre del pasajero</label>
+      <input id="nombreSingle" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" />
     </div>
-    <div class="field">
-      <input id="ciSingle" type="text" placeholder="CI (ej.: 12345678)" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" aria-label="CI" />
+    <div class="form-row">
+      <label for="ciSingle">CI del pasajero</label>
+      <input id="ciSingle" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" />
     </div>
-  </div>
-  <div class="actions">
-    <button type="submit" class="btn success">Confirmar</button>
-    <button type="button" class="btn ghost" onclick="cancelSingle()">Cancelar</button>
-  </div>
-  <p class="hint">Completá tus datos y confirmá la reserva.</p>
-</form>
+    <div class="actions">
+      <button type="submit" class="btn success">Confirmar</button>
+      <button type="button" class="btn ghost" onclick="cancelSingle()">Cancelar</button>
+    </div>
+    <p class="hint">Completá tus datos y confirmá la reserva.</p>
+  </form>
 
   <!-- Asignación múltiple (se muestra cuando se seleccionan 2 o más asientos) -->
   
@@ -764,6 +759,27 @@
             openStaffLogin();
             return;
           }
+ if(head.toLowerCase() === 'reservas'){
+  var tripName = segs[1];
+  if(!tripName){ backToChoose(); await loadTrips(); return; }
+  var action = (segs[2] || '').toLowerCase();
+  var tr = await resolveTripByName(tripName);
+  if(!tr){ toast('No se encontró el viaje "'+tripName+'".'); backToChoose(); return; }
+  CURRENT_TRIP = { fileId: tr.fileId, name: tr.name, sheets: tr.sheets, sheetName: null, hasFloors: !!tr.hasFloors };
+  updateTripTags();
+  if(action === 'mirá tu asiento' || action === 'mira tu asiento'){
+    showView('view-find'); clearFindView(); clearFindViewMulti(); return;
+  }
+  if(action === 'selección de asientos' || action === 'seleccion de asientos'){
+    var floorLbl = segs[3];
+    if(tr.hasFloors){
+      if(floorLbl){ var sheet = getSheetNameFromFloorLabel(tr, floorLbl); if(!sheet){ toast('No se encontró la planta en "'+tr.name+'".'); selectTrip(tr); return; } await chooseFloor(sheet); return; }
+      else { selectTrip(tr); return; }
+    } else { var sheetConv = getSheetNameFromFloorLabel(tr, 'asientos'); CURRENT_TRIP.sheetName = sheetConv; await goSelect(); return; }
+  }
+  selectTrip(tr); return;
+ }
+
           var tripNameStaff = segs[1];
           if (!CONTROL_AUTH){
             openStaffLogin();
@@ -1213,7 +1229,7 @@
           showLoading('Cargando asientos…');
           var opts = await computeGridOptions();
           refreshSeats('grid-select', function(){ hideLoading(); }, opts);
-          setHash(['Selección de asientos', CURRENT_TRIP.name, lbl]);
+          setHash(['Reservas', CURRENT_TRIP.name, 'Selección de asientos', lbl]);
         } else {
           goHome();
           setHash([CURRENT_TRIP.name]);
@@ -1235,9 +1251,9 @@
       var opts = await computeGridOptions();
       refreshSeats('grid-select', function(){ hideLoading(); }, opts);
       if (CURRENT_TRIP.hasFloors) setHash(['Selección de asientos', CURRENT_TRIP.name, getFloorLabelFromSheetName(CURRENT_TRIP.sheetName)]);
-      else setHash(['Selección de asientos', CURRENT_TRIP.name]);
+      else setHash(['Reservas', CURRENT_TRIP.name, 'Selección de asientos']);
     }
-    function goFind(){ if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; } showView('view-find'); clearFindView(); clearFindViewMulti(); }
+    function goFind(){ if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; } showView('view-find'); clearFindView(); clearFindViewMulti(); setHash(['Reservas', CURRENT_TRIP.name, 'Mirá tu asiento']); }
     function goControl(){ openStaffLogin(); }
     function goToControlBoard(){
       if(!CONTROL_AUTH){ openStaffLogin(); return; }
