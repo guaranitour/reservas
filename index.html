@@ -312,7 +312,23 @@
   z-index: 2;
 }
 
-  </style>
+  
+/* ===== Persistent Action Bar + Bottom Sheet ===== */
+.action-bar{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--action-bar-h)+var(--safe-bottom));display:grid;place-items:center;background:transparent;border:none;box-shadow:none;pointer-events:none}
+.action-bar .actions{width:min(680px,92vw);display:flex;gap:10px;padding:0 12px var(--safe-bottom) 12px;pointer-events:auto}
+.action-bar .actions .btn{flex:1;min-height:44px}
+.backdrop{position:fixed;inset:0;z-index:40;background:rgba(17,24,39,.35);opacity:0;pointer-events:none;transition:opacity .18s ease}
+.backdrop.show{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--card);border-top-left-radius:16px;border-top-right-radius:16px;box-shadow:0 -12px 28px rgba(17,24,39,.16);transform:translateY(105%);animation:sheetUp .28s ease forwards;max-height:min(78vh,680px);overflow:auto}
+.sheet.hidden{display:none}
+.sheet:not(.show){transform:translateY(105%);animation:none}
+.sheet .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.sheet .sheet-title{margin:0;font-size:1rem;font-weight:800}
+.sheet .sheet-body{padding:0 16px 16px 16px}
+.sheet .actions{padding:0 16px 16px 16px;display:flex;gap:10px}
+@keyframes sheetUp{from{transform:translateY(105%)}to{transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}.backdrop{transition:none}}
+</style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -394,42 +410,40 @@
 
     <!-- Selección (público) -->
     <section id="view-select" class="view" aria-label="Seleccionar asiento">
-  <!-- Leyenda -->
   <div id="legend" class="legend">
     <span class="badge libre">Libre</span>
     <span class="badge ocupado">Ocupado</span>
     <span class="badge seleccionado">Seleccionado</span>
     <span class="badge inhabilitado">Gris: Inhabilitado en esta planta</span>
   </div>
-
-  <!-- Croquis -->
   <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
-
-  <!-- Acciones principales -->
-  <div class="actions" style="margin-top:12px;">
-    <button type="button" class="btn primary" onclick="startSelection()">Reservar</button>
-    <button type="button" class="btn ghost" onclick="refreshSelectGrid()">Actualizar</button>
-  </div>
-
-  <!-- Datos para una sola reserva (se muestra después de presionar Reservar) -->
-  <form id="detailsSingle" class="form hidden" onsubmit="event.preventDefault(); confirmSingle();">
-    <h4>Datos del pasajero</h4>
-    <div class="form-row">
-      <label for="nombreSingle">Nombre del pasajero</label>
-      <input id="nombreSingle" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" />
+  <div id="selectActionBar" class="action-bar">
+    <div class="actions">
+      <button type="button" class="btn primary" onclick="startSelection()">Reservar</button>
+      <button type="button" class="btn ghost" onclick="refreshSelectGrid()">Actualizar</button>
     </div>
-    <div class="form-row">
-      <label for="ciSingle">CI del pasajero</label>
-      <input id="ciSingle" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" />
+  </div>
+  <div id="sheetBackdrop" class="backdrop" aria-hidden="true"></div>
+  <div id="singleSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-head">
+      <h4 id="sheetTitle" class="sheet-title">Datos del pasajero</h4>
+      <button type="button" class="btn ghost" onclick="closeSingleSheet()">Cerrar</button>
+    </div>
+    <div class="sheet-body">
+      <div class="form-row">
+        <label for="nombreSingle">Nombre del pasajero</label>
+        <input id="nombreSingle" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" />
+      </div>
+      <div class="form-row">
+        <label for="ciSingle">CI del pasajero</label>
+        <input id="ciSingle" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" />
+      </div>
     </div>
     <div class="actions">
-      <button type="submit" class="btn success">Confirmar</button>
-      <button type="button" class="btn ghost" onclick="cancelSingle()">Cancelar</button>
+      <button type="button" class="btn success" onclick="confirmSingle()">Confirmar</button>
+      <button type="button" class="btn ghost" onclick="changeSeatsFromSheet()">Cambiar asientos</button>
     </div>
-    <p class="hint">Completá tus datos y confirmá la reserva.</p>
-  </form>
-
-  <!-- Asignación múltiple (se muestra cuando se seleccionan 2 o más asientos) -->
+  </div>
   <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
     <h3>Asignar nombres a tus asientos</h3>
     <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
@@ -441,7 +455,6 @@
       </div>
     </div>
   </section>
-
   <div id="reserveFeedback" class="feedback hidden">
     <h4>Reserva confirmada</h4>
     <div id="reserveNums" class="nums"></div>
@@ -1318,28 +1331,6 @@
     }
 
     /* ===== Selección (público) ===== */
-
-function cancelSingle(){ var f = document.getElementById('detailsSingle'); if(f) f.classList.add('hidden'); }
-async function confirmSingle(){
-  if(BUSY) return;
-  var name = (document.getElementById('nombreSingle')||{}).value || '';
-  var ci = (document.getElementById('ciSingle')||{}).value || '';
-  name = name.trim(); ci = ci.trim();
-  if(!name || !ci){ toast('Completá nombre y CI'); return; }
-  if(selected.size !== 1){ toast('Seleccioná exactamente un asiento'); return; }
-  var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
-  var pairs = [{ asiento: onlyNorm, pasajero: name, ci: ci }];
-  BUSY = true; showLoading('Reservando…');
-  try{
-    await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
-    showReserveFeedbackDetailed(pairs);
-    var f = document.getElementById('detailsSingle'); if(f) f.classList.add('hidden');
-    (document.getElementById('nombreSingle')||{}).value = '';
-    (document.getElementById('ciSingle')||{}).value = '';
-    await refreshSelectGrid();
-  }catch(err){ toast('No se pudo reservar'); }
-  finally{ hideLoading(); BUSY = false; }
-}
     function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
     function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
     function toggleSeat(code, el){
@@ -1352,12 +1343,7 @@ async function confirmSingle(){
     async function startSelection(){
   if(BUSY) return;
   if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
-  if(selected.size === 1){
-    var form = document.getElementById('detailsSingle');
-    if(form){ form.classList.remove('hidden'); form.scrollIntoView({behavior:'smooth'}); }
-    var nameInput = document.getElementById('nombreSingle'); if(nameInput) try{ nameInput.focus(); }catch(e){}
-    return;
-  }
+  if(selected.size === 1){ openSingleSheet(); return; }
   var assign = document.getElementById('assignList'); assign.innerHTML = '';
   var codes = Array.from(selected);
   for(var i=0;i<codes.length;i++){
@@ -2086,6 +2072,45 @@ function renderGoogleButton(){
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
       else start();
     })();
-  </script>
+  
+
+function openSingleSheet(){
+  var bd = document.getElementById('sheetBackdrop');
+  var sh = document.getElementById('singleSheet');
+  if (bd) { bd.classList.add('show'); bd.setAttribute('aria-hidden','false'); }
+  if (sh) { sh.classList.remove('hidden'); sh.classList.add('show');
+    try { document.getElementById('nombreSingle').focus(); } catch(e){}
+  }
+}
+function closeSingleSheet(){
+  var bd = document.getElementById('sheetBackdrop');
+  var sh = document.getElementById('singleSheet');
+  if (bd) { bd.classList.remove('show'); bd.setAttribute('aria-hidden','true'); }
+  if (sh) { sh.classList.remove('show'); sh.classList.add('hidden'); }
+}
+function changeSeatsFromSheet(){ closeSingleSheet(); toast('Podés cambiar tus asientos'); }
+window.addEventListener('keydown', function(ev){ if(ev.key==='Escape'){ closeSingleSheet(); } }, { passive:true });
+function cancelSingle(){ closeSingleSheet(); }
+async function confirmSingle(){
+  if(BUSY) return;
+  var name = (document.getElementById('nombreSingle')||{}).value || '';
+  var ci = (document.getElementById('ciSingle')||{}).value || '';
+  name = name.trim(); ci = ci.trim();
+  if(!name || !ci){ toast('Completá nombre y CI'); return; }
+  if(selected.size !== 1){ toast('Seleccioná exactamente un asiento'); return; }
+  var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
+  var pairs = [{ asiento: onlyNorm, pasajero: name, ci: ci }];
+  BUSY = true; showLoading('Reservando…');
+  try{
+    await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
+    showReserveFeedbackDetailed(pairs);
+    closeSingleSheet();
+    (document.getElementById('nombreSingle')||{}).value = '';
+    (document.getElementById('ciSingle')||{}).value = '';
+    await refreshSelectGrid();
+  }catch(err){ toast('No se pudo reservar'); }
+  finally{ hideLoading(); BUSY = false; }
+}
+</script>
 </body>
 </html>
