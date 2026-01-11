@@ -1788,9 +1788,6 @@
       showLoading('Moviendo pasajero…');
       if(!isAdmin()){ hideLoading(); toast('Solo administradores pueden editar'); return; }
       if(!EDIT_SRC || !EDIT_DST){ hideLoading(); toast('Selecciona origen (ocupado) y destino (libre).'); return; }
-      if (STAFF_CONTROL_MULTI && EDIT_SRC.sheet !== EDIT_DST.sheet) {
-        hideLoading(); toast('Debes elegir origen y destino en la misma planta.'); return;
-      }
       try{
         var sheet = STAFF_CONTROL_MULTI ? EDIT_SRC.sheet : CURRENT_TRIP.sheetName;
         var resp=await API.apiMove(CURRENT_TRIP.fileId, sheet, EDIT_SRC.code, EDIT_DST.code);
