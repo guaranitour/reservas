@@ -1766,8 +1766,8 @@
       if (toolbar) toolbar.classList.toggle('editing', CONTROL_EDIT);
       if(CONTROL_EDIT){
         if (btnEdit){ btnEdit.classList.add('danger'); btnEdit.textContent='Salir de edición'; }
-        var canMove = EDIT_SRC && EDIT_DST && (!STAFF_CONTROL_MULTI || (EDIT_SRC.sheet === EDIT_DST.sheet));
-        if (btnMove) btnMove.disabled=!canMove;
+        var canMove = EDIT_SRC && EDIT_DST; // ya no bloquea por planta
+        if (btnMove) btnMove.disabled = !canMove;
         if (btnFree) btnFree.disabled=!EDIT_SRC;
         if (btnCancel) btnCancel.disabled=false;
       }else{
