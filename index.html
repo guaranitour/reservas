@@ -313,6 +313,9 @@
 }
 
   
+/* ===== Fix: espaciador para que el croquis no quede tapado ===== */
+.content-spacer{height:calc(var(--action-bar-h) + var(--safe-bottom) + 12px)}
+
 /* ===== Persistent Action Bar + Bottom Sheet ===== */
 .action-bar{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--action-bar-h)+var(--safe-bottom));display:grid;place-items:center;background:transparent;border:none;box-shadow:none;pointer-events:none}
 .action-bar .actions{width:min(680px,92vw);display:flex;gap:10px;padding:0 12px var(--safe-bottom) 12px;pointer-events:auto}
@@ -410,20 +413,51 @@
 
     <!-- Selección (público) -->
     <section id="view-select" class="view" aria-label="Seleccionar asiento">
-  <div id="legend" class="legend">
-    <span class="badge libre">Libre</span>
-    <span class="badge ocupado">Ocupado</span>
-    <span class="badge seleccionado">Seleccionado</span>
-    <span class="badge inhabilitado">Gris: Inhabilitado en esta planta</span>
-  </div>
-  <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
+      <form id="selectForm" class="form" onsubmit="event.preventDefault(); startSelection();">
+        <div class="form-row">
+          <label for="nombrePrincipal">Nombre del pasajero</label>
+          <input id="nombrePrincipal" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" />
+        </div>
+        <div class="form-row">
+          <label for="ciPrincipal">CI del pasajero</label>
+          <input id="ciPrincipal" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" />
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn primary">Reservar</button>
+          <button type="button" class="btn ghost" onclick="refreshSelectGrid()">Actualizar</button>
+        </div>
+        <p class="hint">Presiona “Actualizar” para ver reservas recientes.</p>
+      </form>
+      <div id="legend" class="legend">
+        <span class="badge libre">Libre</span>
+        <span class="badge ocupado">Ocupado</span>
+        <span class="badge seleccionado">Seleccionado</span>
+        <span class="badge inhabilitado">Gris: Inhabilitado en esta planta</span>
+      </div>
+      <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
+
+      <!-- Asignación múltiple -->
+      <div id="reserveFeedback" class="feedback hidden">
+        <h4>Reserva confirmada</h4>
+        <div id="reserveNums" class="nums"></div>
+        <div class="actions" style="margin-top:8px;">
+          <button type="button" class="btn ghost" onclick="goTripMenu()">Inicio</button>
+        </div>
+      </div>
+    <div class="content-spacer" aria-hidden="true"></div>
+
+  <!-- Barra de acciones persistente -->
   <div id="selectActionBar" class="action-bar">
     <div class="actions">
       <button type="button" class="btn primary" onclick="startSelection()">Reservar</button>
       <button type="button" class="btn ghost" onclick="refreshSelectGrid()">Actualizar</button>
     </div>
   </div>
+
+  <!-- Backdrop -->
   <div id="sheetBackdrop" class="backdrop" aria-hidden="true"></div>
+
+  <!-- Sheet: datos para 1 asiento -->
   <div id="singleSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <div class="sheet-head">
       <h4 id="sheetTitle" class="sheet-title">Datos del pasajero</h4>
@@ -444,26 +478,27 @@
       <button type="button" class="btn ghost" onclick="changeSeatsFromSheet()">Cambiar asientos</button>
     </div>
   </div>
-  <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
-    <h3>Asignar nombres a tus asientos</h3>
-    <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
-    <div id="assignList" class="assign-list"></div>
-    <div class="action-bar">
-      <div class="actions">
-        <button type="button" class="btn ghost" onclick="backToSelect()">Volver</button>
-        <button type="button" class="btn success" onclick="confirmReservation()">Confirmar reserva</button>
-      </div>
+
+  <!-- Sheet: asignación múltiple para 2+ asientos -->
+  <div id="multiSheet" class="sheet hidden" role="dialog" aria-modal="true" aria-labelledby="multiTitle">
+    <div class="sheet-head">
+      <h4 id="multiTitle" class="sheet-title">Asignar nombres</h4>
+      <button type="button" class="btn ghost" onclick="closeMultiSheet()">Cerrar</button>
     </div>
-  </section>
-  <div id="reserveFeedback" class="feedback hidden">
-    <h4>Reserva confirmada</h4>
-    <div id="reserveNums" class="nums"></div>
-    <div class="actions" style="margin-top:8px;">
-      <button type="button" class="btn ghost" onclick="goTripMenu()">Inicio</button>
+    <div class="sheet-body">
+      <p>Como elegiste más de un asiento, completá los datos de tu grupo.</p>
+      <div id="multiAssignList" class="assign-list"></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn success" onclick="confirmMultiReservation()">Confirmar reserva</button>
+      <button type="button" class="btn ghost" onclick="closeMultiSheet()">Cambiar asientos</button>
     </div>
   </div>
+
 </section>
-<section id="view-find" class="view" aria-label="Mirá tu asiento">
+
+    <!-- Mirá tu asiento -->
+    <section id="view-find" class="view" aria-label="Mirá tu asiento">
       <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
         <div class="form-row">
           <label for="ciSearch">CI del pasajero</label>
@@ -1331,7 +1366,7 @@
     }
 
     /* ===== Selección (público) ===== */
-    function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
+    function updateAssignVisibility(){ /* no-op: gestionado por sheets */ } else { document.getElementById('view-assign').classList.add('hidden'); } }
     function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
     function toggleSeat(code, el){
       var key = normalize(code);
@@ -1344,7 +1379,8 @@
   if(BUSY) return;
   if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
   if(selected.size === 1){ openSingleSheet(); return; }
-  var assign = document.getElementById('assignList'); assign.innerHTML = '';
+  // construir lista múltiple dentro del sheet
+  var list = document.getElementById('multiAssignList'); if(list) list.innerHTML='';
   var codes = Array.from(selected);
   for(var i=0;i<codes.length;i++){
     var codeNorm = normalize(codes[i]); var num = NUM_LABELS.get(codeNorm) || '';
@@ -1362,10 +1398,9 @@
     ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
     grid.appendChild(nameWrap); grid.appendChild(ciWrap);
     row.appendChild(title); row.appendChild(grid);
-    assign.appendChild(row);
+    if(list) list.appendChild(row);
   }
-  document.getElementById('view-assign').classList.remove('hidden');
-  document.getElementById('view-assign').scrollIntoView({behavior:'smooth'});
+  openMultiSheet();
 }
 
     async function confirmReservation(){
@@ -2074,43 +2109,15 @@ function renderGoogleButton(){
     })();
   
 
-function openSingleSheet(){
-  var bd = document.getElementById('sheetBackdrop');
-  var sh = document.getElementById('singleSheet');
-  if (bd) { bd.classList.add('show'); bd.setAttribute('aria-hidden','false'); }
-  if (sh) { sh.classList.remove('hidden'); sh.classList.add('show');
-    try { document.getElementById('nombreSingle').focus(); } catch(e){}
-  }
-}
-function closeSingleSheet(){
-  var bd = document.getElementById('sheetBackdrop');
-  var sh = document.getElementById('singleSheet');
-  if (bd) { bd.classList.remove('show'); bd.setAttribute('aria-hidden','true'); }
-  if (sh) { sh.classList.remove('show'); sh.classList.add('hidden'); }
-}
-function changeSeatsFromSheet(){ closeSingleSheet(); toast('Podés cambiar tus asientos'); }
-window.addEventListener('keydown', function(ev){ if(ev.key==='Escape'){ closeSingleSheet(); } }, { passive:true });
+function openSingleSheet(){ var bd=document.getElementById('sheetBackdrop'); var sh=document.getElementById('singleSheet'); if(bd){ bd.classList.add('show'); bd.setAttribute('aria-hidden','false'); } if(sh){ sh.classList.remove('hidden'); sh.classList.add('show'); try{ document.getElementById('nombreSingle').focus(); }catch(e){} } }
+function closeSingleSheet(){ var bd=document.getElementById('sheetBackdrop'); var sh=document.getElementById('singleSheet'); if(bd){ bd.classList.remove('show'); bd.setAttribute('aria-hidden','true'); } if(sh){ sh.classList.remove('show'); sh.classList.add('hidden'); } }
+function changeSeatsFromSheet(){ closeSingleSheet(); closeMultiSheet(); toast('Podés cambiar tus asientos'); }
+function openMultiSheet(){ var bd=document.getElementById('sheetBackdrop'); var sh=document.getElementById('multiSheet'); if(bd){ bd.classList.add('show'); bd.setAttribute('aria-hidden','false'); } if(sh){ sh.classList.remove('hidden'); sh.classList.add('show'); } }
+function closeMultiSheet(){ var bd=document.getElementById('sheetBackdrop'); var sh=document.getElementById('multiSheet'); if(sh){ sh.classList.remove('show'); sh.classList.add('hidden'); } if(bd){ bd.classList.remove('show'); bd.setAttribute('aria-hidden','true'); } }
+window.addEventListener('keydown', function(ev){ if(ev.key==='Escape'){ closeSingleSheet(); closeMultiSheet(); } }, { passive:true });
 function cancelSingle(){ closeSingleSheet(); }
-async function confirmSingle(){
-  if(BUSY) return;
-  var name = (document.getElementById('nombreSingle')||{}).value || '';
-  var ci = (document.getElementById('ciSingle')||{}).value || '';
-  name = name.trim(); ci = ci.trim();
-  if(!name || !ci){ toast('Completá nombre y CI'); return; }
-  if(selected.size !== 1){ toast('Seleccioná exactamente un asiento'); return; }
-  var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
-  var pairs = [{ asiento: onlyNorm, pasajero: name, ci: ci }];
-  BUSY = true; showLoading('Reservando…');
-  try{
-    await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
-    showReserveFeedbackDetailed(pairs);
-    closeSingleSheet();
-    (document.getElementById('nombreSingle')||{}).value = '';
-    (document.getElementById('ciSingle')||{}).value = '';
-    await refreshSelectGrid();
-  }catch(err){ toast('No se pudo reservar'); }
-  finally{ hideLoading(); BUSY = false; }
-}
+async function confirmSingle(){ if(BUSY) return; var name=(document.getElementById('nombreSingle')||{}).value||''; var ci=(document.getElementById('ciSingle')||{}).value||''; name=name.trim(); ci=ci.trim(); if(!name||!ci){ toast('Completá nombre y CI'); return; } if(selected.size!==1){ toast('Seleccioná exactamente un asiento'); return; } var only=Array.from(selected)[0]; var onlyNorm=normalize(only); var pairs=[{ asiento: onlyNorm, pasajero: name, ci: ci }]; BUSY=true; showLoading('Reservando…'); try{ await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs); showReserveFeedbackDetailed(pairs); closeSingleSheet(); (document.getElementById('nombreSingle')||{}).value=''; (document.getElementById('ciSingle')||{}).value=''; await refreshSelectGrid(); }catch(err){ toast('No se pudo reservar'); } finally{ hideLoading(); BUSY=false; } }
+async function confirmMultiReservation(){ if(BUSY) return; var inputs=document.querySelectorAll('#multiAssignList .assign-row'); var pairs=[]; for(var i=0;i<inputs.length;i++){ var row=inputs[i]; var codeNorm=row.getAttribute('data-code'); var pasajero=row.querySelector('.assign-name').value.trim(); var ci=row.querySelector('.assign-ci').value.trim(); if(!pasajero||!ci){ toast('Faltan datos en '+codeNorm); return; } pairs.push({ asiento: codeNorm, pasajero: pasajero, ci: ci }); } BUSY=true; showLoading('Reservando…'); try{ await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs); showReserveFeedbackDetailed(pairs); closeMultiSheet(); await refreshSelectGrid(); }catch(err){ toast('No se pudo reservar'); } finally{ hideLoading(); BUSY=false; } }
 </script>
 </body>
 </html>
