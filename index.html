@@ -592,13 +592,11 @@
       if (!res.ok) throw new Error('POST reserve: ' + res.status);
       return parseResponse(res);
     }
-    async function apiMove(
-  fileId,
-  sheetOrigen,   // planta donde estaba el pasajero
-  sheetDestino,  // planta donde lo querés mover
-  fromSeat,
-  toSeat
-);
+    async function apiMove(fileId, sheetName, sourceCode, targetCode){ // POST con idToken
+      const res = await fetch(getUrl('move'), postOptions({ fileId, sheetName, sourceCode, targetCode, idToken: ID_TOKEN }));
+      if (!res.ok) throw new Error('POST move: ' + res.status);
+      return parseResponse(res);
+    }
     async function apiFree(fileId, sheetName, code) { // POST con idToken
       const res = await fetch(getUrl('free'), postOptions({ fileId, sheetName, code, idToken: ID_TOKEN }));
       if (!res.ok) throw new Error('POST free: ' + res.status);
