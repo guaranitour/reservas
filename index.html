@@ -592,8 +592,11 @@
       if (!res.ok) throw new Error('POST reserve: ' + res.status);
       return parseResponse(res);
     }
-    async function apiMove(fileId, sheetName, sourceCode, targetCode){ // POST con idToken
-      const res = await fetch(getUrl('move'), postOptions({ fileId, sheetName, sourceCode, targetCode, idToken: ID_TOKEN }));
+    async function apiMove(fileId, sourceSheet, sourceCode, targetSheet, targetCode){
+  const res = await fetch(getUrl('move'), postOptions({ fileId, sourceSheet, sourceCode, targetSheet, targetCode, idToken: ID_TOKEN }));
+  if (!res.ok) throw new Error('POST move: ' + res.status);
+  return parseResponse(res);
+}));
       if (!res.ok) throw new Error('POST move: ' + res.status);
       return parseResponse(res);
     }
@@ -641,7 +644,7 @@
     function buildHash(segments){ return '#/' + (segments || []).map(function(s){ return encodeURIComponent(String(s || '')); }).join('/'); }
     function setHash(segments){ if (ROUTER_DRIVING) return; location.hash = buildHash(segments); }
     function getHashSegments(h){
-      var raw = String(h || (location.hash || '')).replace(/^\#\/?/, '');
+      var raw = String(h || (location.hash || '')).replace(/^#/?/, '');
       if (!raw) return [];
       return raw.split('/').map(function(p){ try { return decodeURIComponent(p); } catch(e){ return p; } });
     }
@@ -1717,7 +1720,10 @@
       if (fb) { fb.classList.add('hidden'); fb.innerHTML=''; }
       hideSeatTooltip();
       CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI();
+    if (STAFF_CONTROL_MULTI && EDIT_SRC && EDIT_DST && EDIT_SRC.sheet !== EDIT_DST.sheet) {
+      toast('Movés entre plantas: ' + EDIT_SRC.sheet + ' → ' + EDIT_DST.sheet);
     }
+  }
     function toggleControlEdit(){
       if (!isAdmin()){ toast('No tenés permisos de edición'); return; }
       CONTROL_EDIT=!CONTROL_EDIT;
@@ -1740,7 +1746,10 @@
         btn.classList.add('pick-target'); EDIT_DST={num:num,code:code,sheet:sheet};
       }else{ return; }
       updateEditTags(); syncToolbarUI();
+    if (STAFF_CONTROL_MULTI && EDIT_SRC && EDIT_DST && EDIT_SRC.sheet !== EDIT_DST.sheet) {
+      toast('Movés entre plantas: ' + EDIT_SRC.sheet + ' → ' + EDIT_DST.sheet);
     }
+  }
     function updateEditTags(){
       var tagSrc=document.getElementById('tagSrc'), tagDst=document.getElementById('tagDst');
       if (tagSrc) tagSrc.textContent='Origen: ' + (EDIT_SRC ? (EDIT_SRC.num + ' • ' + EDIT_SRC.code) : '—');
@@ -1766,7 +1775,7 @@
       if (toolbar) toolbar.classList.toggle('editing', CONTROL_EDIT);
       if(CONTROL_EDIT){
         if (btnEdit){ btnEdit.classList.add('danger'); btnEdit.textContent='Salir de edición'; }
-        var canMove = EDIT_SRC && EDIT_DST && (!STAFF_CONTROL_MULTI || (EDIT_SRC.sheet === EDIT_DST.sheet));
+        var canMove = EDIT_SRC && EDIT_DST;
         if (btnMove) btnMove.disabled=!canMove;
         if (btnFree) btnFree.disabled=!EDIT_SRC;
         if (btnCancel) btnCancel.disabled=false;
@@ -1793,7 +1802,9 @@
       }
       try{
         var sheet = STAFF_CONTROL_MULTI ? EDIT_SRC.sheet : CURRENT_TRIP.sheetName;
-        var resp=await API.apiMove(CURRENT_TRIP.fileId, sheet, EDIT_SRC.code, EDIT_DST.code);
+        var resp = STAFF_CONTROL_MULTI
+      ? await API.apiMove(CURRENT_TRIP.fileId, EDIT_SRC.sheet, EDIT_SRC.code, EDIT_DST.sheet, EDIT_DST.code)
+      : await API.apiMove(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, EDIT_SRC.code, CURRENT_TRIP.sheetName, EDIT_DST.code);
         toast(resp && resp.message ? resp.message : 'Movimiento realizado');
         cancelEdit(true);
         await refreshControlBoardSmart();
