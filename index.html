@@ -182,19 +182,7 @@
     .field{ display:flex; flex-direction:column; gap:6px; }
     .field-label{ font-weight:600; font-size:.9rem; color:#6b7280; }
 
-    /* Bottom App Bar */
-    .assign .action-bar{
-      position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-      height: calc(var(--action-bar-h) + var(--safe-bottom));
-      display: grid; place-items: center;
-      background: transparent; border: none; box-shadow: none;
-      pointer-events: none;
-    }
-    .assign .action-bar .actions{
-      width: min(680px, 92vw); display:flex; gap:10px;
-      padding: 0 12px var(--safe-bottom) 12px; pointer-events: auto;
-    }
-    .assign .action-bar .btn{ flex: 1; min-height: 44px; }
+    
 
     /* Control interno */
     .control-board{background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px 12px; margin-top:12px;}
@@ -312,7 +300,19 @@
   z-index: 2;
 }
 
-  </style>
+  
+/* ===== Modal de reserva (safe) ===== */
+.modal{position:fixed; inset:0; z-index:60; display:none;}
+.modal.show{display:grid;}
+.modal .backdrop{position:absolute; inset:0; background:rgba(17,24,39,.45);} 
+.modal .sheet{position:relative; margin:auto; width:min(680px,92vw); background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px;} 
+.modal .sheet header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px;} 
+.modal .sheet header h3{margin:0; font-size:1.05rem; font-weight:800;} 
+.modal .sheet .actions{justify-content:flex-end;} 
+.modal .close{border:none; background:transparent; cursor:pointer; font-weight:800; color:#6b7280;} 
+@media (prefers-reduced-motion: reduce){ .modal{animation:none} }
+
+</style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -407,7 +407,7 @@
 
   <!-- Acciones principales -->
   <div class="actions" style="margin-top:12px;">
-    <button type="button" class="btn primary" onclick="startSelection()">Reservar</button>
+    <button type="button" class="btn primary" onclick="startSelectionModal()">Reservar</button>
     <button type="button" class="btn ghost" onclick="refreshSelectGrid()">Actualizar</button>
   </div>
 
@@ -430,17 +430,7 @@
   </form>
 
   <!-- Asignación múltiple (se muestra cuando se seleccionan 2 o más asientos) -->
-  <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
-    <h3>Asignar nombres a tus asientos</h3>
-    <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
-    <div id="assignList" class="assign-list"></div>
-    <div class="action-bar">
-      <div class="actions">
-        <button type="button" class="btn ghost" onclick="backToSelect()">Volver</button>
-        <button type="button" class="btn success" onclick="confirmReservation()">Confirmar reserva</button>
-      </div>
-    </div>
-  </section>
+  
 
   <div id="reserveFeedback" class="feedback hidden">
     <h4>Reserva confirmada</h4>
@@ -521,7 +511,24 @@
   </main>
 
   <!-- Overlay de carga -->
-  <div id="overlay" class="overlay" aria-hidden="true">
+  
+<!-- ===== Modal de Reserva (safe) ===== -->
+<div id="reserveModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="backdrop" onclick="closeReserveModal()"></div>
+  <div class="sheet" role="document">
+    <header>
+      <h3 id="reserveTitle">Confirmar reserva</h3>
+      <button type="button" class="close" onclick="closeReserveModal()" aria-label="Cerrar">x</button>
+    </header>
+    <div id="reserveBody"></div>
+    <div class="actions" style="margin-top:12px;">
+      <button type="button" class="btn ghost" onclick="closeReserveModal()">Cancelar</button>
+      <button type="button" class="btn success" id="reserveConfirmBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="overlay" class="overlay" aria-hidden="true">
     <div class="loader">
       <div class="spinner"></div>
       <div class="loader-text">Cargando…</div>
@@ -2087,5 +2094,137 @@ function renderGoogleButton(){
       else start();
     })();
   </script>
+
+<script>
+function openReserveModal(){
+  var m = document.getElementById('reserveModal');
+  if (!m) return;
+  m.classList.add('show');
+  m.setAttribute('aria-hidden', 'false');
+}
+function closeReserveModal(){
+  var m = document.getElementById('reserveModal');
+  if (!m) return;
+  m.classList.remove('show');
+  m.setAttribute('aria-hidden', 'true');
+}
+document.addEventListener('keydown', function(ev){
+  if (ev.key === 'Escape') closeReserveModal();
+}, { passive: true });
+
+function renderSingleFormInModal(){
+  var title = document.getElementById('reserveTitle');
+  var body  = document.getElementById('reserveBody');
+  var btn   = document.getElementById('reserveConfirmBtn');
+  if (title) title.textContent = 'Datos del pasajero';
+  if (body) {
+    while (body.firstChild) body.removeChild(body.firstChild);
+    var form = document.createElement('div'); form.className = 'form';
+    var rowN = document.createElement('div'); rowN.className = 'form-row';
+    var lblN = document.createElement('label'); lblN.setAttribute('for','nombreSingleModal'); lblN.textContent = 'Nombre del pasajero';
+    var inpN = document.createElement('input'); inpN.id='nombreSingleModal'; inpN.type='text'; inpN.placeholder='Nombre y Apellido'; inpN.required = true; inpN.autocomplete='name'; inpN.autocapitalize='words';
+    rowN.appendChild(lblN); rowN.appendChild(inpN);
+    var rowC = document.createElement('div'); rowC.className = 'form-row';
+    var lblC = document.createElement('label'); lblC.setAttribute('for','ciSingleModal'); lblC.textContent = 'CI del pasajero';
+    var inpC = document.createElement('input'); inpC.id='ciSingleModal'; inpC.type='text'; inpC.placeholder='Ej.: 12345678'; inpC.required = true; inpC.autocomplete='off'; inpC.inputMode='numeric'; inpC.pattern='[0-9]*';
+    inpC.addEventListener('input', function(e){ onlyDigits(e.target); });
+    rowC.appendChild(lblC); rowC.appendChild(inpC);
+    form.appendChild(rowN); form.appendChild(rowC);
+    body.appendChild(form);
+  }
+  if (btn) btn.onclick = confirmSingleFromModal;
+  openReserveModal();
+}
+
+function confirmSingleFromModal(){
+  if (BUSY) return;
+  var name = (document.getElementById('nombreSingleModal')||{}).value || '';
+  var ci   = (document.getElementById('ciSingleModal')||{}).value || '';
+  name = name.trim(); ci = ci.trim();
+  if (!name || !ci){ toast('Completá nombre y CI'); return; }
+  if (selected.size !== 1){ toast('Seleccioná exactamente un asiento'); return; }
+  var only = Array.from(selected)[0];
+  var onlyNorm = normalize(only);
+  var pairs = [{ asiento: onlyNorm, pasajero: name, ci: ci }];
+  BUSY = true; showLoading('Reservando…');
+  API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs)
+    .then(async function(){
+      showReserveFeedbackDetailed(pairs);
+      closeReserveModal();
+      await refreshSelectGrid();
+    })
+    .catch(function(){ toast('No se pudo reservar'); })
+    .finally(function(){ hideLoading(); BUSY = false; });
+}
+
+function renderMultiFormInModal(){
+  var title = document.getElementById('reserveTitle');
+  var body  = document.getElementById('reserveBody');
+  var btn   = document.getElementById('reserveConfirmBtn');
+  if (title) title.textContent = 'Asignar nombres a tus asientos';
+  if (body) {
+    while (body.firstChild) body.removeChild(body.firstChild);
+    var listWrap = document.createElement('div'); listWrap.id = 'assignListModal'; listWrap.className = 'assign-list';
+    var codes = Array.from(selected);
+    for (var i = 0; i < codes.length; i++){
+      var codeNorm = normalize(codes[i]);
+      var num = NUM_LABELS.get(codeNorm) || '';
+      var row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
+      var titleDiv = document.createElement('div'); titleDiv.className = 'assign-title'; titleDiv.textContent = 'Asiento ' + (num || codeNorm);
+      var grid = document.createElement('div'); grid.className = 'assign-grid';
+      var nameLabel = document.createElement('label'); nameLabel.className = 'field';
+      var nameSpan  = document.createElement('span'); nameSpan.className = 'field-label'; nameSpan.textContent = 'Nombre';
+      var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required = true; nameInput.className = 'assign-name'; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
+      nameLabel.appendChild(nameSpan); nameLabel.appendChild(nameInput);
+      var ciLabel = document.createElement('label'); ciLabel.className = 'field';
+      var ciSpan  = document.createElement('span'); ciSpan.className = 'field-label'; ciSpan.textContent = 'CI';
+      var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required = true; ciInput.className = 'assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
+      ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
+      ciLabel.appendChild(ciSpan); ciLabel.appendChild(ciInput);
+      grid.appendChild(nameLabel); grid.appendChild(ciLabel);
+      row.appendChild(titleDiv); row.appendChild(grid);
+      listWrap.appendChild(row);
+    }
+    body.appendChild(listWrap);
+  }
+  if (btn) btn.onclick = confirmReservationFromModal;
+  openReserveModal();
+}
+
+function confirmReservationFromModal(){
+  if (BUSY) return;
+  var inputs = document.querySelectorAll('#assignListModal .assign-row');
+  var pairs = [];
+  for (var i = 0; i < inputs.length; i++){
+    var row = inputs[i];
+    var codeNorm = row.getAttribute('data-code');
+    var pasajero = row.querySelector('.assign-name').value.trim();
+    var ci = row.querySelector('.assign-ci').value.trim();
+    if (!pasajero || !ci){ toast('Faltan datos en ' + codeNorm); return; }
+    pairs.push({ asiento: codeNorm, pasajero: pasajero, ci: ci });
+  }
+  BUSY = true; showLoading('Reservando…');
+  API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs)
+    .then(async function(){
+      showReserveFeedbackDetailed(pairs);
+      closeReserveModal();
+      await refreshSelectGrid();
+    })
+    .catch(function(){ toast('No se pudo reservar'); })
+    .finally(function(){ hideLoading(); BUSY = false; });
+}
+
+function startSelectionModal(){
+  if (BUSY) return;
+  if (selected.size === 0){ toast('Elegí al menos un asiento'); return; }
+  if (selected.size === 1){ renderSingleFormInModal(); return; }
+  renderMultiFormInModal();
+}
+
+// ===== Neutralizar antiguas funciones de la vista inline =====
+function updateAssignVisibility(){ /* modal-only */ }
+function backToSelect(){ try { closeReserveModal(); } catch(e){} }
+</script>
+
 </body>
 </html>
