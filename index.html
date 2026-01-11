@@ -321,19 +321,15 @@
 .modal .sheet header{ display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .modal .sheet header h3{ margin: 0; font-size: 1.05rem; font-weight: 900; }
 .modal .close{ border: none; background: transparent; cursor: pointer; font-weight: 800; color: #6b7280; }
-/* Cards dentro del modal */
 .form, .assign-row{ border-radius: 16px; background: rgba(255,255,255,.96); box-shadow: 0 8px 24px rgba(17,24,39,.10); padding: 14px; margin-bottom: 12px; }
 .assign-title{ font-size: .98rem; font-weight: 800; color: #111827; margin: 0 0 10px 0; }
-/* Campos: label arriba + input pill */
 .field{ display: flex; flex-direction: column; gap: 6px; }
 .field .field-label{ font-size: .9rem; font-weight: 700; color: #374151; }
 .field input{ width: 100%; border: 1.5px solid #e5e7eb; border-radius: 999px; padding: 14px 16px; font-size: 1rem; background: #fff; color: var(--text); outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
 .field input:focus{ border-color: #93c5fd; box-shadow: 0 0 0 4px rgba(59,130,246,.15); }
 .field input::placeholder{ color: #9ca3af; opacity: .9; }
-/* Botones del modal */
 .modal .sheet .actions{ display: flex; gap: 10px; justify-content: space-between; }
 .modal .sheet .btn{ border-radius: 999px; min-height: 44px; }
-/* Responsive: dos columnas en pantallas anchas */
 @media (min-width: 540px){ .assign-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } }
 
 
@@ -2142,33 +2138,51 @@ function renderGoogleButton(){
 function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
 function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
 document.addEventListener('keydown', function(ev){ if(ev.key==='Escape') closeReserveModal(); }, { passive:true });
-
 function renderSingleFormInModal(){
-  var title = document.getElementById('reserveTitle');
-  var body  = document.getElementById('reserveBody');
-  var btn   = document.getElementById('reserveConfirmBtn');
+  var title = document.getElementById('reserveTitle'); var body  = document.getElementById('reserveBody'); var btn   = document.getElementById('reserveConfirmBtn');
   if (title) title.textContent = 'Tus datos';
   if (body) {
     while (body.firstChild) body.removeChild(body.firstChild);
     var form = document.createElement('div'); form.className = 'form';
-    // Nombre
     var nameWrap = document.createElement('label'); nameWrap.className = 'field';
     var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
     var nameInput = document.createElement('input'); nameInput.id='nombreSingleModal'; nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
     nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
-    // CI
     var ciWrap = document.createElement('label'); ciWrap.className = 'field';
     var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
     var ciInput = document.createElement('input'); ciInput.id='ciSingleModal'; ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.autocomplete='off'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
     ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
-    form.appendChild(nameWrap); form.appendChild(ciWrap);
-    body.appendChild(form);
+    form.appendChild(nameWrap); form.appendChild(ciWrap); body.appendChild(form);
   }
-  if (btn) btn.onclick = confirmSingleFromModal;
-  openReserveModal();
-  try { document.getElementById('nombreSingleModal').focus(); } catch(e){}
+  if (btn) btn.onclick = confirmSingleFromModal; openReserveModal(); try { document.getElementById('nombreSingleModal').focus(); } catch(e){}
 }
-
+function renderMultiFormInModal(){
+  var title = document.getElementById('reserveTitle'); var body  = document.getElementById('reserveBody'); var btn   = document.getElementById('reserveConfirmBtn');
+  if (title) title.textContent = 'Asignar datos a tus asientos';
+  if (body) {
+    while (body.firstChild) body.removeChild(body.firstChild);
+    var listWrap = document.createElement('div'); listWrap.id = 'assignListModal'; listWrap.className = 'assign-list';
+    var codes = Array.from(selected);
+    for (var i = 0; i < codes.length; i++){
+      var codeNorm = normalize(codes[i]); var num = NUM_LABELS.get(codeNorm) || '';
+      var row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
+      var titleDiv = document.createElement('div'); titleDiv.className = 'assign-title'; titleDiv.textContent = 'Asiento ' + (num || codeNorm);
+      var grid = document.createElement('div'); grid.className = 'assign-grid';
+      var nameWrap = document.createElement('label'); nameWrap.className = 'field';
+      var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
+      var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
+      nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
+      var ciWrap = document.createElement('label'); ciWrap.className = 'field';
+      var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
+      var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
+      ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
+      grid.appendChild(nameWrap); grid.appendChild(ciWrap);
+      row.appendChild(titleDiv); row.appendChild(grid); listWrap.appendChild(row);
+    }
+    body.appendChild(listWrap);
+  }
+  if (btn) btn.onclick = confirmReservationFromModal; openReserveModal();
+}
 function confirmSingleFromModal(){
   if (BUSY) return;
   var name = (document.getElementById('nombreSingleModal')||{}).value || '';
@@ -2179,48 +2193,14 @@ function confirmSingleFromModal(){
   var only = Array.from(selected)[0];
   var onlyNorm = normalize(only);
   var pairs = [{ asiento: onlyNorm, pasajero: name, ci: ci }];
+  var btn = document.getElementById('reserveConfirmBtn'); if (btn) btn.disabled = true;
+  closeReserveModal();
   BUSY = true; showLoading('Reservando…');
   API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs)
-    .then(async function(){ showReserveFeedbackDetailed(pairs); closeReserveModal(); await refreshSelectGrid(); })
+    .then(async function(){ showReserveFeedbackDetailed(pairs); await refreshSelectGrid(); })
     .catch(function(){ toast('No se pudo reservar'); })
-    .finally(function(){ hideLoading(); BUSY=false; });
+    .finally(function(){ hideLoading(); BUSY = false; if (btn) btn.disabled = false; });
 }
-
-function renderMultiFormInModal(){
-  var title = document.getElementById('reserveTitle');
-  var body  = document.getElementById('reserveBody');
-  var btn   = document.getElementById('reserveConfirmBtn');
-  if (title) title.textContent = 'Asignar datos a tus asientos';
-  if (body) {
-    while (body.firstChild) body.removeChild(body.firstChild);
-    var listWrap = document.createElement('div'); listWrap.id = 'assignListModal'; listWrap.className = 'assign-list';
-    var codes = Array.from(selected);
-    for (var i = 0; i < codes.length; i++){
-      var codeNorm = normalize(codes[i]);
-      var num = NUM_LABELS.get(codeNorm) || '';
-      var row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
-      var titleDiv = document.createElement('div'); titleDiv.className = 'assign-title'; titleDiv.textContent = 'Asiento ' + (num || codeNorm);
-      var grid = document.createElement('div'); grid.className = 'assign-grid';
-      // Nombre
-      var nameWrap = document.createElement('label'); nameWrap.className = 'field';
-      var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
-      var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
-      nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
-      // CI
-      var ciWrap = document.createElement('label'); ciWrap.className = 'field';
-      var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
-      var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
-      ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
-      grid.appendChild(nameWrap); grid.appendChild(ciWrap);
-      row.appendChild(titleDiv); row.appendChild(grid);
-      listWrap.appendChild(row);
-    }
-    body.appendChild(listWrap);
-  }
-  if (btn) btn.onclick = confirmReservationFromModal;
-  openReserveModal();
-}
-
 function confirmReservationFromModal(){
   if (BUSY) return;
   var inputs = document.querySelectorAll('#assignListModal .assign-row');
@@ -2233,21 +2213,15 @@ function confirmReservationFromModal(){
     if (!pasajero || !ci){ toast('Faltan datos en ' + codeNorm); return; }
     pairs.push({ asiento: codeNorm, pasajero: pasajero, ci: ci });
   }
+  var btn = document.getElementById('reserveConfirmBtn'); if (btn) btn.disabled = true;
+  closeReserveModal();
   BUSY = true; showLoading('Reservando…');
   API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs)
-    .then(async function(){ showReserveFeedbackDetailed(pairs); closeReserveModal(); await refreshSelectGrid(); })
+    .then(async function(){ showReserveFeedbackDetailed(pairs); await refreshSelectGrid(); })
     .catch(function(){ toast('No se pudo reservar'); })
-    .finally(function(){ hideLoading(); BUSY=false; });
+    .finally(function(){ hideLoading(); BUSY = false; if (btn) btn.disabled = false; });
 }
-
-function startSelectionModal(){
-  if (BUSY) return;
-  if (selected.size === 0){ toast('Elegí al menos un asiento'); return; }
-  if (selected.size === 1){ renderSingleFormInModal(); return; }
-  renderMultiFormInModal();
-}
-
-// Neutralizar funciones viejas (inline)
+function startSelectionModal(){ if (BUSY) return; if (selected.size === 0){ toast('Elegí al menos un asiento'); return; } if (selected.size === 1){ renderSingleFormInModal(); return; } renderMultiFormInModal(); }
 function updateAssignVisibility(){ /* modal-only */ }
 function backToSelect(){ try { closeReserveModal(); } catch(e){} }
 </script>
