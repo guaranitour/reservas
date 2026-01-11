@@ -640,7 +640,7 @@
     function buildHash(segments){ return '#/' + (segments || []).map(function(s){ return encodeURIComponent(String(s || '')); }).join('/'); }
     function setHash(segments){ if (ROUTER_DRIVING) return; location.hash = buildHash(segments); }
     function getHashSegments(h){
-      var raw = String(h || (location.hash || '')).replace(/^#/?/, '');
+      var raw = String(h || (location.hash || '')).replace(/^#\/?/, '');
       if (!raw) return [];
       return raw.split('/').map(function(p){ try { return decodeURIComponent(p); } catch(e){ return p; } });
     }
@@ -1931,6 +1931,7 @@ function renderGoogleButton(){
     logo_alignment: 'left'
   });
 }
+
 
     async function handleCredentialResponse(resp){
       try{
