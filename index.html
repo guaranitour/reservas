@@ -394,53 +394,63 @@
 
     <!-- Selección (público) -->
     <section id="view-select" class="view" aria-label="Seleccionar asiento">
-      <form id="selectForm" class="form" onsubmit="event.preventDefault(); startSelection();">
-        <div class="form-row">
-          <label for="nombrePrincipal">Nombre del pasajero</label>
-          <input id="nombrePrincipal" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" />
-        </div>
-        <div class="form-row">
-          <label for="ciPrincipal">CI del pasajero</label>
-          <input id="ciPrincipal" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" />
-        </div>
-        <div class="actions">
-          <button type="submit" class="btn primary">Reservar</button>
-          <button type="button" class="btn ghost" onclick="refreshSelectGrid()">Actualizar</button>
-        </div>
-        <p class="hint">Presiona “Actualizar” para ver reservas recientes.</p>
-      </form>
-      <div id="legend" class="legend">
-        <span class="badge libre">Libre</span>
-        <span class="badge ocupado">Ocupado</span>
-        <span class="badge seleccionado">Seleccionado</span>
-        <span class="badge inhabilitado">Gris: Inhabilitado en esta planta</span>
+  <!-- Leyenda -->
+  <div id="legend" class="legend">
+    <span class="badge libre">Libre</span>
+    <span class="badge ocupado">Ocupado</span>
+    <span class="badge seleccionado">Seleccionado</span>
+    <span class="badge inhabilitado">Gris: Inhabilitado en esta planta</span>
+  </div>
+
+  <!-- Croquis -->
+  <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
+
+  <!-- Acciones principales -->
+  <div class="actions" style="margin-top:12px;">
+    <button type="button" class="btn primary" onclick="startSelection()">Reservar</button>
+    <button type="button" class="btn ghost" onclick="refreshSelectGrid()">Actualizar</button>
+  </div>
+
+  <!-- Datos para una sola reserva (se muestra después de presionar Reservar) -->
+  <form id="detailsSingle" class="form hidden" onsubmit="event.preventDefault(); confirmSingle();">
+    <h4>Datos del pasajero</h4>
+    <div class="form-row">
+      <label for="nombreSingle">Nombre del pasajero</label>
+      <input id="nombreSingle" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" />
+    </div>
+    <div class="form-row">
+      <label for="ciSingle">CI del pasajero</label>
+      <input id="ciSingle" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" />
+    </div>
+    <div class="actions">
+      <button type="submit" class="btn success">Confirmar</button>
+      <button type="button" class="btn ghost" onclick="cancelSingle()">Cancelar</button>
+    </div>
+    <p class="hint">Completá tus datos y confirmá la reserva.</p>
+  </form>
+
+  <!-- Asignación múltiple (se muestra cuando se seleccionan 2 o más asientos) -->
+  <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
+    <h3>Asignar nombres a tus asientos</h3>
+    <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
+    <div id="assignList" class="assign-list"></div>
+    <div class="action-bar">
+      <div class="actions">
+        <button type="button" class="btn ghost" onclick="backToSelect()">Volver</button>
+        <button type="button" class="btn success" onclick="confirmReservation()">Confirmar reserva</button>
       </div>
-      <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
+    </div>
+  </section>
 
-      <!-- Asignación múltiple -->
-      <section id="view-assign" class="assign hidden" aria-label="Asignar nombres">
-        <h3>Asignar nombres a tus asientos</h3>
-        <p>Como reservaste más de un asiento, indicanos los nombres y CI de tu dupla o grupo.</p>
-        <div id="assignList" class="assign-list"></div>
-        <div class="action-bar">
-          <div class="actions">
-            <button type="button" class="btn ghost" onclick="backToSelect()">Volver</button>
-            <button type="button" class="btn success" onclick="confirmReservation()">Confirmar reserva</button>
-          </div>
-        </div>
-      </section>
-
-      <div id="reserveFeedback" class="feedback hidden">
-        <h4>Reserva confirmada</h4>
-        <div id="reserveNums" class="nums"></div>
-        <div class="actions" style="margin-top:8px;">
-          <button type="button" class="btn ghost" onclick="goTripMenu()">Inicio</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Mirá tu asiento -->
-    <section id="view-find" class="view" aria-label="Mirá tu asiento">
+  <div id="reserveFeedback" class="feedback hidden">
+    <h4>Reserva confirmada</h4>
+    <div id="reserveNums" class="nums"></div>
+    <div class="actions" style="margin-top:8px;">
+      <button type="button" class="btn ghost" onclick="goTripMenu()">Inicio</button>
+    </div>
+  </div>
+</section>
+<section id="view-find" class="view" aria-label="Mirá tu asiento">
       <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
         <div class="form-row">
           <label for="ciSearch">CI del pasajero</label>
@@ -1308,6 +1318,28 @@
     }
 
     /* ===== Selección (público) ===== */
+
+function cancelSingle(){ var f = document.getElementById('detailsSingle'); if(f) f.classList.add('hidden'); }
+async function confirmSingle(){
+  if(BUSY) return;
+  var name = (document.getElementById('nombreSingle')||{}).value || '';
+  var ci = (document.getElementById('ciSingle')||{}).value || '';
+  name = name.trim(); ci = ci.trim();
+  if(!name || !ci){ toast('Completá nombre y CI'); return; }
+  if(selected.size !== 1){ toast('Seleccioná exactamente un asiento'); return; }
+  var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
+  var pairs = [{ asiento: onlyNorm, pasajero: name, ci: ci }];
+  BUSY = true; showLoading('Reservando…');
+  try{
+    await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
+    showReserveFeedbackDetailed(pairs);
+    var f = document.getElementById('detailsSingle'); if(f) f.classList.add('hidden');
+    (document.getElementById('nombreSingle')||{}).value = '';
+    (document.getElementById('ciSingle')||{}).value = '';
+    await refreshSelectGrid();
+  }catch(err){ toast('No se pudo reservar'); }
+  finally{ hideLoading(); BUSY = false; }
+}
     function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } }
     function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); }
     function toggleSeat(code, el){
@@ -1318,46 +1350,38 @@
       updateAssignVisibility();
     }
     async function startSelection(){
-      if(BUSY) return;
-      if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
-      var nombre = document.getElementById('nombrePrincipal').value.trim();
-      var ci = document.getElementById('ciPrincipal').value.trim();
-      if(!nombre || !ci){ toast('Completá nombre y CI'); return; }
-      if(selected.size === 1){
-        var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
-        var pairs = [{ asiento: onlyNorm, pasajero: nombre, ci: ci }];
-        BUSY = true; showLoading('Reservando…');
-        try{
-          await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
-          showReserveFeedbackDetailed(pairs);
-          await refreshSelectGrid();
-        }catch(err){ toast('No se pudo reservar'); }
-        finally{ hideLoading(); BUSY = false; }
-        return;
-      }
-      var assign = document.getElementById('assignList'); assign.innerHTML = '';
-      var codes = Array.from(selected);
-      for(var i=0;i<codes.length;i++){
-        var codeNorm = normalize(codes[i]); var num = NUM_LABELS.get(codeNorm) || '';
-        var row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
-        var title = document.createElement('div'); title.className = 'assign-title'; title.textContent = 'Asiento ' + (num || codeNorm);
-        var grid = document.createElement('div'); grid.className = 'assign-grid';
-        var nameWrap = document.createElement('label'); nameWrap.className = 'field';
-        var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
-        var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.value = i===0 ? nombre : ''; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
-        var ciWrap = document.createElement('label'); ciWrap.className = 'field';
-        var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
-        var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.value = i===0 ? ci : ''; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
-        ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
-        nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
-        ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
-        grid.appendChild(nameWrap); grid.appendChild(ciWrap);
-        row.appendChild(title); row.appendChild(grid);
-        assign.appendChild(row);
-      }
-      document.getElementById('view-assign').classList.remove('hidden');
-      document.getElementById('view-assign').scrollIntoView({behavior:'smooth'});
-    }
+  if(BUSY) return;
+  if(selected.size === 0){ toast('Elegí al menos un asiento'); return; }
+  if(selected.size === 1){
+    var form = document.getElementById('detailsSingle');
+    if(form){ form.classList.remove('hidden'); form.scrollIntoView({behavior:'smooth'}); }
+    var nameInput = document.getElementById('nombreSingle'); if(nameInput) try{ nameInput.focus(); }catch(e){}
+    return;
+  }
+  var assign = document.getElementById('assignList'); assign.innerHTML = '';
+  var codes = Array.from(selected);
+  for(var i=0;i<codes.length;i++){
+    var codeNorm = normalize(codes[i]); var num = NUM_LABELS.get(codeNorm) || '';
+    var row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm);
+    var title = document.createElement('div'); title.className = 'assign-title'; title.textContent = 'Asiento ' + (num || codeNorm);
+    var grid = document.createElement('div'); grid.className = 'assign-grid';
+    var nameWrap = document.createElement('label'); nameWrap.className = 'field';
+    var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
+    var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
+    var ciWrap = document.createElement('label'); ciWrap.className = 'field';
+    var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
+    var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
+    ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
+    nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
+    ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
+    grid.appendChild(nameWrap); grid.appendChild(ciWrap);
+    row.appendChild(title); row.appendChild(grid);
+    assign.appendChild(row);
+  }
+  document.getElementById('view-assign').classList.remove('hidden');
+  document.getElementById('view-assign').scrollIntoView({behavior:'smooth'});
+}
+
     async function confirmReservation(){
       if(BUSY) return;
       var inputs = document.querySelectorAll('#assignList .assign-row');
@@ -2038,7 +2062,7 @@ function renderGoogleButton(){
         })();
 
         // Entradas de CI
-        var ciP = document.getElementById('ciPrincipal'); if (ciP) ciP.addEventListener('input', function(e){ onlyDigits(e.target); });
+        var ciP = document.getElementById('ciSingle'); if (ciP) ciP.addEventListener('input', function(e){ onlyDigits(e.target); });
         var ciS = document.getElementById('ciSearch'); if (ciS) ciS.addEventListener('input', function(e){ onlyDigits(e.target); });
         wireAdminMenuButtons();
         wireStaffExpandAutoCollapse();
