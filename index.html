@@ -312,6 +312,14 @@
 .modal .close{border:none; background:transparent; cursor:pointer; font-weight:800; color:#6b7280;} 
 @media (prefers-reduced-motion: reduce){ .modal{animation:none} }
 
+
+/* ===== Bottom App Bar: Selección (persistente con scrolled) ===== */
+.select-action-bar{ position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: calc(var(--action-bar-h) + var(--safe-bottom)); display: grid; place-items: center; background: transparent; border: none; box-shadow: none; pointer-events: none; }
+.select-action-bar .actions{ width: min(680px, 92vw); display: flex; gap: 10px; padding: 0 12px var(--safe-bottom) 12px; pointer-events: auto; }
+.select-action-bar .btn{ min-height: 44px; }
+#view-select{ padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom)); }
+.select-action-bar.scrolled{ background: rgba(255,255,255,.82); border-top: 1px solid rgba(17,24,39,.10); box-shadow: 0 -12px 28px rgba(17,24,39,.16); backdrop-filter: saturate(120%) blur(6px); }
+
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -405,8 +413,16 @@
   <!-- Croquis -->
   <div id="grid-select" class="grid" aria-live="polite" aria-busy="true"></div>
 
+<!-- === Bottom App Bar: Selección === -->
+<div id="selectActionBar" class="select-action-bar" aria-hidden="false">
+  <div class="actions">
+    <button type="button" class="btn primary" id="btnReservePersistent" onclick="startSelectionModal()" aria-label="Reservar asientos seleccionados">Reservar</button>
+    <button type="button" class="btn ghost" id="btnRefreshPersistent" onclick="refreshSelectGrid()" aria-label="Actualizar croquis">Actualizar</button>
+  </div>
+</div>
+
   <!-- Acciones principales -->
-  <div class="actions" style="margin-top:12px;">
+  <div id="selectActions" class="actions" style="margin-top:12px; display:none !important;">
     <button type="button" class="btn primary" onclick="startSelectionModal()">Reservar</button>
     <button type="button" class="btn ghost" onclick="refreshSelectGrid()">Actualizar</button>
   </div>
@@ -2221,9 +2237,32 @@ function startSelectionModal(){
   renderMultiFormInModal();
 }
 
-// ===== Neutralizar antiguas funciones de la vista inline =====
+// Neutralizar funciones viejas (inline)
 function updateAssignVisibility(){ /* modal-only */ }
 function backToSelect(){ try { closeReserveModal(); } catch(e){} }
+</script>
+
+
+<script>
+(function(){
+  var bar = document.getElementById('selectActionBar');
+  function onScroll(){ if (!bar) return; bar.classList.toggle('scrolled', window.scrollY > 24); }
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  function syncPersistentActions(disabled){
+    var r = document.getElementById('btnReservePersistent');
+    var u = document.getElementById('btnRefreshPersistent');
+    if (r) r.disabled = !!disabled;
+    if (u) u.disabled = !!disabled;
+  }
+  var _showLoading = window.showLoading, _hideLoading = window.hideLoading;
+  if (typeof _showLoading === 'function') {
+    window.showLoading = function(msg){ try{ syncPersistentActions(true); }catch(e){}; _showLoading(msg); };
+  }
+  if (typeof _hideLoading === 'function') {
+    window.hideLoading = function(){ _hideLoading(); try{ syncPersistentActions(false); }catch(e){} };
+  }
+})();
 </script>
 
 </body>
