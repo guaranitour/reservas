@@ -342,6 +342,11 @@
 .select-action-bar.scrolled .btn.primary{ box-shadow: 0 6px 18px rgba(44,123,229,.28); }
 .select-action-bar.scrolled .btn.ghost{ box-shadow: 0 6px 18px rgba(17,24,39,.12); }
 
+
+/* === Campos en dos columnas (responsive) === */
+.form-grid{display:grid; grid-template-columns:1fr; gap:10px;}
+@media(min-width:520px){.form-grid.two{grid-template-columns:1fr 1fr;}}
+
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -452,21 +457,21 @@
 
   <!-- Datos para una sola reserva (se muestra después de presionar Reservar) -->
   <form id="detailsSingle" class="form hidden" onsubmit="event.preventDefault(); confirmSingle();">
-    <h4>Datos del pasajero</h4>
-    <div class="form-row">
-      <label for="nombreSingle">Nombre del pasajero</label>
-      <input id="nombreSingle" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" />
+  <h4>Datos del pasajero</h4>
+  <div class="form-grid two">
+    <div class="field">
+      <input id="nombreSingle" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" aria-label="Nombre y Apellido" />
     </div>
-    <div class="form-row">
-      <label for="ciSingle">CI del pasajero</label>
-      <input id="ciSingle" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" />
+    <div class="field">
+      <input id="ciSingle" type="text" placeholder="CI (ej.: 12345678)" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" aria-label="CI" />
     </div>
-    <div class="actions">
-      <button type="submit" class="btn success">Confirmar</button>
-      <button type="button" class="btn ghost" onclick="cancelSingle()">Cancelar</button>
-    </div>
-    <p class="hint">Completá tus datos y confirmá la reserva.</p>
-  </form>
+  </div>
+  <div class="actions">
+    <button type="submit" class="btn success">Confirmar</button>
+    <button type="button" class="btn ghost" onclick="cancelSingle()">Cancelar</button>
+  </div>
+  <p class="hint">Completá tus datos y confirmá la reserva.</p>
+</form>
 
   <!-- Asignación múltiple (se muestra cuando se seleccionan 2 o más asientos) -->
   
