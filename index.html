@@ -414,11 +414,11 @@
         <div class="cards">
           <article class="card" tabindex="0" role="button" onclick="goSelect()" onkeypress="handleEnter(event, goSelect)">
             <h2>Seleccionar asiento</h2>
-            <p>Elige tu lugar y confirma con tu nombre y CI.</p>
+            <p>Elige tu lugar y confirma con tu nombre y Número de documento.</p>
           </article>
           <article class="card" tabindex="0" role="button" onclick="goFind()" onkeypress="handleEnter(event, goFind)">
             <h2>Mirá tu asiento</h2>
-            <p>Ingresa tu CI para ver tus números y el croquis.</p>
+            <p>Ingresa tu Número de documento para ver tus números y el croquis.</p>
           </article>
         </div>
         <div class="actions" style="margin-top:14px;">
@@ -457,20 +457,19 @@
 
   <!-- Datos para una sola reserva (se muestra después de presionar Reservar) -->
   <form id="detailsSingle" class="form hidden" onsubmit="event.preventDefault(); confirmSingle();">
-  <h4>Datos del pasajero</h4>
+  <h4 id="singleHeader">Asiento —</h4>
   <div class="form-grid two">
     <div class="field">
-      <input id="nombreSingle" type="text" placeholder="Nombre y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" aria-label="Nombre y Apellido" />
+      <input id="nombreSingle" type="text" placeholder="Luanita Espada y Apellido" required autocomplete="name" autocapitalize="words" enterkeyhint="next" aria-label="Luanita Espada y Apellido" />
     </div>
     <div class="field">
-      <input id="ciSingle" type="text" placeholder="CI (ej.: 12345678)" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" aria-label="CI" />
+      <input id="ciSingle" type="text" placeholder="Número de documento (ej.: 12345678)" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="done" aria-label="Número de documento" />
     </div>
   </div>
   <div class="actions">
     <button type="submit" class="btn success">Confirmar</button>
     <button type="button" class="btn ghost" onclick="cancelSingle()">Cancelar</button>
   </div>
-  <p class="hint">Completá tus datos y confirmá la reserva.</p>
 </form>
 
   <!-- Asignación múltiple (se muestra cuando se seleccionan 2 o más asientos) -->
@@ -485,10 +484,10 @@
   </div>
 </section>
 <section id="view-find" class="view" aria-label="Mirá tu asiento">
-      <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
+      <form id="findForm" class="form" onsubmit="event.preventDefault(); findByNúmero de documento();">
         <div class="form-row">
-          <label for="ciSearch">CI del pasajero</label>
-          <input id="ciSearch" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="search" />
+          <label for="ciSearch">Número de documento del pasajero</label>
+          <input id="ciSearch" type="text" placeholder="CI EJ: 1234567" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="search" />
         </div>
         <div class="actions">
           <button type="submit" class="btn primary">Buscar</button>
@@ -496,10 +495,10 @@
         </div>
       </form>
       <div id="findFeedback" class="feedback hidden">
-        <h4>Asientos para tu CI</h4>
+        <h4>Asientos para tu Número de documento</h4>
         <div id="findNums" class="nums"></div>
         <div class="actions">
-          <button id="btnShowCroquis" type="button" class="btn primary" onclick="showCroquisForCI()">Ver croquis</button>
+          <button id="btnShowCroquis" type="button" class="btn primary" onclick="showCroquisForNúmero de documento()">Ver croquis</button>
         </div>
       </div>
       <div id="grid-find" class="grid" aria-live="polite" aria-busy="true"></div>
@@ -508,7 +507,7 @@
         <h4>Asientos por planta</h4>
         <div id="multiNums"></div>
         <div class="actions">
-          <button id="btnShowCroquisMulti" type="button" class="btn primary" onclick="showCroquisForCIMulti()">Ver croquis</button>
+          <button id="btnShowCroquisMulti" type="button" class="btn primary" onclick="showCroquisForNúmero de documentoMulti()">Ver croquis</button>
         </div>
       </div>
       <div id="multiCroquis"></div>
@@ -934,7 +933,7 @@
           var el = makeCard(c.label, c.desc ? c.desc : ('Hoja: ' + c.sheetName), function(){ chooseFloor(c.sheetName); });
           if (floorBox) floorBox.appendChild(el);
         });
-        var findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', function(){ goFind(); });
+        var findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por Número de documento en ambas plantas.', function(){ goFind(); });
         if (extraBox) extraBox.appendChild(findCard);
         updateTripTags();
         showView('view-floor');
@@ -1376,7 +1375,7 @@ async function confirmSingle(){
   var name = (document.getElementById('nombreSingle')||{}).value || '';
   var ci = (document.getElementById('ciSingle')||{}).value || '';
   name = name.trim(); ci = ci.trim();
-  if(!name || !ci){ toast('Completá nombre y CI'); return; }
+  if(!name || !ci){ toast('Completá nombre y Número de documento'); return; }
   if(selected.size !== 1){ toast('Seleccioná exactamente un asiento'); return; }
   var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
   var pairs = [{ asiento: onlyNorm, pasajero: name, ci: ci }];
@@ -1417,11 +1416,11 @@ async function confirmSingle(){
     var title = document.createElement('div'); title.className = 'assign-title'; title.textContent = 'Asiento ' + (num || codeNorm);
     var grid = document.createElement('div'); grid.className = 'assign-grid';
     var nameWrap = document.createElement('label'); nameWrap.className = 'field';
-    var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
-    var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
+    var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Luanita Espada';
+    var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Luanita Espada y Apellido'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
     var ciWrap = document.createElement('label'); ciWrap.className = 'field';
-    var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
-    var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
+    var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento';
+    var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='CI EJ: 1234567'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
     ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
     nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
     ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
@@ -1467,14 +1466,14 @@ async function confirmSingle(){
     }
 
     /* ====== Mirá tu asiento (público) ====== */
-    async function findByCI(){
+    async function findByNúmero de documento(){
       if(CURRENT_TRIP.hasFloors && !CURRENT_TRIP.sheetName){
-        await findByCIAcrossFloors();
+        await findByNúmero de documentoAcrossFloors();
         return;
       }
       if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; }
       var ci = document.getElementById('ciSearch').value.trim();
-      if(!ci){ toast('Ingresá tu CI'); return; }
+      if(!ci){ toast('Ingresá tu Número de documento'); return; }
       showLoading('Buscando…');
       try{
         var respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci);
@@ -1487,7 +1486,7 @@ async function confirmSingle(){
         var nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
         HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
-      }catch(err){ toast('Error al buscar por CI'); }
+      }catch(err){ toast('Error al buscar por Número de documento'); }
       finally{ hideLoading(); }
     }
     function computeNumbersForCodes(codes){
@@ -1517,7 +1516,7 @@ async function confirmSingle(){
         panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true;
       }
     }
-    function showCroquisForCI(){
+    function showCroquisForNúmero de documento(){
       showLoading('Cargando croquis…');
       refreshSeats('grid-find', function(){
         hideLoading();
@@ -1540,10 +1539,10 @@ async function confirmSingle(){
     var SEATS_BY_SHEET = new Map();
     var HIGHLIGHT_BY_SHEET = new Map();
     var NUMS_BY_SHEET = new Map();
-    async function findByCIAcrossFloors(){
+    async function findByNúmero de documentoAcrossFloors(){
       if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; }
       var ci = document.getElementById('ciSearch').value.trim();
-      if(!ci){ toast('Ingresá tu CI'); return; }
+      if(!ci){ toast('Ingresá tu Número de documento'); return; }
       showLoading('Buscando en ambas plantas…');
       try{
         MULTI_SHEETS = getFloorSheets();
@@ -1623,7 +1622,7 @@ async function confirmSingle(){
       btn.disabled = (totalResults === 0);
       panel.scrollIntoView({behavior:'smooth'});
     }
-    async function showCroquisForCIMulti(){
+    async function showCroquisForNúmero de documentoMulti(){
       showLoading('Cargando croquis…');
       var container = document.getElementById('multiCroquis');
       container.innerHTML = '';
@@ -1633,7 +1632,7 @@ async function confirmSingle(){
       });
       if (!floorsWithResults.length) {
         hideLoading();
-        toast('Tu CI no tiene asientos en ninguna planta de este viaje.');
+        toast('Tu Número de documento no tiene asientos en ninguna planta de este viaje.');
         return;
       }
       for(var i=0;i<floorsWithResults.length;i++){
@@ -2112,7 +2111,7 @@ function renderGoogleButton(){
           }
         })();
 
-        // Entradas de CI
+        // Entradas de Número de documento
         var ciP = document.getElementById('ciSingle'); if (ciP) ciP.addEventListener('input', function(e){ onlyDigits(e.target); });
         var ciS = document.getElementById('ciSearch'); if (ciS) ciS.addEventListener('input', function(e){ onlyDigits(e.target); });
         wireAdminMenuButtons();
@@ -2145,17 +2144,21 @@ function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(
 document.addEventListener('keydown', function(ev){ if(ev.key==='Escape') closeReserveModal(); }, { passive:true });
 function renderSingleFormInModal(){
   var title = document.getElementById('reserveTitle'); var body  = document.getElementById('reserveBody'); var btn   = document.getElementById('reserveConfirmBtn');
-  if (title) title.textContent = 'Tus datos';
+  if (title){
+  var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
+  var num = NUM_LABELS.get(onlyNorm) || onlyNorm;
+  title.textContent = 'Asiento ' + num;
+ }
   if (body) {
     while (body.firstChild) body.removeChild(body.firstChild);
     var form = document.createElement('div'); form.className = 'form';
     var nameWrap = document.createElement('label'); nameWrap.className = 'field';
-    var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
-    var nameInput = document.createElement('input'); nameInput.id='nombreSingleModal'; nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
+    var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Luanita Espada';
+    var nameInput = document.createElement('input'); nameInput.id='nombreSingleModal'; nameInput.type='text'; nameInput.placeholder='Luanita Espada y Apellido'; nameInput.required=true; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
     nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
     var ciWrap = document.createElement('label'); ciWrap.className = 'field';
-    var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
-    var ciInput = document.createElement('input'); ciInput.id='ciSingleModal'; ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.autocomplete='off'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
+    var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento';
+    var ciInput = document.createElement('input'); ciInput.id='ciSingleModal'; ciInput.type='text'; ciInput.placeholder='CI EJ: 1234567'; ciInput.required=true; ciInput.autocomplete='off'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
     ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
     form.appendChild(nameWrap); form.appendChild(ciWrap); body.appendChild(form);
   }
@@ -2174,12 +2177,12 @@ function renderMultiFormInModal(){
       var titleDiv = document.createElement('div'); titleDiv.className = 'assign-title'; titleDiv.textContent = 'Asiento ' + (num || codeNorm);
       var grid = document.createElement('div'); grid.className = 'assign-grid';
       var nameWrap = document.createElement('label'); nameWrap.className = 'field';
-      var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
-      var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
+      var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Luanita Espada';
+      var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Luanita Espada y Apellido'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
       nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
       var ciWrap = document.createElement('label'); ciWrap.className = 'field';
-      var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
-      var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
+      var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento';
+      var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='CI EJ: 1234567'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
       ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
       grid.appendChild(nameWrap); grid.appendChild(ciWrap);
       row.appendChild(titleDiv); row.appendChild(grid); listWrap.appendChild(row);
@@ -2193,7 +2196,7 @@ function confirmSingleFromModal(){
   var name = (document.getElementById('nombreSingleModal')||{}).value || '';
   var ci   = (document.getElementById('ciSingleModal')||{}).value || '';
   name = name.trim(); ci = ci.trim();
-  if (!name || !ci){ toast('Completá nombre y CI'); return; }
+  if (!name || !ci){ toast('Completá nombre y Número de documento'); return; }
   if (selected.size !== 1){ toast('Seleccioná exactamente un asiento'); return; }
   var only = Array.from(selected)[0];
   var onlyNorm = normalize(only);
