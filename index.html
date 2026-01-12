@@ -317,7 +317,7 @@
 .modal{ position: fixed; inset: 0; z-index: 60; display: none; }
 .modal.show{ display: grid; }
 .modal .backdrop{ position: absolute; inset: 0; background: rgba(17,24,39,.40); }
-.modal .sheet{ position: relative; margin: auto; width: min(640px, 92vw); background: var(--card); border-radius: 18px; box-shadow: 0 18px 40px rgba(17,24,39,.18); padding: 16px;  max-height: calc(var(--vh, 1vh) * 84); display:flex; flex-direction:column; margin-top:12px; margin-bottom:calc(env(safe-area-inset-bottom) + 12px); }
+.modal .sheet{ position: relative; margin: auto; width: min(640px, 92vw); background: var(--card); border-radius: 18px; box-shadow: 0 18px 40px rgba(17,24,39,.18); padding: 16px; }
 .modal .sheet header{ display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .modal .sheet header h3{ margin: 0; font-size: 1.05rem; font-weight: 900; }
 .modal .close{ border: none; background: transparent; cursor: pointer; font-weight: 800; color: #6b7280; }
@@ -348,11 +348,8 @@
 @media(min-width:520px){.form-grid.two{grid-template-columns:1fr 1fr;}}
 
 
-/* ===== Keyboard-safe modal (v7) ===== */
-.modal.show{ overflow:auto; align-items:flex-start; }
-#reserveBody{ flex:1 1 auto; overflow:auto; max-height: calc(var(--vh, 1vh) * 84 - 160px); padding-right:4px; }
-.modal .sheet .actions{ position: sticky; bottom: 0; background: rgba(255,255,255,.96); padding-top: 8px; }
-.assign-list{ max-height: inherit; }
+/* ===== Prevent background scroll when modal is open (v8) ===== */
+body.modal-open{ overflow:hidden; touch-action:none; }
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -2145,8 +2142,8 @@ function renderGoogleButton(){
   </script>
 
 <script>
-function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
-function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); try{ document.body.classList.add('modal-open'); }catch(e){} }
+function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); try{ document.body.classList.remove('modal-open'); }catch(e){} }
 document.addEventListener('keydown', function(ev){ if(ev.key==='Escape') closeReserveModal(); }, { passive:true });
 function renderSingleFormInModal(){
   var title = document.getElementById('reserveTitle'); var body  = document.getElementById('reserveBody'); var btn   = document.getElementById('reserveConfirmBtn');
@@ -2240,29 +2237,5 @@ function updateAssignVisibility(){ /* modal-only */ }
 function backToSelect(){ try { closeReserveModal(); } catch(e){} }
 </script>
 
-
-<script>
-(function(){
-  function setVH(){
-    var h = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight;
-    document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
-  }
-  setVH();
-  window.addEventListener('resize', setVH, {passive:true});
-  if (window.visualViewport){
-    window.visualViewport.addEventListener('resize', setVH, {passive:true});
-    window.visualViewport.addEventListener('scroll', setVH, {passive:true});
-  }
-  // Auto-scroll focused input into view inside modal
-  document.addEventListener('focusin', function(ev){
-    var m = document.getElementById('reserveModal');
-    if (!m || !m.classList.contains('show')) return;
-    var target = ev.target;
-    if (target && target.tagName === 'INPUT'){
-      try{ target.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){}
-    }
-  }, {passive:true});
-})();
-</script>
 </body>
 </html>
