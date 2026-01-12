@@ -317,15 +317,15 @@
 .modal{ position: fixed; inset: 0; z-index: 60; display: none; }
 .modal.show{ display: grid; }
 .modal .backdrop{ position: absolute; inset: 0; background: rgba(17,24,39,.40); }
-.modal .sheet{ position: relative; margin: auto; width: min(640px, 92vw); background: var(--card); border-radius: 18px; box-shadow: 0 18px 40px rgba(17,24,39,.18); padding: 16px;  max-height: min(84vh, 680px); display:flex; flex-direction:column; }
+.modal .sheet{ position: relative; margin: auto; width: min(640px, 92vw); background: var(--card); border-radius: 18px; box-shadow: 0 18px 40px rgba(17,24,39,.18); padding: 16px; }
 .modal .sheet header{ display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .modal .sheet header h3{ margin: 0; font-size: 1.05rem; font-weight: 900; }
 .modal .close{ border: none; background: transparent; cursor: pointer; font-weight: 800; color: #6b7280; }
 .form, .assign-row{ border-radius: 16px; background: rgba(255,255,255,.96); box-shadow: 0 8px 24px rgba(17,24,39,.10); padding: 14px; margin-bottom: 12px; }
 .assign-title{ font-size: .98rem; font-weight: 800; color: #111827; margin: 0 0 10px 0; }
 .field{ display: flex; flex-direction: column; gap: 6px; }
-.field .field-label{ font-size: .9rem; font-weight: 700; color: #374151; }
-.field input{ width: 100%; border: 1.5px solid #e5e7eb; border-radius: 999px; padding: 14px 16px; font-size: 1rem; background: #fff; color: var(--text); outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
+.field .field-label{ font-size: .9rem; font-weight: 700; color: #374151;  display:block; margin-bottom:6px; line-height:1.2; }
+.field input{ width: 100%; border: 1.5px solid #e5e7eb; border-radius: 999px; padding: 14px 16px; font-size: 1rem; background: #fff; color: var(--text); outline: none; transition: border-color .15s ease, box-shadow .15s ease;  line-height:1.3; }
 .field input:focus{ border-color: #93c5fd; box-shadow: 0 0 0 4px rgba(59,130,246,.15); }
 .field input::placeholder{ color: #9ca3af; opacity: .9; }
 .modal .sheet .actions{ display: flex; gap: 10px; justify-content: space-between; }
@@ -347,11 +347,6 @@
 .form-grid{display:grid; grid-template-columns:1fr; gap:10px;}
 @media(min-width:520px){.form-grid.two{grid-template-columns:1fr 1fr;}}
 
-
-/* ===== Modal body scrolling fix (v5) ===== */
-#reserveBody{ flex:1 1 auto; overflow:auto; max-height: calc(84vh - 160px); padding-right:4px; }
-.modal .sheet .actions{ position: sticky; bottom: 0; background: rgba(255,255,255,.96); padding-top: 8px; }
-.assign-list{ max-height: inherit; }
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -423,7 +418,7 @@
           </article>
           <article class="card" tabindex="0" role="button" onclick="goFind()" onkeypress="handleEnter(event, goFind)">
             <h2>Mirá tu asiento</h2>
-            <p>Ingresa tu CI para ver tus números y el croquis.</p>
+            <p>Ingresa tu número de documento para ver tus números y el croquis.</p>
           </article>
         </div>
         <div class="actions" style="margin-top:14px;">
@@ -491,7 +486,7 @@
 <section id="view-find" class="view" aria-label="Mirá tu asiento">
       <form id="findForm" class="form" onsubmit="event.preventDefault(); findByCI();">
         <div class="form-row">
-          <label for="ciSearch">CI del pasajero</label>
+          <label for="ciSearch">Número de documento del pasajero</label>
           <input id="ciSearch" type="text" placeholder="Ej.: 12345678" inputmode="numeric" pattern="[0-9]*" required autocomplete="off" enterkeyhint="search" />
         </div>
         <div class="actions">
@@ -1421,10 +1416,10 @@ async function confirmSingle(){
     var title = document.createElement('div'); title.className = 'assign-title'; title.textContent = 'Asiento ' + (num || codeNorm);
     var grid = document.createElement('div'); grid.className = 'assign-grid';
     var nameWrap = document.createElement('label'); nameWrap.className = 'field';
-    var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
-    var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
+    var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre y Apellido';
+    var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Luanita Espada'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name';
     var ciWrap = document.createElement('label'); ciWrap.className = 'field';
-    var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
+    var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento';
     var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
     ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
     nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
@@ -2158,11 +2153,11 @@ function renderSingleFormInModal(){
     while (body.firstChild) body.removeChild(body.firstChild);
     var form = document.createElement('div'); form.className = 'form';
     var nameWrap = document.createElement('label'); nameWrap.className = 'field';
-    var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
-    var nameInput = document.createElement('input'); nameInput.id='nombreSingleModal'; nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
+    var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre y Apellido';
+    var nameInput = document.createElement('input'); nameInput.id='nombreSingleModal'; nameInput.type='text'; nameInput.placeholder='Luanita Espada'; nameInput.required=true; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
     nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
     var ciWrap = document.createElement('label'); ciWrap.className = 'field';
-    var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
+    var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento';
     var ciInput = document.createElement('input'); ciInput.id='ciSingleModal'; ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.autocomplete='off'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
     ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
     form.appendChild(nameWrap); form.appendChild(ciWrap); body.appendChild(form);
@@ -2182,11 +2177,11 @@ function renderMultiFormInModal(){
       var titleDiv = document.createElement('div'); titleDiv.className = 'assign-title'; titleDiv.textContent = 'Asiento ' + (num || codeNorm);
       var grid = document.createElement('div'); grid.className = 'assign-grid';
       var nameWrap = document.createElement('label'); nameWrap.className = 'field';
-      var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre';
-      var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Nombre y Apellido'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
+      var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre y Apellido';
+      var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Luanita Espada'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
       nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
       var ciWrap = document.createElement('label'); ciWrap.className = 'field';
-      var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'CI';
+      var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento';
       var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
       ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
       grid.appendChild(nameWrap); grid.appendChild(ciWrap);
