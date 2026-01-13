@@ -353,6 +353,10 @@
 #reserveBody{ flex:1 1 auto; overflow:auto; max-height: calc(var(--vh, 1vh) * 84 - 160px); padding-right:4px; }
 .modal .sheet .actions{ position: sticky; bottom: 0; background: rgba(255,255,255,.96); padding-top: 8px; }
 .assign-list{ max-height: inherit; }
+
+#confirmedModal .sheet header h3{ text-align:center; width:100%; }
+#confirmedModal .sheet header{ justify-content:center; }
+#confirmedModal .sheet .actions{ justify-content:center; }
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -579,15 +583,15 @@
 
 
 <div id="confirmedModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="confirmedTitle">
-  <div class="backdrop" onclick="closeConfirmedModal()"></div>
+  <div class="backdrop" onclick="goToStartAndCloseConfirmed()"></div>
   <div class="sheet" role="document" tabindex="-1">
     <header>
       <h3 id="confirmedTitle">¡Reserva confirmada!</h3>
-      <button type="button" class="close" onclick="closeConfirmedModal()" aria-label="Cerrar">x</button>
+      <button type="button" class="close" onclick="goToStartAndCloseConfirmed()" aria-label="Cerrar">x</button>
     </header>
     <div id="confirmedBody"></div>
     <div class="actions" style="margin-top:12px;">
-      <button type="button" class="btn success" onclick="closeConfirmedModal()">Aceptar</button>
+      <button type="button" class="btn success" onclick="goToStartAndCloseConfirmed()">Volver a inicio</button>
     </div>
   </div>
 </div>
@@ -2271,6 +2275,8 @@ function showConfirmedModal(pairs){
   }
   openConfirmedModal();
 }
+
+function goToStartAndCloseConfirmed(){ try{ closeConfirmedModal(); }catch(e){} try{ goTripMenu(); }catch(e){} }
 function startSelectionModal(){ if (BUSY) return; if (selected.size === 0){ toast('Elegí al menos un asiento'); return; } if (selected.size === 1){ renderSingleFormInModal(); return; } renderMultiFormInModal(); }
 function updateAssignVisibility(){ /* modal-only */ }
 function backToSelect(){ try { closeReserveModal(); } catch(e){} }
