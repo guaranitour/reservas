@@ -354,10 +354,29 @@
 .modal .sheet .actions{ position: sticky; bottom: 0; background: rgba(255,255,255,.96); padding-top: 8px; }
 .assign-list{ max-height: inherit; }
 
-/* Ajuste visual SINGLE: más aire y altura de inputs */
-#reserveModal .form .field { gap: 8px; }
-#reserveModal .form .field input { padding: 16px 18px; line-height: 1.35; font-size: 16px; }
-#reserveModal .form { display: grid; gap: 12px; }
+/* ===== Fix layout SINGLE en modal: columnas y aire sin solaparse ===== */
+#reserveModal .assign-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* móvil: una columna */
+  gap: 12px;
+  align-items: start;
+}
+@media (min-width: 540px) {
+  #reserveModal .assign-grid {
+    grid-template-columns: 1fr 1fr; /* desktop: dos columnas */
+  }
+}
+#reserveModal .form .field {
+  min-width: 0; /* evita overflow de placeholders y solapes */
+}
+#reserveModal .sheet header {
+  margin-bottom: 14px; /* un poco más de aire respecto al form */
+}
+#reserveModal .form .field .field-label {
+  display: block;
+  margin-bottom: 6px; /* asegura separación del input */
+  line-height: 1.25;
+}
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -2164,18 +2183,15 @@ function renderSingleFormInModal(){
     while (body.firstChild) body.removeChild(body.firstChild);
     var form = document.createElement('div'); form.className = 'form';
     var grid = document.createElement('div'); grid.className = 'assign-grid';
-    // Nombre
     var nameWrap = document.createElement('label'); nameWrap.className = 'field';
     var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre y Apellido';
-    var nameInput = document.createElement('input'); nameInput.id='nombreSingleModal'; nameInput.type='text'; nameInput.placeholder='Luanita Espada'; nameInput.required=true; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
+    var nameInput = document.createElement('input'); nameInput.id='nombreSingleModal'; nameInput.type='text'; nameInput.placeholder='Nombre Apellido'; nameInput.required=true; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
     nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
-    // CI
     var ciWrap = document.createElement('label'); ciWrap.className = 'field';
     var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento';
     var ciInput = document.createElement('input'); ciInput.id='ciSingleModal'; ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.autocomplete='off'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
     ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
     ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
-    // Ensamblar
     grid.appendChild(nameWrap); grid.appendChild(ciWrap);
     form.appendChild(grid); body.appendChild(form);
   }
