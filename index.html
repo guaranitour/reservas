@@ -562,9 +562,9 @@
   <!-- Overlay de carga -->
   
 <!-- ===== Modal de Reserva (clean) ===== -->
-<div id="reserveModal" class="modal" aria-hidden="true" aria-labelledby="reserveTitle" role="dialog" aria-modal="true">
+<div id="reserveModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
   <div class="backdrop" onclick="closeReserveModal()"></div>
-  <div class="sheet" role="document" tabindex="-1" role="document">
+  <div class="sheet" role="document">
     <header>
       <h3 id="reserveTitle">Confirmar reserva</h3>
       <button type="button" class="close" onclick="closeReserveModal()" aria-label="Cerrar">x</button>
@@ -577,6 +577,20 @@
   </div>
 </div>
 
+
+<div id="confirmedModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="confirmedTitle">
+  <div class="backdrop" onclick="closeConfirmedModal()"></div>
+  <div class="sheet" role="document" tabindex="-1">
+    <header>
+      <h3 id="confirmedTitle">¡Reserva confirmada!</h3>
+      <button type="button" class="close" onclick="closeConfirmedModal()" aria-label="Cerrar">x</button>
+    </header>
+    <div id="confirmedBody"></div>
+    <div class="actions" style="margin-top:12px;">
+      <button type="button" class="btn success" onclick="closeConfirmedModal()">Aceptar</button>
+    </div>
+  </div>
+</div>
 <div id="overlay" class="overlay" aria-hidden="true">
     <div class="loader">
       <div class="spinner"></div>
@@ -1388,7 +1402,7 @@ async function confirmSingle(){
   BUSY = true; showLoading('Reservando…');
   try{
     await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
-    showReserveFeedbackDetailed(pairs);
+    showConfirmedModal(pairs);
     var f = document.getElementById('detailsSingle'); if(f) f.classList.add('hidden');
     (document.getElementById('nombreSingle')||{}).value = '';
     (document.getElementById('ciSingle')||{}).value = '';
@@ -1453,7 +1467,7 @@ async function confirmSingle(){
       BUSY = true; showLoading('Reservando…');
       try{
         await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
-        showReserveFeedbackDetailed(pairs);
+        showConfirmedModal(pairs);
         document.getElementById('view-assign').classList.add('hidden');
         await refreshSelectGrid();
       }catch(err){ toast('No se pudo reservar'); }
@@ -2145,15 +2159,9 @@ function renderGoogleButton(){
   </script>
 
 <script>
-var __reserve_prev_focus=null; var __reserve_keydown_ref=null;
-function __getModalFocusable(){
-  var root=document.getElementById('reserveModal'); if(!root) return [];
-  var sheet=root.querySelector('.sheet'); if(!sheet) return [];
-  return Array.from(sheet.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el=>!el.hasAttribute('disabled'));}
-function __trapKeydown(ev){ if(ev.key!=='Tab') return; var f=__getModalFocusable(); if(!f.length) return; var first=f[0], last=f[f.length-1]; if(ev.shiftKey){ if(document.activeElement===first){ ev.preventDefault(); last.focus(); }} else { if(document.activeElement===last){ ev.preventDefault(); first.focus(); }} }
-function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); try{ __reserve_prev_focus=document.activeElement; var sheet=m.querySelector('.sheet'); if(sheet){ sheet.focus(); } __reserve_keydown_ref=__trapKeydown; document.addEventListener('keydown', __reserve_keydown_ref, true);}catch(e){} }
-function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); try{ if(__reserve_keydown_ref){ document.removeEventListener('keydown', __reserve_keydown_ref, true);} if(__reserve_prev_focus && __reserve_prev_focus.focus){ __reserve_prev_focus.focus(); } }catch(e){} }
-document.addEventListener('keydown', function(ev){ if(ev.key==='Escape'){ var m=document.getElementById('reserveModal'); if(m && m.classList.contains('show')) closeReserveModal(); } }, { passive:true });
+function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+document.addEventListener('keydown', function(ev){ if(ev.key==='Escape') closeReserveModal(); }, { passive:true });
 function renderSingleFormInModal(){
   var title = document.getElementById('reserveTitle'); var body  = document.getElementById('reserveBody'); var btn   = document.getElementById('reserveConfirmBtn');
   if (title){
@@ -2217,7 +2225,7 @@ function confirmSingleFromModal(){
   closeReserveModal();
   BUSY = true; showLoading('Reservando…');
   API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs)
-    .then(async function(){ showReserveFeedbackDetailed(pairs); await refreshSelectGrid(); })
+    .then(async function(){ showConfirmedModal(pairs); await refreshSelectGrid(); })
     .catch(function(){ toast('No se pudo reservar'); })
     .finally(function(){ hideLoading(); BUSY = false; if (btn) btn.disabled = false; });
 }
@@ -2237,9 +2245,31 @@ function confirmReservationFromModal(){
   closeReserveModal();
   BUSY = true; showLoading('Reservando…');
   API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs)
-    .then(async function(){ showReserveFeedbackDetailed(pairs); await refreshSelectGrid(); })
+    .then(async function(){ showConfirmedModal(pairs); await refreshSelectGrid(); })
     .catch(function(){ toast('No se pudo reservar'); })
     .finally(function(){ hideLoading(); BUSY = false; if (btn) btn.disabled = false; });
+}
+
+function openConfirmedModal(){ var m=document.getElementById('confirmedModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); try{ var sheet=m.querySelector('.sheet'); if(sheet){ sheet.focus(); } }catch(e){} }
+function closeConfirmedModal(){ var m=document.getElementById('confirmedModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+document.addEventListener('keydown', function(ev){ if(ev.key==='Escape'){ var m=document.getElementById('confirmedModal'); if(m && m.classList.contains('show')) closeConfirmedModal(); } }, { passive:true });
+function showConfirmedModal(pairs){
+  var body = document.getElementById('confirmedBody');
+  if(body){ while(body.firstChild) body.removeChild(body.firstChild);
+    var panel = document.createElement('div'); panel.className='form';
+    var list = document.createElement('div'); list.className='assign-list';
+    for (var i=0;i<pairs.length;i++){ var p = pairs[i];
+      var row = document.createElement('div'); row.className='assign-row';
+      var ttl = document.createElement('div'); ttl.className='assign-title';
+      var seatNum = (typeof NUM_LABELS!=='undefined' && NUM_LABELS && NUM_LABELS.get(p.asiento)) ? NUM_LABELS.get(p.asiento) : p.asiento;
+      ttl.textContent = 'Asiento ' + seatNum + ': ' + p.pasajero + ' (' + p.ci + ')';
+      row.appendChild(ttl); list.appendChild(row); }
+    panel.appendChild(list);
+    var note = document.createElement('div'); note.className='field';
+    var span = document.createElement('span'); span.className='field-label'; span.textContent = 'Cualquier cambio o cancelación informar a su agente.';
+    note.appendChild(span); panel.appendChild(note); body.appendChild(panel);
+  }
+  openConfirmedModal();
 }
 function startSelectionModal(){ if (BUSY) return; if (selected.size === 0){ toast('Elegí al menos un asiento'); return; } if (selected.size === 1){ renderSingleFormInModal(); return; } renderMultiFormInModal(); }
 function updateAssignVisibility(){ /* modal-only */ }
