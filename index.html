@@ -357,14 +357,6 @@
 #confirmedModal .sheet header h3{ text-align:center; width:100%; }
 #confirmedModal .sheet header{ justify-content:center; }
 #confirmedModal .sheet .actions{ justify-content:center; }
-
-/* SINGLE modal layout fixes */
-#reserveModal .assign-grid{ display:grid; grid-template-columns:1fr; gap:12px; align-items:start; }
-@media(min-width:540px){ #reserveModal .assign-grid{ grid-template-columns:1fr 1fr; } }
-#reserveModal .form .field{ min-width:0; }
-#reserveModal .sheet header{ margin-bottom:14px; }
-#reserveModal .form .field .field-label{ display:block; margin-bottom:6px; line-height:1.25; }
-#reserveModal .form .field input{ padding:16px 18px; line-height:1.35; font-size:16px; }
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -2175,14 +2167,12 @@ function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!
 function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
 document.addEventListener('keydown', function(ev){ if(ev.key==='Escape') closeReserveModal(); }, { passive:true });
 function renderSingleFormInModal(){
- var title = document.getElementById('reserveTitle'); var body = document.getElementById('reserveBody'); var btn = document.getElementById('reserveConfirmBtn');
- if (title){ var only = Array.from(selected)[0]; var onlyNorm = normalize(only); var num = NUM_LABELS.get(onlyNorm) || onlyNorm; title.textContent = 'Asiento ' + num; }
- if (body){ while (body.firstChild) body.removeChild(body.firstChild); var form = document.createElement('div'); form.className = 'form'; var grid = document.createElement('div'); grid.className = 'assign-grid';
- var nameWrap = document.createElement('label'); nameWrap.className = 'field'; var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre y Apellido'; var nameInput = document.createElement('input'); nameInput.id='nombreSingleModal'; nameInput.type='text'; nameInput.placeholder='Nombre Apellido'; nameInput.required=true; nameInput.autocomplete='name'; nameInput.autocapitalize='words'; nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
- var ciWrap = document.createElement('label'); ciWrap.className = 'field'; var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento'; var ciInput = document.createElement('input'); ciInput.id='ciSingleModal'; ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.autocomplete='off'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); }); ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
- grid.appendChild(nameWrap); grid.appendChild(ciWrap); form.appendChild(grid); body.appendChild(form); }
- if (btn) btn.onclick = confirmSingleFromModal; openReserveModal(); try { document.getElementById('nombreSingleModal').focus(); } catch(e){}
-}
+  var title = document.getElementById('reserveTitle'); var body  = document.getElementById('reserveBody'); var btn   = document.getElementById('reserveConfirmBtn');
+  if (title){
+  var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
+  var num = NUM_LABELS.get(onlyNorm) || onlyNorm;
+  title.textContent = 'Asiento ' + num;
+ }
   if (body) {
     while (body.firstChild) body.removeChild(body.firstChild);
     var form = document.createElement('div'); form.className = 'form';
@@ -2285,6 +2275,7 @@ function showConfirmedModal(pairs){
   }
   openConfirmedModal();
 }
+
 function goToStartAndCloseConfirmed(){ try{ closeConfirmedModal(); }catch(e){} try{ goTripMenu(); }catch(e){} }
 function startSelectionModal(){ if (BUSY) return; if (selected.size === 0){ toast('Elegí al menos un asiento'); return; } if (selected.size === 1){ renderSingleFormInModal(); return; } renderMultiFormInModal(); }
 function updateAssignVisibility(){ /* modal-only */ }
