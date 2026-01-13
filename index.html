@@ -562,9 +562,9 @@
   <!-- Overlay de carga -->
   
 <!-- ===== Modal de Reserva (clean) ===== -->
-<div id="reserveModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+<div id="reserveModal" class="modal" aria-hidden="true" aria-labelledby="reserveTitle" role="dialog" aria-modal="true">
   <div class="backdrop" onclick="closeReserveModal()"></div>
-  <div class="sheet" role="document">
+  <div class="sheet" role="document" tabindex="-1" role="document">
     <header>
       <h3 id="reserveTitle">Confirmar reserva</h3>
       <button type="button" class="close" onclick="closeReserveModal()" aria-label="Cerrar">x</button>
@@ -2145,9 +2145,15 @@ function renderGoogleButton(){
   </script>
 
 <script>
-function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
-function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
-document.addEventListener('keydown', function(ev){ if(ev.key==='Escape') closeReserveModal(); }, { passive:true });
+var __reserve_prev_focus=null; var __reserve_keydown_ref=null;
+function __getModalFocusable(){
+  var root=document.getElementById('reserveModal'); if(!root) return [];
+  var sheet=root.querySelector('.sheet'); if(!sheet) return [];
+  return Array.from(sheet.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')).filter(el=>!el.hasAttribute('disabled'));}
+function __trapKeydown(ev){ if(ev.key!=='Tab') return; var f=__getModalFocusable(); if(!f.length) return; var first=f[0], last=f[f.length-1]; if(ev.shiftKey){ if(document.activeElement===first){ ev.preventDefault(); last.focus(); }} else { if(document.activeElement===last){ ev.preventDefault(); first.focus(); }} }
+function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); try{ __reserve_prev_focus=document.activeElement; var sheet=m.querySelector('.sheet'); if(sheet){ sheet.focus(); } __reserve_keydown_ref=__trapKeydown; document.addEventListener('keydown', __reserve_keydown_ref, true);}catch(e){} }
+function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); try{ if(__reserve_keydown_ref){ document.removeEventListener('keydown', __reserve_keydown_ref, true);} if(__reserve_prev_focus && __reserve_prev_focus.focus){ __reserve_prev_focus.focus(); } }catch(e){} }
+document.addEventListener('keydown', function(ev){ if(ev.key==='Escape'){ var m=document.getElementById('reserveModal'); if(m && m.classList.contains('show')) closeReserveModal(); } }, { passive:true });
 function renderSingleFormInModal(){
   var title = document.getElementById('reserveTitle'); var body  = document.getElementById('reserveBody'); var btn   = document.getElementById('reserveConfirmBtn');
   if (title){
