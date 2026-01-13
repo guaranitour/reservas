@@ -354,9 +354,10 @@
 .modal .sheet .actions{ position: sticky; bottom: 0; background: rgba(255,255,255,.96); padding-top: 8px; }
 .assign-list{ max-height: inherit; }
 
-#confirmedModal .sheet header h3{ text-align:center; width:100%; }
-#confirmedModal .sheet header{ justify-content:center; }
-#confirmedModal .sheet .actions{ justify-content:center; }
+/* Ajuste visual SINGLE: más aire y altura de inputs */
+#reserveModal .form .field { gap: 8px; }
+#reserveModal .form .field input { padding: 16px 18px; line-height: 1.35; font-size: 16px; }
+#reserveModal .form { display: grid; gap: 12px; }
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -581,20 +582,6 @@
   </div>
 </div>
 
-
-<div id="confirmedModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="confirmedTitle">
-  <div class="backdrop" onclick="goToStartAndCloseConfirmed()"></div>
-  <div class="sheet" role="document" tabindex="-1">
-    <header>
-      <h3 id="confirmedTitle">¡Reserva confirmada!</h3>
-      <button type="button" class="close" onclick="goToStartAndCloseConfirmed()" aria-label="Cerrar">x</button>
-    </header>
-    <div id="confirmedBody"></div>
-    <div class="actions" style="margin-top:12px;">
-      <button type="button" class="btn success" onclick="goToStartAndCloseConfirmed()">Volver a inicio</button>
-    </div>
-  </div>
-</div>
 <div id="overlay" class="overlay" aria-hidden="true">
     <div class="loader">
       <div class="spinner"></div>
@@ -1406,7 +1393,7 @@ async function confirmSingle(){
   BUSY = true; showLoading('Reservando…');
   try{
     await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
-    showConfirmedModal(pairs);
+    showReserveFeedbackDetailed(pairs);
     var f = document.getElementById('detailsSingle'); if(f) f.classList.add('hidden');
     (document.getElementById('nombreSingle')||{}).value = '';
     (document.getElementById('ciSingle')||{}).value = '';
@@ -1471,7 +1458,7 @@ async function confirmSingle(){
       BUSY = true; showLoading('Reservando…');
       try{
         await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
-        showConfirmedModal(pairs);
+        showReserveFeedbackDetailed(pairs);
         document.getElementById('view-assign').classList.add('hidden');
         await refreshSelectGrid();
       }catch(err){ toast('No se pudo reservar'); }
@@ -2167,12 +2154,33 @@ function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!
 function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
 document.addEventListener('keydown', function(ev){ if(ev.key==='Escape') closeReserveModal(); }, { passive:true });
 function renderSingleFormInModal(){
-  var title = document.getElementById('reserveTitle'); var body  = document.getElementById('reserveBody'); var btn   = document.getElementById('reserveConfirmBtn');
+  var title = document.getElementById('reserveTitle'); var body = document.getElementById('reserveBody'); var btn = document.getElementById('reserveConfirmBtn');
   if (title){
-  var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
-  var num = NUM_LABELS.get(onlyNorm) || onlyNorm;
-  title.textContent = 'Asiento ' + num;
- }
+    var only = Array.from(selected)[0]; var onlyNorm = normalize(only);
+    var num = NUM_LABELS.get(onlyNorm) || onlyNorm;
+    title.textContent = 'Asiento ' + num;
+  }
+  if (body){
+    while (body.firstChild) body.removeChild(body.firstChild);
+    var form = document.createElement('div'); form.className = 'form';
+    var grid = document.createElement('div'); grid.className = 'assign-grid';
+    // Nombre
+    var nameWrap = document.createElement('label'); nameWrap.className = 'field';
+    var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre y Apellido';
+    var nameInput = document.createElement('input'); nameInput.id='nombreSingleModal'; nameInput.type='text'; nameInput.placeholder='Luanita Espada'; nameInput.required=true; nameInput.autocomplete='name'; nameInput.autocapitalize='words';
+    nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput);
+    // CI
+    var ciWrap = document.createElement('label'); ciWrap.className = 'field';
+    var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento';
+    var ciInput = document.createElement('input'); ciInput.id='ciSingleModal'; ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.autocomplete='off'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*';
+    ciInput.addEventListener('input', function(e){ onlyDigits(e.target); });
+    ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput);
+    // Ensamblar
+    grid.appendChild(nameWrap); grid.appendChild(ciWrap);
+    form.appendChild(grid); body.appendChild(form);
+  }
+  if (btn) btn.onclick = confirmSingleFromModal; openReserveModal(); try { document.getElementById('nombreSingleModal').focus(); } catch(e){}
+}
   if (body) {
     while (body.firstChild) body.removeChild(body.firstChild);
     var form = document.createElement('div'); form.className = 'form';
@@ -2229,7 +2237,7 @@ function confirmSingleFromModal(){
   closeReserveModal();
   BUSY = true; showLoading('Reservando…');
   API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs)
-    .then(async function(){ showConfirmedModal(pairs); await refreshSelectGrid(); })
+    .then(async function(){ showReserveFeedbackDetailed(pairs); await refreshSelectGrid(); })
     .catch(function(){ toast('No se pudo reservar'); })
     .finally(function(){ hideLoading(); BUSY = false; if (btn) btn.disabled = false; });
 }
@@ -2249,34 +2257,10 @@ function confirmReservationFromModal(){
   closeReserveModal();
   BUSY = true; showLoading('Reservando…');
   API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs)
-    .then(async function(){ showConfirmedModal(pairs); await refreshSelectGrid(); })
+    .then(async function(){ showReserveFeedbackDetailed(pairs); await refreshSelectGrid(); })
     .catch(function(){ toast('No se pudo reservar'); })
     .finally(function(){ hideLoading(); BUSY = false; if (btn) btn.disabled = false; });
 }
-
-function openConfirmedModal(){ var m=document.getElementById('confirmedModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); try{ var sheet=m.querySelector('.sheet'); if(sheet){ sheet.focus(); } }catch(e){} }
-function closeConfirmedModal(){ var m=document.getElementById('confirmedModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
-document.addEventListener('keydown', function(ev){ if(ev.key==='Escape'){ var m=document.getElementById('confirmedModal'); if(m && m.classList.contains('show')) closeConfirmedModal(); } }, { passive:true });
-function showConfirmedModal(pairs){
-  var body = document.getElementById('confirmedBody');
-  if(body){ while(body.firstChild) body.removeChild(body.firstChild);
-    var panel = document.createElement('div'); panel.className='form';
-    var list = document.createElement('div'); list.className='assign-list';
-    for (var i=0;i<pairs.length;i++){ var p = pairs[i];
-      var row = document.createElement('div'); row.className='assign-row';
-      var ttl = document.createElement('div'); ttl.className='assign-title';
-      var seatNum = (typeof NUM_LABELS!=='undefined' && NUM_LABELS && NUM_LABELS.get(p.asiento)) ? NUM_LABELS.get(p.asiento) : p.asiento;
-      ttl.textContent = 'Asiento ' + seatNum + ': ' + p.pasajero + ' (' + p.ci + ')';
-      row.appendChild(ttl); list.appendChild(row); }
-    panel.appendChild(list);
-    var note = document.createElement('div'); note.className='field';
-    var span = document.createElement('span'); span.className='field-label'; span.textContent = 'Cualquier cambio o cancelación informar a su agente.';
-    note.appendChild(span); panel.appendChild(note); body.appendChild(panel);
-  }
-  openConfirmedModal();
-}
-
-function goToStartAndCloseConfirmed(){ try{ closeConfirmedModal(); }catch(e){} try{ goTripMenu(); }catch(e){} }
 function startSelectionModal(){ if (BUSY) return; if (selected.size === 0){ toast('Elegí al menos un asiento'); return; } if (selected.size === 1){ renderSingleFormInModal(); return; } renderMultiFormInModal(); }
 function updateAssignVisibility(){ /* modal-only */ }
 function backToSelect(){ try { closeReserveModal(); } catch(e){} }
