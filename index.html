@@ -1853,7 +1853,7 @@ async function confirmSingle(){
 
   var admin = isAdmin();
 
-  // Visibilidad por rol
+  // Visibilidad por rol (oculta totalmente para viewer)
   if (btnEdit) btnEdit.style.display = admin ? '' : 'none';
   if (btnExport) btnExport.style.display = admin ? '' : 'none';
   if (btnMove) btnMove.style.display = admin ? '' : 'none';
@@ -1862,6 +1862,7 @@ async function confirmSingle(){
 
   if (toolbar) toolbar.classList.toggle('editing', CONTROL_EDIT);
 
+  // Si no es admin, no seguir con lógica de edición
   if (!admin) {
     return;
   }
@@ -1886,6 +1887,161 @@ async function confirmSingle(){
   }
 }
 
+    function cancelEdit(silent){
+      EDIT_SRC=null; EDIT_DST=null;
+      var srcEls = document.querySelectorAll('.seat.pick-source'); for(var i=0;i<srcEls.length;i++){ srcEls[i].classList.remove('pick-source'); }
+      var dstEls = document.querySelectorAll('.seat.pick-target'); for(var j=0;j<dstEls.length;j++){ dstEls[j].classList.remove('pick-target'); }
+      updateEditTags(); syncToolbarUI();
+      if(!silent) toast('Edición cancelada.');
+    }
+    async function movePassenger(){
+      showLoading('Moviendo pasajero…');
+      if(!isAdmin()){ hideLoading(); toast('Solo administradores pueden editar'); return; }
+      if(!EDIT_SRC || !EDIT_DST){ hideLoading(); toast('Selecciona origen (ocupado) y destino (libre).'); return; }
+      try{
+        var sheet = STAFF_CONTROL_MULTI ? EDIT_SRC.sheet : CURRENT_TRIP.sheetName;
+        var resp=await API.apiMove(CURRENT_TRIP.fileId, sheet, EDIT_SRC.code, EDIT_DST.code);
+        toast(resp && resp.message ? resp.message : 'Movimiento realizado');
+        cancelEdit(true);
+        await refreshControlBoardSmart();
+      }catch(err){
+        toast('No se pudo mover al pasajero');
+      }finally{
+        hideLoading();
+      }
+    }
+    async function freeSelectedSeat(){
+      showLoading('Liberando asiento…');
+      if(!isAdmin()){ hideLoading(); toast('Solo administradores pueden editar'); return; }
+      if(!EDIT_SRC){ hideLoading(); toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; }
+      try{
+        var sheet = STAFF_CONTROL_MULTI ? EDIT_SRC.sheet : CURRENT_TRIP.sheetName;
+        var resp=await API.apiFree(CURRENT_TRIP.fileId, sheet, EDIT_SRC.code);
+        toast(resp && resp.message ? resp.message : 'Asiento liberado');
+        cancelEdit(true);
+        await refreshControlBoardSmart();
+      }catch(err){
+        toast('No se pudo liberar el asiento');
+      }finally{
+        hideLoading();
+      }
+    }
+
+    /* ===== Exportar PDFs ===== */
+    async function doExportPdfSmart(){
+      if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; }
+      if(!isAdmin()){ toast('Solo administradores pueden exportar PDF'); return; }
+      showLoading('Generando PDF…');
+      try{
+        if (STAFF_CONTROL_MULTI) {
+          var floors = getFloorSheets();
+          var urls = [];
+          for (var i=0;i<floors.length;i++){
+            var f = floors[i];
+            var resp = await API.apiExportPdf(CURRENT_TRIP.fileId, f.sheetName);
+            if(resp && resp.url){ urls.push({ label: f.label, url: resp.url }); }
+          }
+          if(urls.length){
+            var openedAll = true;
+            for (var j=0;j<urls.length;j++){
+              var w = window.open(urls[j].url,'_blank');
+              if(!w) openedAll = false;
+            }
+            if(!openedAll){
+              var fb=document.getElementById('pdfLinkFallback');
+              var listHtml = '';
+              for(var k=0;k<urls.length;k++){
+                var u = urls[k];
+                listHtml += '<li><a href="'+u.url+'" target="_blank" rel="noopener">'+u.label+'</a></li>';
+              }
+              if (fb) {
+                fb.innerHTML='Tus PDFs están listos:<ul style="margin:8px 0;padding-left:16px;">'+listHtml+'</ul>';
+                fb.classList.remove('hidden');
+              }
+            } else {
+              toast('PDFs listos ('+urls.length+')');
+            }
+          } else {
+            toast('No se pudo generar los PDFs');
+          }
+        } else {
+          var sheet = CURRENT_TRIP.sheetName;
+          var resp2 = await API.apiExportPdf(CURRENT_TRIP.fileId, sheet);
+          if(resp2 && resp2.url){
+            var newWin=window.open(resp2.url,'_blank');
+            if(!newWin){
+              var fb2=document.getElementById('pdfLinkFallback');
+              if (fb2) {
+                fb2.innerHTML='Tu PDF está listo: <a href="'+resp2.url+'" target="_blank" rel="noopener">Abrir PDF</a>';
+                fb2.classList.remove('hidden');
+              }
+            }else{
+              toast('PDF listo');
+            }
+          }else{
+            toast(resp2 && resp2.message ? resp2.message : 'No se pudo generar el PDF');
+          }
+        }
+      }catch(err){
+        toast('Error al generar PDF');
+      }finally{
+        hideLoading();
+      }
+    }
+    async function refreshControlBoardSmart(){
+      if (STAFF_CONTROL_MULTI) {
+        await refreshStaffMulti();
+      } else {
+        await refreshSeatsWithSpinner(null, renderControlBoard);
+      }
+    }
+
+    /* ===== Wrapper público ===== */
+    async function refreshSelectGrid(){
+      var opts = await computeGridOptions();
+      await refreshSeatsWithSpinner('grid-select', function(){}, opts);
+    }
+
+    /* ===== FIX: cablear botones del menú admin ===== */
+    function wireAdminMenuButtons(){
+      var bLogin = document.getElementById('btnAdminLogin');
+      var bInicio = document.getElementById('btnAdminControl');
+      var bLogout = document.getElementById('btnAdminLogout');
+      if (bLogin) bLogin.addEventListener('click', function(){ try { openStaffLogin(); hideAdminMenu(); } catch(e){} });
+      if (bInicio) bInicio.addEventListener('click', function(){ try { backToChoose(); hideAdminMenu(); } catch(e){} });
+      if (bLogout) bLogout.addEventListener('click', function(){ try { doControlLogout(); hideAdminMenu(); } catch(e){} });
+    }
+    window.openStaffLogin = openStaffLogin;
+    window.doControlLogout = doControlLogout;
+    window.backToChoose = backToChoose;
+    window.hideAdminMenu = hideAdminMenu;
+
+    /* ===== GIS: render del botón y manejo de login ===== */
+function renderGoogleButton(){
+  const box = document.getElementById('googleSignIn');
+  if (!box) return;
+
+  // FIX: aislar el iframe de Google
+  box.innerHTML = '';
+  box.style.position = 'relative';
+  box.style.zIndex = '1';
+
+  if (!(window.google && google.accounts && google.accounts.id)) return;
+
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleCredentialResponse,
+    cancel_on_tap_outside: true
+  });
+
+  google.accounts.id.renderButton(box, {
+    theme: 'outline',
+    size: 'large',
+    shape: 'pill',
+    text: 'signin_with',
+    logo_alignment: 'left'
+  });
+}
 
 
     async function handleCredentialResponse(resp){
