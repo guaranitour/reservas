@@ -357,6 +357,21 @@
 #confirmedModal .sheet header h3{ text-align:center; width:100%; }
 #confirmedModal .sheet header{ justify-content:center; }
 #confirmedModal .sheet .actions{ justify-content:center; }
+
+/* ===== Fix: modal single - labels y placeholders encimados ===== */
+.modal .field {
+  gap: 8px;
+}
+.modal .field-label {
+  margin-bottom: 2px;
+  line-height: 1.2;
+}
+.modal .field input {
+  padding-top: 16px;
+  padding-bottom: 16px;
+  line-height: 1.3;
+}
+
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -1843,59 +1858,37 @@ async function confirmSingle(){
       if (tagSrc) tagSrc.textContent='Origen: ' + (EDIT_SRC ? (EDIT_SRC.num + ' • ' + EDIT_SRC.code) : '—');
       if (tagDst) tagDst.textContent='Destino: ' + (EDIT_DST ? (EDIT_DST.num + ' • ' + EDIT_DST.code) : '—');
     }
-    function syncToolbarUI() {
-  var btnEdit = document.getElementById('btnEditMode');
-  var btnMove = document.getElementById('btnMove');
-  var btnFree = document.getElementById('btnFree');
-  var btnCancel = document.getElementById('btnCancel');
-  var btnExport = document.getElementById('btnExportPdf');
-  var toolbar = document.getElementById('controlToolbar');
-  var tagSrc = document.getElementById('tagSrc');
-  var tagDst = document.getElementById('tagDst');
-  var admin = isAdmin();
+    function syncToolbarUI(){
+      var btnEdit=document.getElementById('btnEditMode');
+      var btnMove=document.getElementById('btnMove');
+      var btnFree=document.getElementById('btnFree');
+      var btnCancel=document.getElementById('btnCancel');
+      var btnExport=document.getElementById('btnExportPdf');
 
-  // Visibilidad base por rol
-  if (btnEdit) btnEdit.style.display = admin ? '' : 'none';
-  if (btnExport) btnExport.style.display = admin ? '' : 'none';
+      // Export y edición solo-admin
+      if (!isAdmin()){
+        if (btnEdit){ btnEdit.disabled = true; btnEdit.classList.add('ghost'); btnEdit.classList.remove('danger'); }
+        if (btnExport){ btnExport.disabled = true; }
+      } else {
+        if (btnEdit){ btnEdit.disabled = false; }
+        if (btnExport){ btnExport.disabled = false; }
+      }
 
-  // Etiquetas Origen/Destino: ocultas para viewer; en admin solo en modo edición
-  var showTags = admin && CONTROL_EDIT;
-  if (tagSrc) tagSrc.style.display = showTags ? '' : 'none';
-  if (tagDst) tagDst.style.display = showTags ? '' : 'none';
-
-  // Acciones de edición: visibles solo cuando admin + modo edición
-  var showEditActions = admin && CONTROL_EDIT;
-  if (btnMove) btnMove.style.display = showEditActions ? '' : 'none';
-  if (btnFree) btnFree.style.display = showEditActions ? '' : 'none';
-  if (btnCancel) btnCancel.style.display = showEditActions ? '' : 'none';
-
-  if (toolbar) toolbar.classList.toggle('editing', CONTROL_EDIT);
-
-  // Si no es admin, no seguir con lógica de edición
-  if (!admin) {
-    return;
-  }
-
-  if (CONTROL_EDIT) {
-    if (btnEdit) {
-      btnEdit.classList.add('danger');
-      btnEdit.textContent = 'Salir de edición';
+      var toolbar=document.getElementById('controlToolbar');
+      if (toolbar) toolbar.classList.toggle('editing', CONTROL_EDIT);
+      if(CONTROL_EDIT){
+        if (btnEdit){ btnEdit.classList.add('danger'); btnEdit.textContent='Salir de edición'; }
+        var canMove = EDIT_SRC && EDIT_DST; // ya no bloquea por planta
+        if (btnMove) btnMove.disabled = !canMove;
+        if (btnFree) btnFree.disabled=!EDIT_SRC;
+        if (btnCancel) btnCancel.disabled=false;
+      }else{
+        if (btnEdit){ btnEdit.classList.remove('danger'); btnEdit.textContent='Modo edición'; }
+        if (btnMove) btnMove.disabled=true;
+        if (btnFree) btnFree.disabled=true;
+        if (btnCancel) btnCancel.disabled=true;
+      }
     }
-    var canMove = EDIT_SRC && EDIT_DST;
-    if (btnMove) btnMove.disabled = !canMove;
-    if (btnFree) btnFree.disabled = !EDIT_SRC;
-    if (btnCancel) btnCancel.disabled = false;
-  } else {
-    if (btnEdit) {
-      btnEdit.classList.remove('danger');
-      btnEdit.textContent = 'Modo edición';
-    }
-    if (btnMove) btnMove.disabled = true;
-    if (btnFree) btnFree.disabled = true;
-    if (btnCancel) btnCancel.disabled = true;
-  }
-}
-
     function cancelEdit(silent){
       EDIT_SRC=null; EDIT_DST=null;
       var srcEls = document.querySelectorAll('.seat.pick-source'); for(var i=0;i<srcEls.length;i++){ srcEls[i].classList.remove('pick-source'); }
