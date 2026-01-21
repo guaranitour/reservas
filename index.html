@@ -1850,15 +1850,24 @@ async function confirmSingle(){
   var btnCancel = document.getElementById('btnCancel');
   var btnExport = document.getElementById('btnExportPdf');
   var toolbar = document.getElementById('controlToolbar');
-
+  var tagSrc = document.getElementById('tagSrc');
+  var tagDst = document.getElementById('tagDst');
   var admin = isAdmin();
 
-  // Visibilidad por rol (oculta totalmente para viewer)
+  // Visibilidad base por rol
   if (btnEdit) btnEdit.style.display = admin ? '' : 'none';
   if (btnExport) btnExport.style.display = admin ? '' : 'none';
-  if (btnMove) btnMove.style.display = admin ? '' : 'none';
-  if (btnFree) btnFree.style.display = admin ? '' : 'none';
-  if (btnCancel) btnCancel.style.display = admin ? '' : 'none';
+
+  // Etiquetas Origen/Destino: ocultas para viewer; en admin solo en modo edición
+  var showTags = admin && CONTROL_EDIT;
+  if (tagSrc) tagSrc.style.display = showTags ? '' : 'none';
+  if (tagDst) tagDst.style.display = showTags ? '' : 'none';
+
+  // Acciones de edición: visibles solo cuando admin + modo edición
+  var showEditActions = admin && CONTROL_EDIT;
+  if (btnMove) btnMove.style.display = showEditActions ? '' : 'none';
+  if (btnFree) btnFree.style.display = showEditActions ? '' : 'none';
+  if (btnCancel) btnCancel.style.display = showEditActions ? '' : 'none';
 
   if (toolbar) toolbar.classList.toggle('editing', CONTROL_EDIT);
 
