@@ -358,11 +358,14 @@
 #confirmedModal .sheet header{ justify-content:center; }
 #confirmedModal .sheet .actions{ justify-content:center; }
 
-/* ===== Fix definitivo: modal SINGLE - evitar solapado label/placeholder ===== */
-#reserveModal .field { gap: 8px; }
-#reserveModal .field-label { line-height: 1.2; }
-#reserveModal .field input::placeholder { opacity: 0; }
-#reserveModal .field input:focus::placeholder { opacity: 0; }
+/* ===== Ajuste fino: modal SINGLE - separación extra para CI ===== */
+#reserveModal .field + .field {
+  margin-top: 14px; /* separa campos consecutivos */
+}
+
+#reserveModal .field input {
+  min-height: 54px; /* evita que el input invada el label */
+}
 
 </style>
 
