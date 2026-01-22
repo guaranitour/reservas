@@ -2317,7 +2317,7 @@ function showConfirmedModal(pairs){
       var row = document.createElement('div'); row.className='assign-row';
       var ttl = document.createElement('div'); ttl.className='assign-title';
       var seatNum = (typeof NUM_LABELS!=='undefined' && NUM_LABELS && NUM_LABELS.get(p.asiento)) ? NUM_LABELS.get(p.asiento) : p.asiento;
-      ttl.textContent = 'Asiento ' + seatNum + ': ' + p.pasajero + ' (' + p.ci + ')';
+      ttl.textContent = 'Asiento ' + seatNum + ': ' + p.pasajero;
       row.appendChild(ttl); list.appendChild(row); }
     panel.appendChild(list);
     var note = document.createElement('div'); note.className='field';
