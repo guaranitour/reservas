@@ -374,6 +374,7 @@
 #view-select { padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom) + 12px); }
 /* Ocultar barra pública cuando hay modal activo */
 .select-action-bar.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .2s ease, transform .2s ease; }
+
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -625,25 +626,9 @@
   
 <script>
 const CACHE_PREFIX = 'seatapp_';
-function setCache(key, value, ttlMs) {
-  try {
-    const payload = { value, expires: Date.now() + ttlMs };
-    localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(payload));
-  } catch (e) {}
-}
-function getCache(key) {
-  try {
-    const raw = localStorage.getItem(CACHE_PREFIX + key);
-    if (!raw) return null;
-    const payload = JSON.parse(raw);
-    if (!payload || typeof payload.expires !== 'number') return null;
-    if (Date.now() > payload.expires) { localStorage.removeItem(CACHE_PREFIX + key); return null; }
-    return payload.value;
-  } catch (e) { return null; }
-}
-function clearCache(key) {
-  try { localStorage.removeItem(CACHE_PREFIX + key); } catch (e) {}
-}
+function setCache(key, value, ttlMs) { try { const payload = { value, expires: Date.now() + ttlMs }; localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(payload)); } catch(e){} }
+function getCache(key) { try { const raw = localStorage.getItem(CACHE_PREFIX + key); if(!raw) return null; const payload = JSON.parse(raw); if(!payload || typeof payload.expires!== 'number') return null; if(Date.now() > payload.expires){ localStorage.removeItem(CACHE_PREFIX + key); return null;} return payload.value; } catch(e){ return null; } }
+function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } catch(e){} }
 </script>
 <!-- ===== api.js ===== -->
   <script>
@@ -1320,8 +1305,6 @@ function clearCache(key) {
 
     /* ====== Datos (una hoja) ====== */
     async function refreshSeats(targetId, onDone, gridOptions){
-  var __cacheKey = (CURRENT_TRIP && CURRENT_TRIP.fileId && CURRENT_TRIP.sheetName) ? 'seats_' + CURRENT_TRIP.fileId + '_' + CURRENT_TRIP.sheetName : null;
-  if (__cacheKey) { var __c = getCache(__cacheKey); if (__c) { SEATS = __c; var gridEl = targetId ? document.getElementById(targetId) : null; if(gridEl){ gridEl.setAttribute('aria-busy','false'); buildGrid(targetId, gridOptions); } if (typeof onDone === 'function') { try{ onDone(); }catch(e){} } return; } }
       var gridEl = targetId ? document.getElementById(targetId) : null;
       if(gridEl) gridEl.setAttribute('aria-busy','true');
       try{
