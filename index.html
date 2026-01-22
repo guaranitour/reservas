@@ -367,6 +367,13 @@
 #reserveModal .field + .field { margin-top: 14px; }
 #reserveModal .field input { min-height: 54px; }
 
+
+/* === Público: Action bar siempre visible y segura === */
+.select-action-bar { pointer-events: none; }
+.select-action-bar .actions { pointer-events: auto; padding-bottom: calc(var(--safe-bottom) + 10px); }
+#view-select { padding-bottom: calc(var(--action-bar-h) + var(--safe-bottom) + 12px); }
+/* Ocultar barra pública cuando hay modal activo */
+.select-action-bar.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .2s ease, transform .2s ease; }
 </style>
 
   <!-- ====== GIS: librería oficial para Sign in with Google ====== -->
@@ -615,7 +622,30 @@
   <!-- Snackbar -->
   <div id="snackbar" class="snackbar" role="status" aria-live="assertive" aria-atomic="true"></div>
 
-  <!-- ===== api.js ===== -->
+  
+<script>
+const CACHE_PREFIX = 'seatapp_';
+function setCache(key, value, ttlMs) {
+  try {
+    const payload = { value, expires: Date.now() + ttlMs };
+    localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(payload));
+  } catch (e) {}
+}
+function getCache(key) {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + key);
+    if (!raw) return null;
+    const payload = JSON.parse(raw);
+    if (!payload || typeof payload.expires !== 'number') return null;
+    if (Date.now() > payload.expires) { localStorage.removeItem(CACHE_PREFIX + key); return null; }
+    return payload.value;
+  } catch (e) { return null; }
+}
+function clearCache(key) {
+  try { localStorage.removeItem(CACHE_PREFIX + key); } catch (e) {}
+}
+</script>
+<!-- ===== api.js ===== -->
   <script>
     const BASE_URL = 'https://script.google.com/macros/s/AKfycbxp22XHzfE8JLdVkePwa6xq4ixw3xhCoxioqplh_BkzMCwLCiYAql52xwmYRnpcN475/exec';
     const API_KEY = null;
@@ -741,7 +771,9 @@
     async function ensureTripsCache(){
       if (TRIPS_CACHE && TRIPS_CACHE.length) return TRIPS_CACHE;
       try{
-        var payload = await API.apiGetTrips();
+        var cached = getCache("trips");
+  var payload = cached ? { trips: cached } : await API.apiGetTrips();
+  if (!cached) setCache("trips", payload.trips || [], 5 * 60 * 1000);
         TRIPS_CACHE = payload.trips || [];
       }catch(e){
         TRIPS_CACHE = [];
@@ -900,7 +932,9 @@
     async function loadTrips(){
       showLoading('Cargando viajes…');
       try{
-        var payload = await API.apiGetTrips();
+        var cached = getCache("trips");
+  var payload = cached ? { trips: cached } : await API.apiGetTrips();
+  if (!cached) setCache("trips", payload.trips || [], 5 * 60 * 1000);
         var trips = payload.trips || [];
         TRIPS_CACHE = trips;
         var list = document.getElementById('tripList'); if(!list) return; list.innerHTML = '';
@@ -1286,6 +1320,8 @@
 
     /* ====== Datos (una hoja) ====== */
     async function refreshSeats(targetId, onDone, gridOptions){
+  var __cacheKey = (CURRENT_TRIP && CURRENT_TRIP.fileId && CURRENT_TRIP.sheetName) ? 'seats_' + CURRENT_TRIP.fileId + '_' + CURRENT_TRIP.sheetName : null;
+  if (__cacheKey) { var __c = getCache(__cacheKey); if (__c) { SEATS = __c; var gridEl = targetId ? document.getElementById(targetId) : null; if(gridEl){ gridEl.setAttribute('aria-busy','false'); buildGrid(targetId, gridOptions); } if (typeof onDone === 'function') { try{ onDone(); }catch(e){} } return; } }
       var gridEl = targetId ? document.getElementById(targetId) : null;
       if(gridEl) gridEl.setAttribute('aria-busy','true');
       try{
@@ -2195,8 +2231,8 @@ function renderGoogleButton(){
   </script>
 
 <script>
-function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
-function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); var bar=document.getElementById('selectActionBar'); if(bar) bar.classList.add('hidden'); }
+function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); var bar=document.getElementById('selectActionBar'); if(bar) bar.classList.remove('hidden'); }
 document.addEventListener('keydown', function(ev){ if(ev.key==='Escape') closeReserveModal(); }, { passive:true });
 function renderSingleFormInModal(){
   var title = document.getElementById('reserveTitle'); var body  = document.getElementById('reserveBody'); var btn   = document.getElementById('reserveConfirmBtn');
