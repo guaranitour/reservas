@@ -615,7 +615,31 @@
   <!-- Snackbar -->
   <div id="snackbar" class="snackbar" role="status" aria-live="assertive" aria-atomic="true"></div>
 
-  <!-- ===== api.js ===== -->
+  
+<script>
+const CACHE_PREFIX = 'seatapp_';
+function setCache(key, value, ttlMs) {
+  const payload = { value, expires: Date.now() + ttlMs };
+  localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(payload));
+}
+function getCache(key) {
+  const raw = localStorage.getItem(CACHE_PREFIX + key);
+  if (!raw) return null;
+  try {
+    const payload = JSON.parse(raw);
+    if (Date.now() > payload.expires) {
+      localStorage.removeItem(CACHE_PREFIX + key);
+      return null;
+    }
+    return payload.value;
+  } catch { return null; }
+}
+function clearCache(key) {
+  localStorage.removeItem(CACHE_PREFIX + key);
+}
+</script>
+
+<!-- ===== api.js ===== -->
   <script>
     const BASE_URL = 'https://script.google.com/macros/s/AKfycbxp22XHzfE8JLdVkePwa6xq4ixw3xhCoxioqplh_BkzMCwLCiYAql52xwmYRnpcN475/exec';
     const API_KEY = null;
@@ -741,7 +765,9 @@
     async function ensureTripsCache(){
       if (TRIPS_CACHE && TRIPS_CACHE.length) return TRIPS_CACHE;
       try{
-        var payload = await API.apiGetTrips();
+        var cached = getCache("trips");
+  var payload = cached ? { trips: cached } : await API.apiGetTrips();
+  if (!cached) setCache("trips", payload.trips || [], 5*60*1000);
         TRIPS_CACHE = payload.trips || [];
       }catch(e){
         TRIPS_CACHE = [];
@@ -900,7 +926,9 @@
     async function loadTrips(){
       showLoading('Cargando viajes…');
       try{
-        var payload = await API.apiGetTrips();
+        var cached = getCache("trips");
+  var payload = cached ? { trips: cached } : await API.apiGetTrips();
+  if (!cached) setCache("trips", payload.trips || [], 5*60*1000);
         var trips = payload.trips || [];
         TRIPS_CACHE = trips;
         var list = document.getElementById('tripList'); if(!list) return; list.innerHTML = '';
@@ -1286,6 +1314,8 @@
 
     /* ====== Datos (una hoja) ====== */
     async function refreshSeats(targetId, onDone, gridOptions){
+  const __cacheKey = CURRENT_TRIP && CURRENT_TRIP.fileId && CURRENT_TRIP.sheetName ? `seats_${CURRENT_TRIP.fileId}_${CURRENT_TRIP.sheetName}` : null;
+  if (__cacheKey) { const c = getCache(__cacheKey); if (c) { SEATS = c; if (targetId) buildGrid(targetId, gridOptions); if (typeof onDone === "function") onDone(); return; } }
       var gridEl = targetId ? document.getElementById(targetId) : null;
       if(gridEl) gridEl.setAttribute('aria-busy','true');
       try{
@@ -1293,6 +1323,7 @@
         var rows = resp.rows || [];
         SEATS = {};
         rows.forEach(function(r){ SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
+    if (__cacheKey) setCache(__cacheKey, SEATS, 30000);
         if(gridEl){ buildGrid(targetId, gridOptions); }
       }catch(err){
         console.error('refreshSeats error:', err);
@@ -1517,6 +1548,7 @@ async function confirmSingle(){
         var rows = respRows.rows || [];
         SEATS = {};
         rows.forEach(function(r){ SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; });
+    if (__cacheKey) setCache(__cacheKey, SEATS, 30000);
         var nums = computeNumbersForCodes(LAST_FOUND_CODES);
         renderFindFeedback(nums);
         HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES);
