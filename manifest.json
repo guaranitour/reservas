@@ -1,0 +1,1 @@
+["{\n  \"name\": \"Mi Web\",\n  \"short_name\": \"MiWeb\",\n  \"start_url\": \".\",\n  \"display\": \"standalone\",\n  \"icons\": [\n    {\n      \"src\": \"icon-192.png\",\n      \"sizes\": \"192x192\",\n      \"type\": \"image/png\"\n    }\n  ]\n}"]
