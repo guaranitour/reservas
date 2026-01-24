@@ -253,7 +253,15 @@ function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } 
     function toast(msg){ var bar = document.getElementById('snackbar'); if(!bar) return; bar.textContent = msg; bar.classList.add('show'); setTimeout(function(){ bar.classList.remove('show'); }, 2800); }
     function showLoading(msg){ var ov = document.getElementById('overlay'); if(!ov) return; ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
     function hideLoading(){ var ov = document.getElementById('overlay'); if(!ov) return; ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); }
-    function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
+    
+
+function ensureSelectBarVisible(){
+  try{
+    var bar = document.getElementById('selectActionBar');
+    if (bar) bar.classList.remove('hidden');
+  }catch(e){}
+}
+function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
     function firstName(full){ var t = (full || '').trim(); if(!t) return ''; var name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
     function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); }
 
@@ -635,6 +643,7 @@ function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } 
       } else {
         if (CURRENT_TRIP.hasFloors) {
           showView('view-select');
+  ensureSelectBarVisible();
           showLoading('Cargando asientos…');
           var opts = await computeGridOptions();
           refreshSeats('grid-select', function(){ hideLoading(); }, opts);
@@ -656,6 +665,7 @@ function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } 
     async function goSelect(){
       if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; }
       showView('view-select');
+  ensureSelectBarVisible();
       showLoading('Cargando asientos…');
       var opts = await computeGridOptions();
       refreshSeats('grid-select', function(){ hideLoading(); }, opts);
@@ -1541,70 +1551,23 @@ function renderGoogleButton(){
             if (!chip || !chip.contains(ev.target)) { menu.classList.add('hidden'); }
           }, { passive:true });
         }
-        
-// Cargar logo desde backend con cache local (TTL = 7 días)
-(async function () {
-  var CACHE_KEY = "logo_v1";          // cambia a v2 si necesitás invalidar todas las cachés
-  var TTL = 7 * 24 * 60 * 60 * 1000;  // 7 días en ms
-
-  function safeGetLogoCache() {
-    try { return getCache(CACHE_KEY); } catch(e){ return null; }
-  }
-  function safeSetLogoCache(val, ttl) {
-    try { setCache(CACHE_KEY, val, ttl); } catch(e){}
-  }
-  function safeClearLogoCache() {
-    try { clearCache(CACHE_KEY); } catch(e){}
-  }
-
-  var cached = safeGetLogoCache();
-
-  function applyImgSrc(srcFromAny){
-    if (!srcFromAny || !img) return;
-    img.onload = function(){
-      img.classList.add('ready');
-      if (skel) skel.style.display = 'none';
-    };
-    img.onerror = function(){
-      // Recurso cacheado/servido falló: limpiar e intentar desde red si veníamos del cache
-      safeClearLogoCache();
-      if (skel) skel.style.display = 'block';
-      if (!cached || (cached && cached.src === srcFromAny)) {
-        loadFromNetwork(true);
-      }
-    };
-    img.src = srcFromAny;
-  }
-
-  if (cached && cached.src){
-    // 1) Intento desde caché (instantáneo)
-    applyImgSrc(cached.src);
-  } else {
-    // 2) No hay caché → ir a red
-    loadFromNetwork(false);
-  }
-
-  async function loadFromNetwork(retryingAfterCacheError){
-    try {
-      var payload = await API.apiGetLogo();
-      var src = '';
-      if (payload && payload.dataUrl) src = payload.dataUrl;
-      else if (payload && payload.publicUrl) src = payload.publicUrl;
-
-      if (src){
-        applyImgSrc(src);
-        // Guardar en cache sólo si obtuvimos un src válido
-        safeSetLogoCache({ src: src }, TTL);
-      } else {
-        if (skel) skel.style.display = 'block';
-      }
-    } catch (e) {
-      // Error en API: mostrar skeleton si no veníamos de un cache exitoso
-      if (!retryingAfterCacheError && skel) skel.style.display = 'block';
-    }
-  }
-})();
-
+        // Cargar logo desde backend
+        (async function(){
+          try{
+            var payload = await API.apiGetLogo();
+            var src = '';
+            if (payload && payload.dataUrl) src = payload.dataUrl;
+            else if (payload && payload.publicUrl) src = payload.publicUrl;
+            if (src && img){
+              img.onload = function(){ img.classList.add('ready'); if(skel) skel.style.display='none'; };
+              img.src = src;
+            } else if (skel) {
+              skel.style.display='block';
+            }
+          }catch(e){
+            if (skel) skel.style.display='block';
+          }
+        })();
 
         // Entradas de CI
         var ciP = document.getElementById('ciSingle'); if (ciP) ciP.addEventListener('input', function(e){ onlyDigits(e.target); });
