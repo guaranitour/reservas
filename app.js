@@ -256,3 +256,45 @@ afterBoot();
 function afterBoot(){ try{ window.openStaffLogin = openStaffLogin; window.doControlLogout = doControlLogout; window.backToChoose = backToChoose; window.hideAdminMenu = hideAdminMenu; }catch(e){} }
 // Inicializar router (escucha hashchange y llama a routeTo)
 (function(){ const _routeHandler = (hash) => { if (!ROUTER_DRIVING) routeTo(hash); }; if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', () => initRouter(_routeHandler)); } else { initRouter(_routeHandler); } })();
+
+// === Exponer funciones usadas en atributos HTML (compatibilidad con inline handlers) ===
+(function exposeGlobals(){
+  try{
+    window.goSelect = typeof goSelect !== 'undefined' ? goSelect : window.goSelect;
+    window.goFind = typeof goFind !== 'undefined' ? goFind : window.goFind;
+    window.startSelectionModal = typeof startSelectionModal !== 'undefined' ? startSelectionModal : window.startSelectionModal;
+    window.refreshSelectGrid = typeof refreshSelectGrid !== 'undefined' ? refreshSelectGrid : window.refreshSelectGrid;
+    window.confirmSingle = typeof confirmSingle !== 'undefined' ? confirmSingle : window.confirmSingle;
+    window.cancelSingle = typeof cancelSingle !== 'undefined' ? cancelSingle : window.cancelSingle;
+    window.findByCI = typeof findByCI !== 'undefined' ? findByCI : window.findByCI;
+    window.showCroquisForCI = typeof showCroquisForCI !== 'undefined' ? showCroquisForCI : window.showCroquisForCI;
+    window.showCroquisForCIMulti = typeof showCroquisForCIMulti !== 'undefined' ? showCroquisForCIMulti : window.showCroquisForCIMulti;
+    window.goHome = typeof goHome !== 'undefined' ? goHome : window.goHome;
+    window.toggleControlEdit = typeof toggleControlEdit !== 'undefined' ? toggleControlEdit : window.toggleControlEdit;
+    window.refreshControlBoardSmart = typeof refreshControlBoardSmart !== 'undefined' ? refreshControlBoardSmart : window.refreshControlBoardSmart;
+    window.doExportPdfSmart = typeof doExportPdfSmart !== 'undefined' ? doExportPdfSmart : window.doExportPdfSmart;
+    window.movePassenger = typeof movePassenger !== 'undefined' ? movePassenger : window.movePassenger;
+    window.freeSelectedSeat = typeof freeSelectedSeat !== 'undefined' ? freeSelectedSeat : window.freeSelectedSeat;
+    window.cancelEdit = typeof cancelEdit !== 'undefined' ? cancelEdit : window.cancelEdit;
+    window.handleEnter = typeof handleEnter !== 'undefined' ? handleEnter : window.handleEnter;
+    window.chooseFloor = typeof chooseFloor !== 'undefined' ? chooseFloor : window.chooseFloor;
+    window.goTripMenu = typeof goTripMenu !== 'undefined' ? goTripMenu : window.goTripMenu;
+  }catch(e){ console.warn('[exposeGlobals] warning:', e); }
+})();
+
+// === Failsafe: si el overlay queda visible por más de 8s en el arranque, loguear y ocultar ===
+(function overlayFailsafe(){
+  const startTs = Date.now();
+  function check(){
+    const ov = document.getElementById('overlay');
+    if (!ov) return;
+    const visible = ov.classList && ov.classList.contains('show');
+    if (visible && Date.now() - startTs > 8000){
+      console.warn('[failsafe] overlay visible > 8s, ocultando. Verificá errores en Console.');
+      try{ ov.classList.remove('show'); ov.setAttribute('aria-hidden', 'true'); }catch{}
+    } else {
+      setTimeout(check, 1500);
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', check); else check();
+})();
