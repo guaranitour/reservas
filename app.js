@@ -254,12 +254,8 @@ function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } 
     function showLoading(msg){ var ov = document.getElementById('overlay'); if(!ov) return; ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); }
     function hideLoading(){ var ov = document.getElementById('overlay'); if(!ov) return; ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); }
     
-
 function ensureSelectBarVisible(){
-  try{
-    var bar = document.getElementById('selectActionBar');
-    if (bar) bar.classList.remove('hidden');
-  }catch(e){}
+  try{ var bar=document.getElementById('selectActionBar'); if(bar) bar.classList.remove('hidden'); }catch(e){}
 }
 function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); }
     function firstName(full){ var t = (full || '').trim(); if(!t) return ''; var name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); }
