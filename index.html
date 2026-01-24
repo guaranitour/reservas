@@ -94,11 +94,16 @@
 <!-- Croquis -->
 <div aria-busy="true" aria-live="polite" class="grid" id="grid-select"></div>
 <!-- === Bottom App Bar: Selección (flotante) === -->
-<div aria-hidden="false" class="select-action-bar" id="selectActionBar">
-<div class="actions">
-<button aria-label="Reservar asientos seleccionados" class="btn primary" id="btnReservePersistent" onclick="startSelectionModal()" type="button">Reservar</button>
-<button aria-label="Actualizar croquis" class="btn ghost" id="btnRefreshPersistent" onclick="refreshSelectGrid()" type="button">Actualizar</button>
-</div>
+
+<div class="select-action-bar" id="selectActionBar">
+  <div class="actions">
+    <button class="btn primary with-counter" id="btnReservePersistent" onclick="startSelectionModal()" type="button" aria-label="Reservar asientos seleccionados">
+      Reservar
+      <span id="selectedCounter" class="btn-counter hidden" aria-hidden="true">0</span>
+    </button>
+    <button class="btn ghost" id="btnRefreshPersistent" onclick="refreshSelectGrid()" type="button">Actualizar</button>
+    <span id="selectedCounterLive" aria-live="polite" aria-atomic="true"></span>
+  </div>
 </div>
 <!-- Acciones principales -->
 <div class="actions" id="selectActions" style="margin-top:12px; display:none !important;">
