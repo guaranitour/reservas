@@ -350,3 +350,42 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   .select-action-bar .btn { flex: 0 0 auto; }
 }
 */
+
+
+/* ==== Contador de asientos seleccionados (badge) ==== */
+.btn.with-counter {
+  position: relative;
+  padding-right: 42px; /* deja espacio para el badge */
+}
+
+.btn-counter {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;     /* rojo llamativo */
+  color: #fff;
+  font-weight: 900;
+  font-size: .82rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(239,68,68,.25);
+}
+
+.btn-counter.hidden {
+  display: none !important;
+}
+
+/* Accesibilidad: cuando el badge cambia, que los lectores lo anuncien */
+#selectedCounterLive {
+  position: absolute;
+  width: 1px; height: 1px; overflow: hidden;
+  clip: rect(1px,1px,1px,1px);
+  white-space: nowrap;
+}
+
