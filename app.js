@@ -1541,23 +1541,70 @@ function renderGoogleButton(){
             if (!chip || !chip.contains(ev.target)) { menu.classList.add('hidden'); }
           }, { passive:true });
         }
-        // Cargar logo desde backend
-        (async function(){
-          try{
-            var payload = await API.apiGetLogo();
-            var src = '';
-            if (payload && payload.dataUrl) src = payload.dataUrl;
-            else if (payload && payload.publicUrl) src = payload.publicUrl;
-            if (src && img){
-              img.onload = function(){ img.classList.add('ready'); if(skel) skel.style.display='none'; };
-              img.src = src;
-            } else if (skel) {
-              skel.style.display='block';
-            }
-          }catch(e){
-            if (skel) skel.style.display='block';
-          }
-        })();
+        
+// Cargar logo desde backend con cache local (TTL = 7 días)
+(async function () {
+  var CACHE_KEY = "logo_v1";          // cambia a v2 si necesitás invalidar todas las cachés
+  var TTL = 7 * 24 * 60 * 60 * 1000;  // 7 días en ms
+
+  function safeGetLogoCache() {
+    try { return getCache(CACHE_KEY); } catch(e){ return null; }
+  }
+  function safeSetLogoCache(val, ttl) {
+    try { setCache(CACHE_KEY, val, ttl); } catch(e){}
+  }
+  function safeClearLogoCache() {
+    try { clearCache(CACHE_KEY); } catch(e){}
+  }
+
+  var cached = safeGetLogoCache();
+
+  function applyImgSrc(srcFromAny){
+    if (!srcFromAny || !img) return;
+    img.onload = function(){
+      img.classList.add('ready');
+      if (skel) skel.style.display = 'none';
+    };
+    img.onerror = function(){
+      // Recurso cacheado/servido falló: limpiar e intentar desde red si veníamos del cache
+      safeClearLogoCache();
+      if (skel) skel.style.display = 'block';
+      if (!cached || (cached && cached.src === srcFromAny)) {
+        loadFromNetwork(true);
+      }
+    };
+    img.src = srcFromAny;
+  }
+
+  if (cached && cached.src){
+    // 1) Intento desde caché (instantáneo)
+    applyImgSrc(cached.src);
+  } else {
+    // 2) No hay caché → ir a red
+    loadFromNetwork(false);
+  }
+
+  async function loadFromNetwork(retryingAfterCacheError){
+    try {
+      var payload = await API.apiGetLogo();
+      var src = '';
+      if (payload && payload.dataUrl) src = payload.dataUrl;
+      else if (payload && payload.publicUrl) src = payload.publicUrl;
+
+      if (src){
+        applyImgSrc(src);
+        // Guardar en cache sólo si obtuvimos un src válido
+        safeSetLogoCache({ src: src }, TTL);
+      } else {
+        if (skel) skel.style.display = 'block';
+      }
+    } catch (e) {
+      // Error en API: mostrar skeleton si no veníamos de un cache exitoso
+      if (!retryingAfterCacheError && skel) skel.style.display = 'block';
+    }
+  }
+})();
+
 
         // Entradas de CI
         var ciP = document.getElementById('ciSingle'); if (ciP) ciP.addEventListener('input', function(e){ onlyDigits(e.target); });
