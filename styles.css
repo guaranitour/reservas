@@ -367,6 +367,3 @@
 /* Ocultar barra pública cuando hay modal activo */
 .select-action-bar.hidden { opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .2s ease, transform .2s ease; }
 
-
-
-/* === Fin de estilos extraídos del HTML original === */
