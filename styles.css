@@ -80,8 +80,8 @@ body{
 .btn-admin{ width:100%; }
 /* Contenedor principal */
 .app{padding:clamp(12px,3vw,20px);} 
-.view{display:none;} 
-.view.active{display:block; animation:fadeIn .4s ease both;} 
+.view{display:none;}
+.view.active{display:block; animation:fadeIn .4s ease both;}
 @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
 /* Inicio + cards (solo para convencional) */
 .home-center{min-height:calc(100dvh - 160px); display:grid; place-items:center;}
@@ -92,7 +92,7 @@ body{
  cursor:pointer; transition:transform .15s ease, box-shadow .2s ease; text-align:center; 
 }
 .card:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(17,24,39,.12);} 
-.card h2{margin:0; font-size:1.15rem;}
+.card h2{margin:0; font-size:1.15rem;} 
 .card p{margin:0; color:var(--muted);} 
 .view-title{ 
  margin:0 0 16px 0; 
@@ -298,7 +298,7 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 .field input::placeholder{ color: #9ca3af; opacity: .9; }
 .modal .sheet .actions{ display: flex; gap: 10px; justify-content: space-between; }
 .modal .sheet .btn{ border-radius: 999px; min-height: 44px; }
-@media (min-width: 540px){ .assign-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }}
+@media (min-width: 540px){ .assign-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } }
 /* ===== Bottom App Bar: Selección (flotante, sin fondo) ===== */
 .select-action-bar{ position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; height: calc(var(--action-bar-h) + var(--safe-bottom)); display: grid; place-items: center; background: transparent; border: none; box-shadow: none; pointer-events: none; }
 .select-action-bar .actions{ width: min(560px, 92vw); display: flex; gap: 10px; justify-content: center; padding: 0 12px var(--safe-bottom) 12px; pointer-events: auto; background: transparent; border: none; box-shadow: none; }
@@ -343,7 +343,7 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 .select-action-bar .btn { flex: 1; }
 /* Si preferís que en pantallas anchas no ocupen todo, descomentá:
 @media (min-width: 560px) { 
- .select-action-bar .btn { flex: 0 0 auto; }
+ .select-action-bar .btn { flex: 0 0 auto; } 
 }
 */
 /* ==== Contador de asientos seleccionados (badge) ==== */
@@ -384,7 +384,34 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 .radio-pill{ display:inline-flex; align-items:center; gap:6px; border:1px solid #e5e7eb; padding:8px 12px; border-radius:999px; cursor:pointer; }
 .radio-pill input{ accent-color: var(--primary); }
 
-
-/* === NUEVO: botón ámbar y select para modal de edición === */
-.btn.warning{background:#f59e0b; color:white;}
-select{border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; background:#fff; color:var(--text);}
+/* ==== PATCH: Modal "Crear viaje" (scroll interno + acciones sticky) ==== */
+#createTripModal .sheet {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(var(--vh, 1vh) * 84);
+}
+#createTripBody {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding-right: 4px;
+  min-height: 0;
+}
+#createTripModal .sheet header {
+  flex: 0 0 auto;
+}
+#createTripModal .sheet .actions {
+  position: sticky;
+  bottom: 0;
+  background: rgba(255, 255, 255, .96);
+  padding-top: 8px;
+  margin-top: 0;
+  z-index: 1;
+  border-top: 1px solid rgba(17, 24, 39, .06);
+}
+@media (max-width: 420px) {
+  #createTripModal .sheet .actions .btn {
+    flex: 1 1 auto;
+  }
+}
+/* Más aire entre campos del modal de "Crear viaje" */
+#createTripModal .form .field + .field { margin-top: 10px; }
