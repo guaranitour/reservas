@@ -13,224 +13,257 @@
 <body>
 <!-- Header -->
 <header aria-label="Cabecera" class="hero">
-  <div class="brand-chip">
-    <div aria-hidden="true" class="logo-skeleton" id="logoSkeleton"></div>
-    <img alt="Logo" id="heroLogo"/>
-    <!-- Menú admin -->
-    <div aria-label="Acceso staff" aria-modal="false" class="admin-menu hidden" id="adminMenu" role="dialog">
-      <p class="admin-title">Acceso staff</p>
-      <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
-        <button class="btn primary btn-admin" id="btnAdminLogin" onclick="openStaffLogin()" type="button">Control interno</button>
-        <button class="btn ghost btn-admin hidden" id="btnAdminControl" onclick="backToChoose(); hideAdminMenu();" type="button">Inicio</button>
-        <button class="btn danger btn-admin hidden" id="btnAdminLogout" onclick="doControlLogout()" type="button">Cerrar sesión staff</button>
-      </div>
-    </div>
+ <div class="brand-chip">
+  <div aria-hidden="true" class="logo-skeleton" id="logoSkeleton"></div>
+  <img alt="Logo" id="heroLogo"/>
+  <!-- Menú admin -->
+  <div aria-label="Acceso staff" aria-modal="false" class="admin-menu hidden" id="adminMenu" role="dialog">
+   <p class="admin-title">Acceso staff</p>
+   <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
+    <button class="btn primary btn-admin" id="btnAdminLogin" onclick="openStaffLogin()" type="button">Control interno</button>
+    <button class="btn ghost btn-admin hidden" id="btnAdminControl" onclick="backToChoose(); hideAdminMenu();" type="button">Inicio</button>
+    <button class="btn danger btn-admin hidden" id="btnAdminLogout" onclick="doControlLogout()" type="button">Cerrar sesión staff</button>
+   </div>
   </div>
+ </div>
 </header>
 <!-- Staff badge -->
 <div aria-label="Perfil Staff" class="staff-badge hidden" id="staffBadge">Staff</div>
 <main class="app" id="app">
   <!-- Elegir viaje -->
   <section aria-label="Elegí tu viaje" class="view active" id="view-choose">
-    <div class="home-center" style="align-items:start;">
-      <div style="max-width:680px; margin:0 auto; width:100%;">
-        <h2 class="view-title">Elegí tu viaje</h2>
-        <div class="trip-list" id="tripList"></div>
-      </div>
+   <div class="home-center" style="align-items:start;">
+    <div style="max-width:680px; margin:0 auto; width:100%;">
+     <h2 class="view-title">Elegí tu viaje</h2>
+     <!-- Botón Agregar viaje (solo Admin) -->
+     <div class="actions" id="tripListActions" style="justify-content:flex-end; margin-bottom:8px;">
+       <button class="btn primary hidden" id="btnAddTrip" type="button" onclick="openCreateTripModal()">Agregar viaje</button>
+     </div>
+     <div class="trip-list" id="tripList"></div>
     </div>
+   </div>
   </section>
   <!-- Elegir planta (doble piso) -->
   <section aria-label="Elegí planta" class="view" id="view-floor">
-    <div class="home-center" style="align-items:start;">
-      <div style="max-width:680px; margin:0 auto; width:100%;">
-        <h2 class="view-title">Elegí planta</h2>
-        <!-- Píldora del viaje en vista de plantas -->
-        <div class="trip-tags">
-          <span class="tag" id="tagTripFloor">Viaje: —</span>
-        </div>
-        <div class="floors" id="floorCards"></div>
-        <div class="cards" id="floorFindCard" style="margin-top:16px;"></div>
-        <div class="actions" style="margin-top:32px; justify-content:center;">
-          <button class="btn ghost" onclick="backToChoose()" type="button">Cambiar viaje</button>
-        </div>
-      </div>
+   <div class="home-center" style="align-items:start;">
+    <div style="max-width:680px; margin:0 auto; width:100%;">
+     <h2 class="view-title">Elegí planta</h2>
+     <!-- Píldora del viaje en vista de plantas -->
+     <div class="trip-tags">
+      <span class="tag" id="tagTripFloor">Viaje: —</span>
+     </div>
+     <div class="floors" id="floorCards"></div>
+     <div class="cards" id="floorFindCard" style="margin-top:16px;"></div>
+     <div class="actions" style="margin-top:32px; justify-content:center;">
+      <button class="btn ghost" onclick="backToChoose()" type="button">Cambiar viaje</button>
+     </div>
     </div>
+   </div>
   </section>
   <!-- Menú principal (convencional) -->
   <section aria-label="Inicio" class="view" id="view-home">
-    <div class="home-center">
-      <div style="max-width:560px; width:100%; margin-bottom:12px;">
-        <div class="trip-tags">
-          <span class="tag" id="tagTrip">Viaje: —</span>
-        </div>
-      </div>
-      <div class="cards">
-        <article class="card" onclick="goSelect()" onkeypress="handleEnter(event, goSelect)" role="button" tabindex="0">
-          <h2>Seleccionar asiento</h2>
-          <p>Elige tu lugar y confirma con tu nombre y CI.</p>
-        </article>
-        <article class="card" onclick="goFind()" onkeypress="handleEnter(event, goFind)" role="button" tabindex="0">
-          <h2>Mirá tu asiento</h2>
-          <p>Ingresa tu número de documento para ver tus números y el croquis.</p>
-        </article>
-      </div>
-      <div class="actions" style="margin-top:14px;">
-        <button class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
-      </div>
+   <div class="home-center">
+    <div style="max-width:560px; width:100%; margin-bottom:12px;">
+     <div class="trip-tags">
+      <span class="tag" id="tagTrip">Viaje: —</span>
+     </div>
     </div>
+    <div class="cards">
+     <article class="card" onclick="goSelect()" onkeypress="handleEnter(event, goSelect)" role="button" tabindex="0">
+      <h2>Seleccionar asiento</h2>
+      <p>Elige tu lugar y confirma con tu nombre y CI.</p>
+     </article>
+     <article class="card" onclick="goFind()" onkeypress="handleEnter(event, goFind)" role="button" tabindex="0">
+      <h2>Mirá tu asiento</h2>
+      <p>Ingresa tu número de documento para ver tus números y el croquis.</p>
+     </article>
+    </div>
+    <div class="actions" style="margin-top:14px;">
+     <button class="btn ghost" onclick="backToChoose()">Cambiar viaje</button>
+    </div>
+   </div>
   </section>
   <!-- Selección (público) -->
   <section aria-label="Seleccionar asiento" class="view" id="view-select">
-    <!-- Leyenda -->
-    <div class="legend" id="legend">
-      <span class="badge libre">Libre</span>
-      <span class="badge ocupado">Ocupado</span>
-      <span class="badge seleccionado">Seleccionado</span>
-      <span class="badge inhabilitado">Gris: Inhabilitado en esta planta</span>
+   <!-- Leyenda -->
+   <div class="legend" id="legend">
+    <span class="badge libre">Libre</span>
+    <span class="badge ocupado">Ocupado</span>
+    <span class="badge seleccionado">Seleccionado</span>
+    <span class="badge inhabilitado">Gris: Inhabilitado en esta planta</span>
+   </div>
+   <!-- Croquis -->
+   <div aria-busy="true" aria-live="polite" class="grid" id="grid-select"></div>
+   <!-- Bottom App Bar: Selección (flotante) -->
+   <div aria-hidden="false" class="select-action-bar" id="selectActionBar">
+    <div class="actions">
+     <button class="btn primary with-counter" id="btnReservePersistent" onclick="startSelectionModal()" type="button" aria-label="Reservar asientos seleccionados">
+      Reservar
+      <span id="selectedCounter" class="btn-counter hidden" aria-hidden="true">0</span>
+     </button>
+     <button class="btn ghost" id="btnRefreshPersistent" onclick="refreshSelectGrid()" type="button">Actualizar</button>
+     <span id="selectedCounterLive" aria-live="polite" aria-atomic="true"></span>
     </div>
-    <!-- Croquis -->
-    <div aria-busy="true" aria-live="polite" class="grid" id="grid-select"></div>
-    <!-- Bottom App Bar: Selección (flotante) -->
-    <div aria-hidden="false" class="select-action-bar" id="selectActionBar">
-      <div class="actions">
-        <button class="btn primary with-counter" id="btnReservePersistent" onclick="startSelectionModal()" type="button" aria-label="Reservar asientos seleccionados">
-          Reservar
-          <span id="selectedCounter" class="btn-counter hidden" aria-hidden="true">0</span>
-        </button>
-        <button class="btn ghost" id="btnRefreshPersistent" onclick="refreshSelectGrid()" type="button">Actualizar</button>
-        <span id="selectedCounterLive" aria-live="polite" aria-atomic="true"></span>
-      </div>
+   </div>
+   <!-- Acciones principales (ocultas en móvil, mantenidas por compatibilidad) -->
+   <div class="actions" id="selectActions" style="margin-top:12px; display:none !important;">
+    <button class="btn primary" onclick="startSelectionModal()" type="button">Reservar</button>
+    <button class="btn ghost" onclick="refreshSelectGrid()" type="button">Actualizar</button>
+   </div>
+   <!-- Datos para una sola reserva (legacy, reemplazado por modal) -->
+   <form class="form hidden" id="detailsSingle" onsubmit="event.preventDefault(); confirmSingle();">
+    <h4 id="singleHeader">Asiento —</h4>
+    <div class="form-grid two">
+     <div class="field">
+      <input aria-label="Nombre y Apellido" autocapitalize="words" autocomplete="name" enterkeyhint="next" id="nombreSingle" placeholder="Nombre y Apellido" required type="text"/>
+     </div>
+     <div class="field">
+      <input aria-label="CI" autocomplete="off" enterkeyhint="done" id="ciSingle" inputmode="numeric" pattern="[0-9]*" placeholder="CI (ej.: 12345678)" required type="text"/>
+     </div>
     </div>
-    <!-- Acciones principales (ocultas en móvil, mantenidas por compatibilidad) -->
-    <div class="actions" id="selectActions" style="margin-top:12px; display:none !important;">
-      <button class="btn primary" onclick="startSelectionModal()" type="button">Reservar</button>
-      <button class="btn ghost" onclick="refreshSelectGrid()" type="button">Actualizar</button>
+    <div class="actions">
+     <button class="btn success" type="submit">Confirmar</button>
+     <button class="btn ghost" onclick="cancelSingle()" type="button">Cancelar</button>
     </div>
-    <!-- Datos para una sola reserva (legacy, reemplazado por modal) -->
-    <form class="form hidden" id="detailsSingle" onsubmit="event.preventDefault(); confirmSingle();">
-      <h4 id="singleHeader">Asiento —</h4>
-      <div class="form-grid two">
-        <div class="field">
-          <input aria-label="Nombre y Apellido" autocapitalize="words" autocomplete="name" enterkeyhint="next" id="nombreSingle" placeholder="Nombre y Apellido" required type="text"/>
-        </div>
-        <div class="field">
-          <input aria-label="CI" autocomplete="off" enterkeyhint="done" id="ciSingle" inputmode="numeric" pattern="[0-9]*" placeholder="CI (ej.: 12345678)" required type="text"/>
-        </div>
-      </div>
-      <div class="actions">
-        <button class="btn success" type="submit">Confirmar</button>
-        <button class="btn ghost" onclick="cancelSingle()" type="button">Cancelar</button>
-      </div>
-    </form>
-    <!-- Feedback reserva -->
-    <div class="feedback hidden" id="reserveFeedback">
-      <h4>Reserva confirmada</h4>
-      <div class="nums" id="reserveNums"></div>
-      <div class="actions" style="margin-top:8px;">
-        <button class="btn ghost" onclick="goTripMenu()" type="button">Inicio</button>
-      </div>
+   </form>
+   <!-- Feedback reserva -->
+   <div class="feedback hidden" id="reserveFeedback">
+    <h4>Reserva confirmada</h4>
+    <div class="nums" id="reserveNums"></div>
+    <div class="actions" style="margin-top:8px;">
+     <button class="btn ghost" onclick="goTripMenu()" type="button">Inicio</button>
     </div>
+   </div>
   </section>
   <!-- Mirá tu asiento -->
   <section aria-label="Mirá tu asiento" class="view" id="view-find">
-    <form class="form" id="findForm" onsubmit="event.preventDefault(); findByCI();">
-      <div class="form-row">
-        <label for="ciSearch">Número de documento del pasajero</label>
-        <input autocomplete="off" enterkeyhint="search" id="ciSearch" inputmode="numeric" pattern="[0-9]*" placeholder="Ej.: 12345678" required type="text"/>
-      </div>
-      <div class="actions">
-        <button class="btn primary" type="submit">Buscar</button>
-        <button class="btn ghost" onclick="goTripMenu()" type="button">Inicio</button>
-      </div>
-    </form>
-    <div class="feedback hidden" id="findFeedback">
-      <h4>Asientos para tu CI</h4>
-      <div class="nums" id="findNums"></div>
-      <div class="actions">
-        <button class="btn primary" id="btnShowCroquis" onclick="showCroquisForCI()" type="button">Ver croquis</button>
-      </div>
+   <form class="form" id="findForm" onsubmit="event.preventDefault(); findByCI();">
+    <div class="form-row">
+     <label for="ciSearch">Número de documento del pasajero</label>
+     <input autocomplete="off" enterkeyhint="search" id="ciSearch" inputmode="numeric" pattern="[0-9]*" placeholder="Ej.: 12345678" required type="text"/>
     </div>
-    <div aria-busy="true" aria-live="polite" class="grid" id="grid-find"></div>
-    <div class="feedback hidden" id="multiFeedback">
-      <h4>Asientos por planta</h4>
-      <div id="multiNums"></div>
-      <div class="actions">
-        <button class="btn primary" id="btnShowCroquisMulti" onclick="showCroquisForCIMulti()" type="button">Ver croquis</button>
-      </div>
+    <div class="actions">
+     <button class="btn primary" type="submit">Buscar</button>
+     <button class="btn ghost" onclick="goTripMenu()" type="button">Inicio</button>
     </div>
-    <div id="multiCroquis"></div>
+   </form>
+   <div class="feedback hidden" id="findFeedback">
+    <h4>Asientos para tu CI</h4>
+    <div class="nums" id="findNums"></div>
+    <div class="actions">
+     <button class="btn primary" id="btnShowCroquis" onclick="showCroquisForCI()" type="button">Ver croquis</button>
+    </div>
+   </div>
+   <div aria-busy="true" aria-live="polite" class="grid" id="grid-find"></div>
+   <div class="feedback hidden" id="multiFeedback">
+    <h4>Asientos por planta</h4>
+    <div id="multiNums"></div>
+    <div class="actions">
+     <button class="btn primary" id="btnShowCroquisMulti" onclick="showCroquisForCIMulti()" type="button">Ver croquis</button>
+    </div>
+   </div>
+   <div id="multiCroquis"></div>
   </section>
   <!-- Control interno -->
   <section aria-label="Control interno" class="view" id="view-control">
-    <!-- Bloque de login con Google -->
-    <div class="form" id="googleSigninBox">
-      <h4 class="control-title">Acceso staff</h4>
-      <div id="googleSignIn"></div>
-      <p class="hint">Acceso exclusivo para el staff (usa tu cuenta autorizada).</p>
-      <div class="actions">
-        <button class="btn ghost" onclick="goHome()" type="button">Inicio</button>
-      </div>
+   <!-- Bloque de login con Google -->
+   <div class="form" id="googleSigninBox">
+    <h4 class="control-title">Acceso staff</h4>
+    <div id="googleSignIn"></div>
+    <p class="hint">Acceso exclusivo para el staff (usa tu cuenta autorizada).</p>
+    <div class="actions">
+     <button class="btn ghost" onclick="goHome()" type="button">Inicio</button>
     </div>
-    <!-- Panel de control -->
-    <div class="control-board" hidden id="controlBoard">
-      <h4 class="control-title">Ocupación por número</h4>
-      <div class="control-toolbar" id="controlToolbar">
-        <div class="control-actions">
-          <button class="btn ghost" onclick="refreshControlBoardSmart()" type="button">Actualizar</button>
-          <button class="btn primary" id="btnExportPdf" onclick="doExportPdfSmart()" type="button">Exportar PDF</button>
-          <button class="btn success" id="btnEditMode" onclick="toggleControlEdit()" type="button">Modo edición</button>
-        </div>
-        <div class="sel-tags">
-          <span class="tag src" id="tagSrc">Origen: —</span>
-          <span class="tag dst" id="tagDst">Destino: —</span>
-        </div>
-        <div class="edit-actions">
-          <button class="btn primary" disabled id="btnMove" onclick="movePassenger()" type="button">Mover</button>
-          <button class="btn danger" disabled id="btnFree" onclick="freeSelectedSeat()" type="button">Liberar</button>
-          <button class="btn ghost" disabled id="btnCancel" onclick="cancelEdit()" type="button">Cancelar</button>
-        </div>
-      </div>
-      <div aria-live="polite" class="grid" id="controlCroquis"></div>
-      <div id="controlCroquisMulti"></div>
-      <div class="hint hidden" id="pdfLinkFallback"></div>
+   </div>
+   <!-- Panel de control -->
+   <div class="control-board" hidden id="controlBoard">
+    <h4 class="control-title">Ocupación por número</h4>
+    <div class="control-toolbar" id="controlToolbar">
+     <div class="control-actions">
+      <button class="btn ghost" onclick="refreshControlBoardSmart()" type="button">Actualizar</button>
+      <button class="btn primary" id="btnExportPdf" onclick="doExportPdfSmart()" type="button">Exportar PDF</button>
+      <button class="btn success" id="btnEditMode" onclick="toggleControlEdit()" type="button">Modo edición</button>
+     </div>
+     <div class="sel-tags">
+      <span class="tag src" id="tagSrc">Origen: —</span>
+      <span class="tag dst" id="tagDst">Destino: —</span>
+     </div>
+     <div class="edit-actions">
+      <button class="btn primary" disabled id="btnMove" onclick="movePassenger()" type="button">Mover</button>
+      <button class="btn danger" disabled id="btnFree" onclick="freeSelectedSeat()" type="button">Liberar</button>
+      <button class="btn ghost" disabled id="btnCancel" onclick="cancelEdit()" type="button">Cancelar</button>
+     </div>
     </div>
+    <div aria-live="polite" class="grid" id="controlCroquis"></div>
+    <div id="controlCroquisMulti"></div>
+    <div class="hint hidden" id="pdfLinkFallback"></div>
+   </div>
   </section>
 </main>
 <!-- ===== Modal de Reserva ===== -->
 <div aria-hidden="true" aria-modal="true" class="modal" id="reserveModal" role="dialog">
-  <div class="backdrop" onclick="closeReserveModal()"></div>
-  <div class="sheet" role="document">
-    <header>
-      <h3 id="reserveTitle">Confirmar reserva</h3>
-      <button aria-label="Cerrar" class="close" onclick="closeReserveModal()" type="button">x</button>
-    </header>
-    <div id="reserveBody"></div>
-    <div class="actions" style="margin-top:12px;">
-      <button class="btn ghost" onclick="closeReserveModal()" type="button">Cancelar</button>
-      <button class="btn success" id="reserveConfirmBtn" type="button">Confirmar</button>
-    </div>
+ <div class="backdrop" onclick="closeReserveModal()"></div>
+ <div class="sheet" role="document">
+  <header>
+   <h3 id="reserveTitle">Confirmar reserva</h3>
+   <button aria-label="Cerrar" class="close" onclick="closeReserveModal()" type="button">x</button>
+  </header>
+  <div id="reserveBody"></div>
+  <div class="actions" style="margin-top:12px;">
+   <button class="btn ghost" onclick="closeReserveModal()" type="button">Cancelar</button>
+   <button class="btn success" id="reserveConfirmBtn" type="button">Confirmar</button>
   </div>
+ </div>
 </div>
 <!-- Confirmación -->
 <div aria-hidden="true" aria-labelledby="confirmedTitle" aria-modal="true" class="modal" id="confirmedModal" role="dialog">
-  <div class="backdrop" onclick="goToStartAndCloseConfirmed()"></div>
-  <div class="sheet" role="document" tabindex="-1">
+ <div class="backdrop" onclick="goToStartAndCloseConfirmed()"></div>
+ <div class="sheet" role="document" tabindex="-1">
+  <header>
+   <h3 id="confirmedTitle">¡Reserva confirmada!</h3>
+   <button aria-label="Cerrar" class="close" onclick="goToStartAndCloseConfirmed()" type="button">x</button>
+  </header>
+  <div id="confirmedBody"></div>
+  <div class="actions" style="margin-top:12px;">
+   <button class="btn success" onclick="goToStartAndCloseConfirmed()" type="button">Volver a inicio</button>
+  </div>
+ </div>
+</div>
+<!-- ====== NUEVO: Modal Crear Viaje (Staff Admin) ====== -->
+<div aria-hidden="true" aria-modal="true" class="modal" id="createTripModal" role="dialog">
+  <div class="backdrop" onclick="closeCreateTripModal()"></div>
+  <div class="sheet" role="document">
     <header>
-      <h3 id="confirmedTitle">¡Reserva confirmada!</h3>
-      <button aria-label="Cerrar" class="close" onclick="goToStartAndCloseConfirmed()" type="button">x</button>
+      <h3>Agregar viaje</h3>
+      <button aria-label="Cerrar" class="close" onclick="closeCreateTripModal()" type="button">x</button>
     </header>
-    <div id="confirmedBody"></div>
+    <div id="createTripBody">
+      <div class="form">
+        <label class="field">
+          <span class="field-label">Nombre del viaje</span>
+          <input id="newTripName" type="text" placeholder="Ej.: Encarnación 24/02" autocomplete="off"/>
+        </label>
+        <div class="field">
+          <span class="field-label">Tipo de croquis</span>
+          <div class="radio-group">
+            <label class="radio-pill"><input type="radio" name="tripType" id="tripTypeSingle" value="single" checked> Convencional (una planta)</label>
+            <label class="radio-pill"><input type="radio" name="tripType" id="tripTypeDouble" value="double"> Doble piso (dos plantas)</label>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="actions" style="margin-top:12px;">
-      <button class="btn success" onclick="goToStartAndCloseConfirmed()" type="button">Volver a inicio</button>
+      <button class="btn ghost" onclick="closeCreateTripModal()" type="button">Cancelar</button>
+      <button class="btn success" id="createTripConfirmBtn" type="button">Crear</button>
     </div>
   </div>
 </div>
 <!-- Overlay de carga -->
 <div aria-hidden="true" class="overlay" id="overlay">
-  <div class="loader">
-    <div class="spinner"></div>
-    <div class="loader-text">Cargando…</div>
-  </div>
+ <div class="loader">
+  <div class="spinner"></div>
+  <div class="loader-text">Cargando…</div>
+ </div>
 </div>
 <!-- Snackbar -->
 <div aria-atomic="true" aria-live="assertive" class="snackbar" id="snackbar" role="status"></div>
