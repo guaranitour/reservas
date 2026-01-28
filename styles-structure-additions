@@ -1,3 +1,0 @@
-/* === NUEVO (modo estructura visual) === */
-#structureBar .hint strong{ font-weight:800; }
-.row-del-btn:hover{ background:#fef2f2; }
