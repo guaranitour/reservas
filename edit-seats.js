@@ -1,4 +1,4 @@
-// edit-seats.js — Edición visual de estructura (admin) + modal avanzado — HOTFIX doble piso
+// edit-seats.js — Edición visual de estructura (admin) + modal avanzado — FIX doble piso + toggle inhabilitado
 (function(){
   // ===== Utilities =====
   function parseCodes(raw){
@@ -42,7 +42,7 @@
     return letters.map(l => String(row)+l);
   }
 
-  // === API: ahora acepta sheetOverride para forzar planta correcta ===
+  // === API: acepta sheetOverride para forzar planta correcta ===
   async function callEditSeats(ops, sheetOverride){
     window.API = window.API || {};
     if (!window.API.apiEditSeats){
@@ -55,7 +55,7 @@
       };
     }
     const fileId = window.CURRENT_TRIP && window.CURRENT_TRIP.fileId;
-    const sheetName = sheetOverride || getTargetSheet(); // <-- clave
+    const sheetName = sheetOverride || getTargetSheet();
     if (!fileId || !sheetName){ toast('Seleccioná un viaje/hoja válida'); return { ok:false }; }
     try{
       if (typeof showLoading==='function') showLoading('Aplicando cambios…');
@@ -72,12 +72,31 @@
   let observer = null;
   let LAST_EDIT_SHEET = null; // recordamos la última planta tocada
 
+  // --- NUEVO: habilitar botones "inhabilitado/inexistente" en modo estructura ---
+  function unlockSeatsForStructure(root){
+    if (!root) return;
+    root.querySelectorAll('.seat').forEach(btn => {
+      // Si el botón viene deshabilitado desde el render, lo activamos en modo estructura
+      if (btn.disabled) btn.disabled = false;
+      // Feedback visual
+      btn.style.cursor = 'pointer';
+    });
+  }
+  function unlockAllStructureSeats(){
+    const { single, multi } = nowContainerEls();
+    unlockSeatsForStructure(single);
+    unlockSeatsForStructure(multi);
+  }
+
   function setSeatCursor(root, enable){
     if (!root) return;
     root.querySelectorAll('.seat').forEach(btn=>{
       btn.style.cursor = enable ? 'pointer' : '';
+      // Si entramos a modo estructura, aseguramos que no esté disabled
+      if (enable && btn.disabled) btn.disabled = false;
     });
   }
+
   function injectGlobalBar(){
     // create or show a small bar under the toolbar with actions: Add row, Exit, Advanced (modal)
     const board = document.getElementById('controlBoard');
@@ -166,7 +185,7 @@
     const seat = rowEl.querySelector('.seat[data-code]');
     if (!seat){ toast('No se detectó fila'); return; }
     const code = String(seat.getAttribute('data-code')||'');
-    const sheet = seat.getAttribute('data-sheet') || getTargetSheet(); // forzamos hoja correcta
+    const sheet = seat.getAttribute('data-sheet') || getTargetSheet(); // planta correcta
     const m = code.match(/^(\d+)[A-Z]$/);
     if (!m){ toast('Fila inválida'); return; }
     const rowNum = parseInt(m[1],10);
@@ -215,7 +234,13 @@
     const { single, multi } = nowContainerEls();
     const target = (window.STAFF_CONTROL_MULTI ? multi : single) || single || multi;
     if (!target) return;
-    observer = new MutationObserver(function(){ if (STRUCTURE_MODE){ setSeatCursor(target, true); injectRowDeleteButtons(); } });
+    observer = new MutationObserver(function(){
+      if (STRUCTURE_MODE){
+        setSeatCursor(target, true);
+        unlockAllStructureSeats();      // <-- mantener clickeable tras cada re-render
+        injectRowDeleteButtons();
+      }
+    });
     observer.observe(target, { childList:true, subtree:true });
   }
   function stopObserving(){ if (observer){ observer.disconnect(); observer = null; } }
@@ -240,6 +265,7 @@
     document.addEventListener('click', seatToggleHandler, true);
     const { single, multi } = nowContainerEls();
     setSeatCursor(single, true); setSeatCursor(multi, true);
+    unlockAllStructureSeats();           // <-- desbloqueo inicial
     injectGlobalBar(); injectRowDeleteButtons();
     startObservingForReinject();
     tweakToolbarButton(true);
