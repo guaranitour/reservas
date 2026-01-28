@@ -1,4 +1,4 @@
-// edit-seats.js — Edición visual de estructura (admin) + modal avanzado
+// edit-seats.js — Edición visual de estructura (admin) + modal avanzado — HOTFIX doble piso
 (function(){
   // ===== Utilities =====
   function parseCodes(raw){
@@ -37,11 +37,13 @@
     });
     return max;
   }
-  function collectRowCodes(root, row){
+  function collectRowCodes(_root, row){
     const letters = ['A','B','C','D'];
     return letters.map(l => String(row)+l);
   }
-  async function callEditSeats(ops){
+
+  // === API: ahora acepta sheetOverride para forzar planta correcta ===
+  async function callEditSeats(ops, sheetOverride){
     window.API = window.API || {};
     if (!window.API.apiEditSeats){
       window.API.apiEditSeats = async function(fileId, sheetName, ops){
@@ -53,7 +55,7 @@
       };
     }
     const fileId = window.CURRENT_TRIP && window.CURRENT_TRIP.fileId;
-    const sheetName = getTargetSheet();
+    const sheetName = sheetOverride || getTargetSheet(); // <-- clave
     if (!fileId || !sheetName){ toast('Seleccioná un viaje/hoja válida'); return { ok:false }; }
     try{
       if (typeof showLoading==='function') showLoading('Aplicando cambios…');
@@ -68,6 +70,7 @@
   // ===== Structure Mode =====
   let STRUCTURE_MODE = false;
   let observer = null;
+  let LAST_EDIT_SHEET = null; // recordamos la última planta tocada
 
   function setSeatCursor(root, enable){
     if (!root) return;
@@ -141,18 +144,29 @@
     decorate(single);
     decorate(multi);
   }
+
   async function onAddRowClick(){
+    // preferimos última hoja tocada; luego la activa; si no, inferimos por la primera baldosa visible
+    let sheet = LAST_EDIT_SHEET || (window.STAFF_ACTIVE_SHEET || null);
+    if (!sheet){
+      const { single, multi } = nowContainerEls();
+      const root = (window.STAFF_CONTROL_MULTI ? multi : single) || single || multi;
+      const anySeat = root && root.querySelector('.seat[data-sheet]');
+      if (anySeat) sheet = anySeat.getAttribute('data-sheet');
+    }
     const { single, multi } = nowContainerEls();
     const root = (window.STAFF_CONTROL_MULTI ? multi : single) || single || multi;
     const next = getMaxRowFromButtons(root) + 1;
     const codes = collectRowCodes(root, next);
-    await callEditSeats({ add: codes });
+    await callEditSeats({ add: codes }, sheet);
   }
+
   async function onDeleteRowClick(ev, rowEl, root){
     // find the row number by any seat in this row
     const seat = rowEl.querySelector('.seat[data-code]');
     if (!seat){ toast('No se detectó fila'); return; }
     const code = String(seat.getAttribute('data-code')||'');
+    const sheet = seat.getAttribute('data-sheet') || getTargetSheet(); // forzamos hoja correcta
     const m = code.match(/^(\d+)[A-Z]$/);
     if (!m){ toast('Fila inválida'); return; }
     const rowNum = parseInt(m[1],10);
@@ -164,8 +178,9 @@
       force = confirm('Hay asientos ocupados en esta fila. ¿Eliminar de todos modos? (forzar)');
       if (!force) return;
     }
-    await callEditSeats({ remove: codes, force });
+    await callEditSeats({ remove: codes, force }, sheet);
   }
+
   async function seatToggleHandler(ev){
     if (!STRUCTURE_MODE) return;
     const seatBtn = ev.target.closest('.seat');
@@ -178,17 +193,23 @@
     const code = seatBtn.getAttribute('data-code');
     const sheet = seatBtn.getAttribute('data-sheet') || getTargetSheet();
     if (!code || !sheet) return;
+
+    // Recordamos la última hoja tocada y actualizamos activa
+    LAST_EDIT_SHEET = sheet;
+    window.STAFF_ACTIVE_SHEET = sheet;
+
     if (status === 'libre'){
-      await callEditSeats({ disable: [code] });
+      await callEditSeats({ disable: [code] }, sheet);
     } else if (status === 'ocupado'){
       const ok = confirm('El asiento está ocupado. ¿Inhabilitar de todos modos? Se liberará al pasajero.');
       if (!ok) return;
-      await callEditSeats({ disable: [code], force: true });
+      await callEditSeats({ disable: [code], force: true }, sheet);
     } else {
       // incluye inhabilitado/inexistente -> habilitar
-      await callEditSeats({ enable: [code] });
+      await callEditSeats({ enable: [code] }, sheet);
     }
   }
+
   function startObservingForReinject(){
     if (observer) observer.disconnect();
     const { single, multi } = nowContainerEls();
@@ -261,7 +282,7 @@
       var enable = parseCodes(document.getElementById('editEnableCodes')?.value||'');
       var force = !!document.getElementById('editForce')?.checked;
       if (!add.length && !remove.length && !disable.length && !enable.length){ toast('Ingresá al menos una acción'); return; }
-      await callEditSeats({ add, remove, disable, enable, force });
+      await callEditSeats({ add, remove, disable, enable, force }, LAST_EDIT_SHEET || getTargetSheet());
       closeEditSeatsModal();
     };
     m.classList.add('show'); m.setAttribute('aria-hidden','false');
