@@ -58,7 +58,7 @@ function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } 
  } 
  // === Cambios para control interno: enviar idToken === 
  async function apiExportPdf(fileId, sheetName){ // GET con idToken en query 
- const res = await fetch(getUrl('exportPdf', { fileId, sheetName, idToken: ID_TOKEN })); 
+ const res = await fetch(getUrl('exportPdf', { fileId, sheetName, idToken: ((typeof window!=="undefined" && window.ID_TOKEN) ? window.ID_TOKEN : ID_TOKEN) })); 
  if (!res.ok) throw new Error('GET exportPdf: ' + res.status); 
  return parseResponse(res); 
  } 
@@ -68,12 +68,12 @@ function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } 
  return parseResponse(res); 
  } 
  async function apiMove(fileId, sheetName, sourceCode, targetCode){ // POST con idToken 
- const res = await fetch(getUrl('move'), postOptions({ fileId, sheetName, sourceCode, targetCode, idToken: ID_TOKEN })); 
+ const res = await fetch(getUrl('move'), postOptions({ fileId, sheetName, sourceCode, targetCode, idToken: ((typeof window!=="undefined" && window.ID_TOKEN) ? window.ID_TOKEN : ID_TOKEN) })); 
  if (!res.ok) throw new Error('POST move: ' + res.status); 
  return parseResponse(res); 
  } 
  async function apiFree(fileId, sheetName, code) { // POST con idToken 
- const res = await fetch(getUrl('free'), postOptions({ fileId, sheetName, code, idToken: ID_TOKEN })); 
+ const res = await fetch(getUrl('free'), postOptions({ fileId, sheetName, code, idToken: ((typeof window!=="undefined" && window.ID_TOKEN) ? window.ID_TOKEN : ID_TOKEN) })); 
  if (!res.ok) throw new Error('POST free: ' + res.status); 
  return parseResponse(res); 
  } 
@@ -85,7 +85,7 @@ function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } 
  } 
  // === NUEVO: crear viaje (Staff Admin)
  async function apiCreateTrip(name, type){
-  const res = await fetch(getUrl('createTrip'), postOptions({ idToken: ID_TOKEN, name, type }));
+  const res = await fetch(getUrl('createTrip'), postOptions({ idToken: ((typeof window!=="undefined" && window.ID_TOKEN) ? window.ID_TOKEN : ID_TOKEN), name, type }));
   if(!res.ok) throw new Error('POST createTrip: ' + res.status);
   return parseResponse(res);
  }
@@ -104,7 +104,20 @@ async function apiArchiveTrip(fileId) {
   return payload;
 }
 
-window.API = { apiGetTrips, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLoginWithToken, apiCreateTrip }; 
+window.API = {  apiGetTrips, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLoginWithToken, apiCreateTrip, apiArchiveTrip };
+
+// === BLINDADO: asegurar que window.API exista y exporte apiArchiveTrip
+(function(){
+  try {
+    if (typeof window === 'undefined') return;
+    window.API = window.API || {};
+    if (typeof window.(window.API && window.API.apiArchiveTrip ? window.API.apiArchiveTrip : apiArchiveTrip) !== 'function') {
+      window.(window.API && window.API.apiArchiveTrip ? window.API.apiArchiveTrip : apiArchiveTrip) = apiArchiveTrip;
+    }
+  } catch (_) {}
+})();
+
+ 
  /* ===== Estado global ===== */ 
  var SEATS = {}; var selected = new Set(); var NUM_LABELS = new Map(); 
  var HIGHLIGHT_CODES = new Set(); var LAST_FOUND_CODES = []; 
@@ -1600,7 +1613,7 @@ async function promptArchiveTrip(tr) {
 
   showLoading('Eliminando viaje…');
   try {
-    const resp = await API.apiArchiveTrip(tr.fileId);
+    const resp = await (window.API && window.API.apiArchiveTrip ? window.API.apiArchiveTrip : apiArchiveTrip)(tr.fileId);
     clearCache('trips');
     await loadTrips();
     toast((resp && resp.message) ? resp.message : 'Viaje eliminado');
