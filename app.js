@@ -90,11 +90,18 @@ function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } 
   return parseResponse(res);
  }
  
-// === NUEVO: archivar (eliminar) viaje - mover a carpeta interna
+// === NUEVO: archivar (eliminar) viaje - mover a carpeta interna (robusto)
 async function apiArchiveTrip(fileId) {
-  const res = await fetch(getUrl('archiveTrip'), postOptions({ idToken: ID_TOKEN, fileId }));
-  if (!res.ok) throw new Error('POST archiveTrip: ' + res.status);
-  return parseResponse(res);
+  const token = (typeof window !== 'undefined' && window.ID_TOKEN) ? window.ID_TOKEN : null;
+  if (!token) throw new Error('Sesión staff no iniciada. Volvé a iniciar sesión.');
+
+  const res = await fetch(getUrl('archiveTrip'), postOptions({ idToken: token, fileId }));
+  const payload = await parseResponse(res); // intenta JSON; si no, vuelve texto
+  if (!res.ok) {
+    const msg = (payload && payload.message) ? payload.message : ('HTTP ' + res.status);
+    throw new Error(msg);
+  }
+  return payload;
 }
 
 window.API = { apiGetTrips, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLoginWithToken, apiCreateTrip }; 
@@ -1590,6 +1597,7 @@ async function promptArchiveTrip(tr) {
   const name = (tr && tr.name) ? tr.name : '(sin nombre)';
   const ok = window.confirm(`¿Eliminar "${name}"? El viaje dejará de mostrarse en la web y se moverá a la carpeta interna.`);
   if (!ok) return;
+
   showLoading('Eliminando viaje…');
   try {
     const resp = await API.apiArchiveTrip(tr.fileId);
@@ -1597,7 +1605,7 @@ async function promptArchiveTrip(tr) {
     await loadTrips();
     toast((resp && resp.message) ? resp.message : 'Viaje eliminado');
   } catch (e) {
-    toast('No se pudo eliminar el viaje');
+    toast('No se pudo eliminar el viaje' + (e && e.message ? (': ' + e.message) : ''));
   } finally {
     hideLoading();
   }
