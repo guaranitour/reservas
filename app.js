@@ -89,7 +89,15 @@ function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } 
   if(!res.ok) throw new Error('POST createTrip: ' + res.status);
   return parseResponse(res);
  }
- window.API = { apiGetTrips, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLoginWithToken, apiCreateTrip }; 
+ 
+// === NUEVO: archivar (eliminar) viaje - mover a carpeta interna
+async function apiArchiveTrip(fileId) {
+  const res = await fetch(getUrl('archiveTrip'), postOptions({ idToken: ID_TOKEN, fileId }));
+  if (!res.ok) throw new Error('POST archiveTrip: ' + res.status);
+  return parseResponse(res);
+}
+
+window.API = { apiGetTrips, apiGetSeats, apiGetSeatsByCi, apiGetLogo, apiExportPdf, apiReserve, apiMove, apiFree, apiLoginWithToken, apiCreateTrip }; 
  /* ===== Estado global ===== */ 
  var SEATS = {}; var selected = new Set(); var NUM_LABELS = new Map(); 
  var HIGHLIGHT_CODES = new Set(); var LAST_FOUND_CODES = []; 
@@ -323,7 +331,22 @@ async function loadTrips(){
  card.appendChild(head); 
  card.onclick = function(){ selectTrip(tr); }; 
  card.onkeypress = function(ev){ if(ev.key==='Enter') selectTrip(tr); }; 
- list.appendChild(card); 
+ 
+    // === NUEVO: botón Eliminar (solo admin) ===
+    if (CONTROL_AUTH && isAdmin()) {
+      var foot = document.createElement('div');
+      foot.className = 'actions';
+      foot.style.justifyContent = 'flex-end';
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'btn danger';
+      del.textContent = 'Eliminar';
+      del.onclick = async function(ev){ ev.stopPropagation(); await promptArchiveTrip(tr); };
+      foot.appendChild(del);
+      card.appendChild(foot);
+    }
+
+    list.appendChild(card); 
  }); 
  if(!trips.length){ list.innerHTML = '<p class="muted">No se encontraron viajes en la carpeta.</p>'; } 
  }catch(err){ 
@@ -1561,6 +1584,25 @@ async function confirmCreateTrip(){
     BUSY = false; hideLoading();
   }
 }
+
+async function promptArchiveTrip(tr) {
+  if (!CONTROL_AUTH || !isAdmin()) { toast('Solo administradores'); return; }
+  const name = (tr && tr.name) ? tr.name : '(sin nombre)';
+  const ok = window.confirm(`¿Eliminar "${name}"? El viaje dejará de mostrarse en la web y se moverá a la carpeta interna.`);
+  if (!ok) return;
+  showLoading('Eliminando viaje…');
+  try {
+    const resp = await API.apiArchiveTrip(tr.fileId);
+    clearCache('trips');
+    await loadTrips();
+    toast((resp && resp.message) ? resp.message : 'Viaje eliminado');
+  } catch (e) {
+    toast('No se pudo eliminar el viaje');
+  } finally {
+    hideLoading();
+  }
+}
+
 window.openCreateTripModal = openCreateTripModal;
 window.closeCreateTripModal = closeCreateTripModal;
 /* ===== Inicio ===== */ 
