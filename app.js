@@ -685,9 +685,9 @@ async function chooseFloor(sheetName){
  if (CURRENT_TRIP.hasFloors) { 
  showView('view-select'); 
  showLoading('Cargando asientos…');
-  GRID_READY = false; 
+ GRID_READY = false; 
  var opts = await computeGridOptions(); 
- refreshSeats('grid-select', function(){ hideLoading(); }, opts); 
+ refreshSeats('grid-select', function(){ hideLoading(); GRID_READY = true; }, opts); 
  setHash(['Selección de asientos', CURRENT_TRIP.name, lbl]); 
  } else { 
  goHome(); 
@@ -707,9 +707,9 @@ async function goSelect(){
  if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; } 
  showView('view-select'); 
  showLoading('Cargando asientos…');
-  GRID_READY = false; 
+ GRID_READY = false; 
  var opts = await computeGridOptions(); 
- refreshSeats('grid-select', function(){ hideLoading(); }, opts); 
+ refreshSeats('grid-select', function(){ hideLoading(); GRID_READY = true; }, opts); 
  if (CURRENT_TRIP.hasFloors) setHash(['Selección de asientos', CURRENT_TRIP.name, getFloorLabelFromSheetName(CURRENT_TRIP.sheetName)]); 
  else setHash(['Selección de asientos', CURRENT_TRIP.name]); 
  } 
