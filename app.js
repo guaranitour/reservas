@@ -258,7 +258,6 @@ try { window.API = window.API || {}; if (typeof window.API.apiArchiveTrip !== 'f
  /* ===== UI helpers ===== */ 
  function toast(msg){
 function nextPaint(){ return new Promise(requestAnimationFrame); }
-
  var bar = document.getElementById('snackbar'); if(!bar) return; bar.textContent = msg; bar.classList.add('show'); setTimeout(function(){ bar.classList.remove('show'); }, 2800); } 
  function showLoading(msg){ var ov = document.getElementById('overlay'); if(!ov) return; ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); } 
  function hideLoading(){ var ov = document.getElementById('overlay'); if(!ov) return; ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); } 
