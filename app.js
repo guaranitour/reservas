@@ -112,9 +112,7 @@ try { window.API = window.API || {}; if (typeof window.API.apiArchiveTrip !== 'f
  var SEATS = {}; var selected = new Set(); var NUM_LABELS = new Map(); 
  var HIGHLIGHT_CODES = new Set(); var LAST_FOUND_CODES = []; 
  var CONTROL_AUTH = false; var CONTROL_EDIT = false; var EDIT_SRC = null; var EDIT_DST = null; 
- var BUSY = false;
-// BLOQUEO DE INTERACCIÓN HASTA QUE EL GRID ESTÉ LISTO
-var GRID_READY = false; 
+ var BUSY = false; 
  /* Viaje/hoja actual */ 
  var CURRENT_TRIP = { fileId: null, name: null, sheets: [], sheetName: null, hasFloors: false }; 
  /* Persistencia staff */ 
@@ -684,10 +682,9 @@ async function chooseFloor(sheetName){
  } else { 
  if (CURRENT_TRIP.hasFloors) { 
  showView('view-select'); 
- showLoading('Cargando asientos…');
- GRID_READY = false; 
+ showLoading('Cargando asientos…'); 
  var opts = await computeGridOptions(); 
- refreshSeats('grid-select', function(){ hideLoading(); GRID_READY = true; }, opts); 
+ refreshSeats('grid-select', function(){ hideLoading(); }, opts); 
  setHash(['Selección de asientos', CURRENT_TRIP.name, lbl]); 
  } else { 
  goHome(); 
@@ -706,10 +703,9 @@ function updateTripTags(){
 async function goSelect(){ 
  if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; } 
  showView('view-select'); 
- showLoading('Cargando asientos…');
- GRID_READY = false; 
+ showLoading('Cargando asientos…'); 
  var opts = await computeGridOptions(); 
- refreshSeats('grid-select', function(){ hideLoading(); GRID_READY = true; }, opts); 
+ refreshSeats('grid-select', function(){ hideLoading(); }, opts); 
  if (CURRENT_TRIP.hasFloors) setHash(['Selección de asientos', CURRENT_TRIP.name, getFloorLabelFromSheetName(CURRENT_TRIP.sheetName)]); 
  else setHash(['Selección de asientos', CURRENT_TRIP.name]); 
  } 
@@ -867,8 +863,7 @@ async function confirmSingle(){
 } 
 function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } } 
 function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); } 
-function toggleSeat(code, el){
- if (!GRID_READY) return; 
+function toggleSeat(code, el){ 
  var key = normalize(code); 
  var isSel = selected.has(key); 
  if(isSel){ selected.delete(key); el.classList.remove('seleccionado'); } 
