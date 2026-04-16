@@ -84,8 +84,8 @@ function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } 
  return parseResponse(res); 
  } 
  // === NUEVO: crear viaje (Staff Admin)
- async function apiCreateTrip(name, type){
-  const res = await fetch(getUrl('createTrip'), postOptions({ idToken: ID_TOKEN, name, type }));
+ async function apiCreateTrip(name, type, startAt){
+  const res = await fetch(getUrl('createTrip'), postOptions({ idToken: ID_TOKEN, name, type, startAt }));
   if(!res.ok) throw new Error('POST createTrip: ' + res.status);
   return parseResponse(res);
  }
@@ -323,6 +323,24 @@ function syncAddTripVisibility(){
   if(actions) actions.classList.toggle('hidden', !show);
 }
 /* ===== Elegir viaje ===== */ 
+
+// ===== NUEVO: cálculo de cuenta regresiva del viaje =====
+function getCountdownText(startAt){
+  if(!startAt) return null;
+  const now = new Date();
+  const start = new Date(startAt);
+  if (isNaN(start.getTime())) return null;
+  const diffMs = start - now;
+  if(diffMs <= 0){ return { text:'En curso', status:'live' }; }
+  const diffSec = Math.floor(diffMs/1000);
+  const days = Math.floor(diffSec/86400);
+  const hours = Math.floor((diffSec%86400)/3600);
+  const minutes = Math.floor((diffSec%3600)/60);
+  if(days > 0){ return { text:`Faltan ${days} días`, status:'future' }; }
+  return { text:`Faltan ${hours}h ${minutes}m`, status:'future' };
+}
+
+
 async function loadTrips(){ 
  showLoading('Cargando viajes…'); 
  try{ 
@@ -340,7 +358,9 @@ async function loadTrips(){
  var title = document.createElement('h3'); title.textContent = tr.name; 
  var pill = document.createElement('span'); pill.className='trip-pill'; pill.textContent = tr.hasFloors ? 'Doble piso' : 'Convencional'; 
  head.appendChild(title); head.appendChild(pill); 
- card.appendChild(head); 
+ card.appendChild(head);
+  // NUEVO: cuenta regresiva del viaje
+  if (tr.startAt) { const info = getCountdownText(tr.startAt); if (info) { const cd = document.createElement('div'); cd.className = 'trip-countdown ' + info.status; cd.textContent = info.text; card.appendChild(cd); } } 
  card.onclick = function(){ selectTrip(tr); }; 
  card.onkeypress = function(ev){ if(ev.key==='Enter') selectTrip(tr); }; 
  
@@ -1581,7 +1601,7 @@ async function confirmCreateTrip(){
   showLoading('Creando viaje…');
   BUSY = true;
   try{
-    var resp = await API.apiCreateTrip(name, type);
+    var resp = await API.apiCreateTrip(name, type, startAt);
     if(resp && (resp.ok || resp.fileId || resp.trip)){
       // invalidar cache y recargar
       clearCache('trips');
