@@ -415,3 +415,18 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 }
 /* Más aire entre campos del modal de "Crear viaje" */
 #createTripModal .form .field + .field { margin-top: 10px; }
+/* ===== Cuenta regresiva del viaje ===== */
+.trip-countdown {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+
+.trip-countdown.future {
+  color: #1d4ed8;
+}
+
+.trip-countdown.live {
+  color: #047857;
+}
