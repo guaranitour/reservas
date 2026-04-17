@@ -472,3 +472,49 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   font-size: .75rem;
   font-weight: 700;
 }
+
+
+/* ===== PATCH UI v3: Título con icono + timer centrado ===== */
+
+/* Título del viaje con icono de mapa y mayor protagonismo */
+.trip-card h3{
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: .3px;
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trip-card h3::before{
+  content: "📍";
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+/* Mantener encabezado limpio y balanceado */
+.trip-head{
+  align-items: flex-start;
+}
+
+/* Chip del tipo de viaje más ordenado */
+.trip-pill{
+  font-size: .72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+/* ===== Zona del cronómetro ===== */
+.trip-countdown{
+  margin-top: 14px;
+  align-self: center;
+  text-align: center;
+}
+
+/* Asegurar que el chip se vea centrado visualmente */
+.trip-countdown{
+  display: inline-flex;
+  justify-content: center;
+}
