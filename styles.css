@@ -474,69 +474,47 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 }
 
 
-/* ===== PATCH UI v4: Señaladores + timer alineado + logo reducido ===== */
+/* ===== PATCH UI v5: Card más compacta + señalador refinado ===== */
 
-/* ===== Señalador base (línea vertical sutil) ===== */
-:root{
-  --marker-color: #c7d2fe; /* azul suave */
+/* Reducir altura general de la tarjeta */
+.trip-card{
+  padding: 14px 16px; /* antes más alto */
+  gap: 6px;           /* menos espacio vertical */
 }
 
-/* ===== Título del viaje con señalador ===== */
-.trip-card h3{
-  font-size: 1.1rem;
-  font-weight: 900;
-  letter-spacing: .3px;
-  line-height: 1.25;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* ===== Señalador refinado (un poco más largo y oscuro) ===== */
+:root{
+  --marker-color: rgba(99, 102, 241, 0.55); /* azul más oscuro pero sutil */
 }
 
 .trip-card h3::before{
-  content: "";
-  width: 3px;
-  height: 1.2em;
-  border-radius: 999px;
-  background: var(--marker-color);
-  flex-shrink: 0;
-}
-
-/* ===== Cronómetro alineado a la izquierda con señalador ===== */
-.trip-countdown{
-  margin-top: 14px;
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
+  height: 1.4em; /* un poco más largo */
 }
 
 .trip-countdown::before{
-  content: "";
-  width: 3px;
-  height: 1.1em;
-  border-radius: 999px;
-  background: var(--marker-color);
+  height: 1.35em; /* acompaña al título */
 }
 
-/* Ajuste del chip del timer (se mantiene diseño previo) */
+/* ===== Título: mantiene protagonismo pero más compacto ===== */
+.trip-card h3{
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+/* ===== Cronómetro más compacto ===== */
 .trip-countdown{
-  padding-left: 0;
+  margin-top: 10px;
+  gap: 8px;                 /* separa un poco del señalador */
+  padding: 5px 8px;         /* pildora más chica */
+  font-size: 0.78rem;
 }
 
-/* ===== Tipo de viaje acompaña sin competir ===== */
-.trip-pill{
-  font-size: .72rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  white-space: nowrap;
+.trip-countdown::before{
+  margin-right: 2px;        /* evita que quede pegado */
 }
 
-/* ===== Reducir tamaño del logo un 25% ===== */
-.brand-chip img{
-  width: calc(min(var(--logo-w-ideal), var(--logo-w-max)) * 0.75);
-}
-
-.logo-skeleton{
-  width: calc(min(var(--logo-w-ideal), var(--logo-w-max)) * 0.75);
+/* Estados mantienen color pero con fuente más chica */
+.trip-countdown.future,
+.trip-countdown.live{
+  font-weight: 600;
 }
