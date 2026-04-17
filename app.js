@@ -327,17 +327,32 @@ function syncAddTripVisibility(){
 // ===== NUEVO: cálculo de cuenta regresiva del viaje =====
 function getCountdownText(startAt){
   if(!startAt) return null;
+
   const now = new Date();
   const start = new Date(startAt);
   if (isNaN(start.getTime())) return null;
+
   const diffMs = start - now;
-  if(diffMs <= 0){ return { text:'En curso', status:'live' }; }
-  const diffSec = Math.floor(diffMs/1000);
-  const days = Math.floor(diffSec/86400);
-  const hours = Math.floor((diffSec%86400)/3600);
-  const minutes = Math.floor((diffSec%3600)/60);
-  if(days > 0){ return { text:`Faltan ${days} días`, status:'future' }; }
-  return { text:`Faltan ${hours}h ${minutes}m`, status:'future' };
+
+  if (diffMs <= 0) {
+    return { text: 'En curso', status: 'live' };
+  }
+
+  const totalSec = Math.floor(diffMs / 1000);
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const minutes = Math.floor((totalSec % 3600) / 60);
+  const seconds = totalSec % 60;
+
+  if (days > 0) {
+    return { text: `Faltan ${days} días`, status: 'future' };
+  }
+
+  if (hours > 0) {
+    return { text: `Faltan ${hours}h ${minutes}m ${seconds}s`, status: 'future' };
+  }
+
+  return { text: `Faltan ${minutes}m ${seconds}s`, status: 'future' };
 }
 
 
@@ -360,7 +375,8 @@ async function loadTrips(){
  head.appendChild(title); head.appendChild(pill); 
  card.appendChild(head);
   // NUEVO: cuenta regresiva del viaje
-  if (tr.startAt) { const info = getCountdownText(tr.startAt); if (info) { const cd = document.createElement('div'); cd.className = 'trip-countdown ' + info.status; cd.textContent = info.text; card.appendChild(cd); } } 
+  if (tr.startAt) { const info = getCountdownText(tr.startAt); if (info) { const cd = document.createElement('div'); cd.className = 'trip-countdown ' + info.status; cd.textContent = info.text;
+ cd.dataset.startAt = tr.startAt; card.appendChild(cd); } } 
  card.onclick = function(){ selectTrip(tr); }; 
  card.onkeypress = function(ev){ if(ev.key==='Enter') selectTrip(tr); }; 
  
@@ -1591,41 +1607,30 @@ function closeCreateTripModal(){
   m.setAttribute('aria-hidden','true');
 }
 async function confirmCreateTrip(){
- if(BUSY) return;
-
- var name = (document.getElementById('newTripName') || {}).value || '';
- name = name.trim();
-
- var type = (document.getElementById('tripTypeDouble') || {}).checked
-   ? 'double'
-   : 'single';
-
- // NUEVO: fecha y hora
- var startAtInput = document.getElementById('newTripStartAt');
- var startAt = startAtInput ? startAtInput.value : '';
-
- if(!name){ toast('Ingresá el nombre del viaje'); return; }
- if(!startAt){ toast('Ingresá la fecha y hora del viaje'); return; }
- if(!CONTROL_AUTH || !isAdmin()){ toast('Solo administradores'); return; }
-
- closeCreateTripModal();
- showLoading('Creando viaje…');
- BUSY = true;
-
- try{
-   var resp = await API.apiCreateTrip(name, type, startAt);
-   if(resp && (resp.ok || resp.fileId || resp.trip)){
-     clearCache('trips');
-     await loadTrips();
-     toast('Viaje creado');
-   }else{
-     toast((resp && resp.message) ? resp.message : 'No se pudo crear el viaje');
-   }
- }catch(e){
-   toast('Error al crear el viaje');
- }finally{
-   BUSY = false; hideLoading();
- }
+  if(BUSY) return;
+  var name = (document.getElementById('newTripName')||{}).value || '';
+  name = name.trim();
+  var type = (document.getElementById('tripTypeDouble')||{}).checked ? 'double' : 'single';
+  if(!name){ toast('Ingresá el nombre del viaje'); return; }
+  if(!CONTROL_AUTH || !isAdmin()){ toast('Solo administradores'); return; }
+  closeCreateTripModal();
+  showLoading('Creando viaje…');
+  BUSY = true;
+  try{
+    var resp = await API.apiCreateTrip(name, type, startAt);
+    if(resp && (resp.ok || resp.fileId || resp.trip)){
+      // invalidar cache y recargar
+      clearCache('trips');
+      await loadTrips();
+      toast('Viaje creado');
+    }else{
+      toast((resp && resp.message) ? resp.message : 'No se pudo crear el viaje');
+    }
+  }catch(e){
+    toast('Error al crear el viaje');
+  }finally{
+    BUSY = false; hideLoading();
+  }
 }
 
 async function promptArchiveTrip(tr) {
@@ -1894,3 +1899,19 @@ function backToSelect(){ try { closeReserveModal(); } catch(e){} }
  }, {passive:true}); 
 })(); 
 // === Fin de scripts extraídos del HTML original ===
+
+
+// ===== Cuenta regresiva en tiempo real =====
+setInterval(function(){
+  document.querySelectorAll('.trip-countdown').forEach(function(el){
+    const startAt = el.dataset.startAt;
+    if(!startAt) return;
+
+    const info = getCountdownText(startAt);
+    if(!info) return;
+
+    el.textContent = info.text;
+    el.classList.toggle('live', info.status === 'live');
+    el.classList.toggle('future', info.status === 'future');
+  });
+}, 1000);
