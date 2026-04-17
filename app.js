@@ -395,7 +395,14 @@ async function loadTrips(){
 
     list.appendChild(card); 
  }); 
- if(!trips.length){ list.innerHTML = '<p class="muted">No se encontraron viajes en la carpeta.</p>'; } 
+ if(!trips.length){
+      list.innerHTML = `
+        <div class="empty-state">
+          <h3>No hay viajes disponibles en este momento</h3>
+          <p>Nos estaremos viendo próximamente en nuevos destinos 🌍</p>
+        </div>
+      `;
+    } 
  }catch(err){ 
  toast('No se pudieron cargar los viajes'); 
  } 
