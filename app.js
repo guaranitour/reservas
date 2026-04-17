@@ -1591,30 +1591,41 @@ function closeCreateTripModal(){
   m.setAttribute('aria-hidden','true');
 }
 async function confirmCreateTrip(){
-  if(BUSY) return;
-  var name = (document.getElementById('newTripName')||{}).value || '';
-  name = name.trim();
-  var type = (document.getElementById('tripTypeDouble')||{}).checked ? 'double' : 'single';
-  if(!name){ toast('Ingresá el nombre del viaje'); return; }
-  if(!CONTROL_AUTH || !isAdmin()){ toast('Solo administradores'); return; }
-  closeCreateTripModal();
-  showLoading('Creando viaje…');
-  BUSY = true;
-  try{
-    var resp = await API.apiCreateTrip(name, type, startAt);
-    if(resp && (resp.ok || resp.fileId || resp.trip)){
-      // invalidar cache y recargar
-      clearCache('trips');
-      await loadTrips();
-      toast('Viaje creado');
-    }else{
-      toast((resp && resp.message) ? resp.message : 'No se pudo crear el viaje');
-    }
-  }catch(e){
-    toast('Error al crear el viaje');
-  }finally{
-    BUSY = false; hideLoading();
-  }
+ if(BUSY) return;
+
+ var name = (document.getElementById('newTripName') || {}).value || '';
+ name = name.trim();
+
+ var type = (document.getElementById('tripTypeDouble') || {}).checked
+   ? 'double'
+   : 'single';
+
+ // NUEVO: fecha y hora
+ var startAtInput = document.getElementById('newTripStartAt');
+ var startAt = startAtInput ? startAtInput.value : '';
+
+ if(!name){ toast('Ingresá el nombre del viaje'); return; }
+ if(!startAt){ toast('Ingresá la fecha y hora del viaje'); return; }
+ if(!CONTROL_AUTH || !isAdmin()){ toast('Solo administradores'); return; }
+
+ closeCreateTripModal();
+ showLoading('Creando viaje…');
+ BUSY = true;
+
+ try{
+   var resp = await API.apiCreateTrip(name, type, startAt);
+   if(resp && (resp.ok || resp.fileId || resp.trip)){
+     clearCache('trips');
+     await loadTrips();
+     toast('Viaje creado');
+   }else{
+     toast((resp && resp.message) ? resp.message : 'No se pudo crear el viaje');
+   }
+ }catch(e){
+   toast('Error al crear el viaje');
+ }finally{
+   BUSY = false; hideLoading();
+ }
 }
 
 async function promptArchiveTrip(tr) {
