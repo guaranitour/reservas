@@ -474,9 +474,14 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 }
 
 
-/* ===== PATCH UI v3: Título con icono + timer centrado ===== */
+/* ===== PATCH UI v4: Señaladores + timer alineado + logo reducido ===== */
 
-/* Título del viaje con icono de mapa y mayor protagonismo */
+/* ===== Señalador base (línea vertical sutil) ===== */
+:root{
+  --marker-color: #c7d2fe; /* azul suave */
+}
+
+/* ===== Título del viaje con señalador ===== */
 .trip-card h3{
   font-size: 1.1rem;
   font-weight: 900;
@@ -484,21 +489,42 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   line-height: 1.25;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .trip-card h3::before{
-  content: "📍";
-  font-size: 1.05rem;
-  line-height: 1;
+  content: "";
+  width: 3px;
+  height: 1.2em;
+  border-radius: 999px;
+  background: var(--marker-color);
+  flex-shrink: 0;
 }
 
-/* Mantener encabezado limpio y balanceado */
-.trip-head{
-  align-items: flex-start;
+/* ===== Cronómetro alineado a la izquierda con señalador ===== */
+.trip-countdown{
+  margin-top: 14px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
 }
 
-/* Chip del tipo de viaje más ordenado */
+.trip-countdown::before{
+  content: "";
+  width: 3px;
+  height: 1.1em;
+  border-radius: 999px;
+  background: var(--marker-color);
+}
+
+/* Ajuste del chip del timer (se mantiene diseño previo) */
+.trip-countdown{
+  padding-left: 0;
+}
+
+/* ===== Tipo de viaje acompaña sin competir ===== */
 .trip-pill{
   font-size: .72rem;
   font-weight: 700;
@@ -506,15 +532,11 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   white-space: nowrap;
 }
 
-/* ===== Zona del cronómetro ===== */
-.trip-countdown{
-  margin-top: 14px;
-  align-self: center;
-  text-align: center;
+/* ===== Reducir tamaño del logo un 25% ===== */
+.brand-chip img{
+  width: calc(min(var(--logo-w-ideal), var(--logo-w-max)) * 0.75);
 }
 
-/* Asegurar que el chip se vea centrado visualmente */
-.trip-countdown{
-  display: inline-flex;
-  justify-content: center;
+.logo-skeleton{
+  width: calc(min(var(--logo-w-ideal), var(--logo-w-max)) * 0.75);
 }
