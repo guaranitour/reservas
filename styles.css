@@ -432,53 +432,43 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 }
 
 
-/* ===== PATCH UI v2: Jerarquía mejorada en tarjetas de viaje ===== */
-/* Objetivo:
-   - El nombre del viaje como protagonista
-   - Tipo de viaje alineado con el timer (lado derecho)
-   - Layout limpio, equilibrado y mobile-first
-*/
-
-.trip-card{
-  gap: 10px; /* un poco más de aire vertical */
-}
-
-/* Título del viaje con más peso */
-.trip-card h3{
-  font-size: 1.05rem;
-  font-weight: 900;
-  letter-spacing: .25px;
-  line-height: 1.2;
-}
-
-/* Contenedor superior: nombre a la izquierda, tipo a la derecha */
-.trip-head{
-  align-items: flex-start;
-}
-
-/* Chip de tipo (Convencional / Doble piso) más compacto y ordenado */
-.trip-pill{
-  font-size: .72rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  white-space: nowrap;
-}
-
-/* ===== Fila inferior: timer + tipo alineado ===== */
-/* Envolvemos visualmente timer y pill como misma capa */
+/* ===== PATCH UI: Countdown destacado (chip visual) ===== */
 .trip-countdown{
-  margin-top: 12px;
-}
-
-/* Ajuste visual cuando conviven cronómetro y pill */
-.trip-card .trip-countdown + .trip-pill,
-.trip-card .trip-pill + .trip-countdown{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  width: fit-content;
 }
 
-/* ===== Responsive polish ===== */
-@media (min-width: 480px){
-  .trip-card{
-    padding: 18px;
-  }
+.trip-countdown::before{
+  content: "⏱";
+  font-size: 0.9rem;
+}
+
+.trip-countdown.future{
+  background: #eef2ff;
+  color: #1e3a8a;
+}
+
+.trip-countdown.live{
+  background: #dcfce7;
+  color: #065f46;
+}
+
+/* ===== Ajuste fino de jerarquía en tarjetas de viaje ===== */
+.trip-card h3{
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+
+.trip-pill{
+  font-size: .75rem;
+  font-weight: 700;
 }
