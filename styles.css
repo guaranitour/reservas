@@ -430,3 +430,45 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 .trip-countdown.live {
   color: #047857;
 }
+
+
+/* ===== PATCH UI: Countdown destacado (chip visual) ===== */
+.trip-countdown{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  width: fit-content;
+}
+
+.trip-countdown::before{
+  content: "⏱";
+  font-size: 0.9rem;
+}
+
+.trip-countdown.future{
+  background: #eef2ff;
+  color: #1e3a8a;
+}
+
+.trip-countdown.live{
+  background: #dcfce7;
+  color: #065f46;
+}
+
+/* ===== Ajuste fino de jerarquía en tarjetas de viaje ===== */
+.trip-card h3{
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+
+.trip-pill{
+  font-size: .75rem;
+  font-weight: 700;
+}
