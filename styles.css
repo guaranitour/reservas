@@ -214,7 +214,7 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 #controlCroquisMulti .seat.ocupado .occ-name{ color:#7f1d1d; }
 /* Elegir viaje / planta */
 .trip-list{ display:grid; grid-template-columns:1fr; gap:12px; max-width:560px; margin:0 auto; }
-.trip-card{ background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:16px; display:flex; flex-direction:column; gap:6px; cursor:pointer; }
+.trip-card{ background:var(--card); border-radius:14px; box-shadow:var(--shadow); padding:14px 16px; display:flex; flex-direction:column; gap:5px; cursor:pointer; }
 .trip-card h3{ margin:0; font-size:1rem; }
 .trip-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .trip-pill{ display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:4px 8px; font-size:.8rem; background:#eef2ff; color:#1e3a8a; }
@@ -296,7 +296,7 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 .field input{ width: 100%; border: 1.5px solid #e5e7eb; border-radius: 999px; padding: 14px 16px; font-size: 1rem; background: #fff; color: var(--text); outline: none; transition: border-color .15s ease, box-shadow .15s ease; line-height:1.3; }
 .field input:focus{ border-color: #93c5fd; box-shadow: 0 0 0 4px rgba(59,130,246,.15); }
 .field input::placeholder{ color: #9ca3af; opacity: .9; }
-.modal .sheet .actions{ display: flex; gap: 10px; justify-content: space-between; }
+.modal .sheet .actions{ display: flex; gap: 8px; justify-content: space-between; }
 .modal .sheet .btn{ border-radius: 999px; min-height: 44px; }
 @media (min-width: 540px){ .assign-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } }
 /* ===== Bottom App Bar: Selección (flotante, sin fondo) ===== */
@@ -474,47 +474,72 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 }
 
 
-/* ===== PATCH UI v5: Card más compacta + señalador refinado ===== */
+/* ===== PATCH UI v4: Señaladores + timer alineado + logo reducido ===== */
 
-/* Reducir altura general de la tarjeta */
-.trip-card{
-  padding: 14px 16px; /* antes más alto */
-  gap: 6px;           /* menos espacio vertical */
+/* ===== Señalador base (línea vertical sutil) ===== */
+:root{
+  --marker-color: rgba(99,102,241,.55); /* azul suave */
 }
 
-/* ===== Señalador refinado (un poco más largo y oscuro) ===== */
-:root{
-  --marker-color: rgba(99, 102, 241, 0.55); /* azul más oscuro pero sutil */
+/* ===== Título del viaje con señalador ===== */
+.trip-card h3{
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: .3px;
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .trip-card h3::before{
-  height: 1.4em; /* un poco más largo */
+  content: "";
+  width: 3px;
+  height: 1.4em;
+  border-radius: 999px;
+  background: var(--marker-color);
+  flex-shrink: 0;
 }
 
-.trip-countdown::before{
-  height: 1.35em; /* acompaña al título */
-}
-
-/* ===== Título: mantiene protagonismo pero más compacto ===== */
-.trip-card h3{
-  font-size: 1.05rem;
-  line-height: 1.2;
-}
-
-/* ===== Cronómetro más compacto ===== */
+/* ===== Cronómetro alineado a la izquierda con señalador ===== */
 .trip-countdown{
-  margin-top: 10px;
-  gap: 8px;                 /* separa un poco del señalador */
-  padding: 5px 8px;         /* pildora más chica */
-  font-size: 0.78rem;
+  margin-top: 14px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
 }
 
 .trip-countdown::before{
-  margin-right: 2px;        /* evita que quede pegado */
+  content: "";
+  width: 3px;
+  height: 1.35em;
+  border-radius: 999px;
+  background: var(--marker-color);
 }
 
-/* Estados mantienen color pero con fuente más chica */
-.trip-countdown.future,
-.trip-countdown.live{
-  font-weight: 600;
+/* Ajuste del chip del timer (se mantiene diseño previo) */
+.trip-countdown{
+  padding-left: 0; padding:5px 8px; font-size:.78rem;
 }
+
+/* ===== Tipo de viaje acompaña sin competir ===== */
+.trip-pill{
+  font-size: .72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+/* ===== Reducir tamaño del logo un 25% ===== */
+.brand-chip img{
+  width: calc(min(var(--logo-w-ideal), var(--logo-w-max)) * 0.75);
+}
+
+.logo-skeleton{
+  width: calc(min(var(--logo-w-ideal), var(--logo-w-max)) * 0.75);
+}
+
+.trip-countdown{
+ margin-top: 10px;
