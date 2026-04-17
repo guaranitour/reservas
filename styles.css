@@ -543,3 +543,24 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 
 .trip-countdown{
  margin-top: 10px;
+
+/* ===== PATCH UI: Empty state de viajes ===== */
+.empty-state{
+  text-align: center;
+  padding: 28px 18px;
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.empty-state h3{
+  margin: 0 0 6px 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.empty-state p{
+  margin: 0;
+  font-size: .9rem;
+  line-height: 1.45;
+}
