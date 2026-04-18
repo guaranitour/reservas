@@ -411,10 +411,12 @@ async function loadTrips(){
 function backToChoose(){ 
  CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false }; 
  STAFF_CONTROL_MULTI = false; STAFF_ACTIVE_SHEET = null; 
- showView('view-choose');
- syncAddTripVisibility();
+ 
 var h = document.getElementById('tripHeader');
   if (h) h.classList.add('hidden');
+
+ showView('view-choose');
+ syncAddTripVisibility();
  setHash(['Inicio']); 
  } 
 function selectTrip(tr){ 
