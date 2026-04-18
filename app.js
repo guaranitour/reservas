@@ -129,7 +129,16 @@ try { window.API = window.API || {}; if (typeof window.API.apiArchiveTrip !== 'f
  var ROUTER_DRIVING = false; 
  function buildHash(segments){ return '#/' + (segments ||[]).map(function(s){ return encodeURIComponent(String(s || '')); }).join('/'); } 
  function setHash(segments){ if (ROUTER_DRIVING) return; location.hash = buildHash(segments); } 
- function getHashSegments(h){ 
+ 
+
+function normalizeRoute(str){
+  return (str || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g,'')
+    .trim();
+}
+function getHashSegments(h){ 
  var raw = String(h || (location.hash || '')).replace(/^#\/?/, ''); 
  if (!raw) return []; 
  return raw.split('/').map(function(p){ try { return decodeURIComponent(p); } catch(e){ return p; } }); 
@@ -174,119 +183,75 @@ try { window.API = window.API || {}; if (typeof window.API.apiArchiveTrip !== 'f
  || trip.sheets[0]
  || null; 
  } 
- async function routeTo(hash){ 
- var segs = getHashSegments(hash); 
- if (!segs.length){ 
- setHash(['Inicio']); 
- showView('view-choose'); 
- await loadTrips(); 
- return; 
- } 
- var head = (segs[0] || '').trim(); 
- ROUTER_DRIVING = true; 
- try{ 
- if (head.toLowerCase() === 'inicio'){
- showView('view-choose'); 
- await loadTrips(); 
- return; 
- } 
- if (head.toLowerCase() === 'staff'){
- if (segs.length === 1){ 
- openStaffLogin(); 
- return; 
- } 
- var tripNameStaff = segs[1]; 
- if (!CONTROL_AUTH){ 
- openStaffLogin(); 
- toast('Inicia sesión para ver el panel Staff de "' + tripNameStaff + '".'); 
- return; 
- } 
- var trS = await resolveTripByName(tripNameStaff); 
- if (!trS){ toast('No se encontró el viaje "'+tripNameStaff+'".'); backToChoose(); return; } 
- selectTrip(trS); 
- return; 
- } 
- if (head.toLowerCase() === 'selección de asientos'){
- var tripNameSel = segs[1]; 
- var trSel = await resolveTripByName(tripNameSel); 
- if (!trSel){ toast('No se encontró el viaje "'+tripNameSel+'".'); backToChoose(); return; } 
- CURRENT_TRIP = { fileId: trSel.fileId, name: trSel.name, sheets: trSel.sheets, sheetName: null, hasFloors: !!trSel.hasFloors }; 
- updateTripTags(); 
- if (segs[2]){ 
- var floorLbl = segs[2]; 
- var sheet = getSheetNameFromFloorLabel(trSel, floorLbl); 
- if (!sheet){ toast('No se encontró la planta en "'+trSel.name+'".'); selectTrip(trSel); return; } 
- await chooseFloor(sheet); 
- return; 
- } 
- if (trSel.hasFloors){ 
- selectTrip(trSel); 
- }else{ 
- var sheetConv = getSheetNameFromFloorLabel(trSel, 'asientos'); 
- CURRENT_TRIP.sheetName = sheetConv; 
- await goSelect(); 
- } 
- return; 
- } 
- var trPlain = await resolveTripByName(head); 
- if (!trPlain){ 
- backToChoose(); 
- await loadTrips(); 
- return; 
- } 
- selectTrip(trPlain); 
- }finally{ 
- ROUTER_DRIVING = false; 
- } 
- } 
- /* ===== Navegación (vistas) ===== */ 
- function showView(id){ var els=document.querySelectorAll('.view'); for(var i=0;i<els.length;i++){ els[i].classList.remove('active'); } var el = document.getElementById(id); if (el) el.classList.add('active'); } 
- function goHome(){ 
- if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; } 
- updateTripTags(); showView('view-home'); 
- setHash([CURRENT_TRIP.name]); 
- } 
- function goTripMenu(){ 
- if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; } 
- if(CURRENT_TRIP.hasFloors){ 
- updateTripTags(); showView('view-floor'); setHash([CURRENT_TRIP.name]); 
- }else{ 
- updateTripTags(); showView('view-home'); setHash([CURRENT_TRIP.name]); 
- } 
- } 
- function handleEnter(ev, cb){ if(ev.key === 'Enter') cb(); } 
- /* ===== UI helpers ===== */ 
- function toast(msg){
-function nextPaint(){ return new Promise(requestAnimationFrame); }
- var bar = document.getElementById('snackbar'); if(!bar) return; bar.textContent = msg; bar.classList.add('show'); setTimeout(function(){ bar.classList.remove('show'); }, 2800); } 
- function showLoading(msg){ var ov = document.getElementById('overlay'); if(!ov) return; ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); } 
- function hideLoading(){ var ov = document.getElementById('overlay'); if(!ov) return; ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); } 
- function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); } 
- function firstName(full){ var t = (full || '').trim(); if(!t) return ''; var name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); } 
- function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); } 
-function syncSelectedCounter() { 
- var badge = document.getElementById('selectedCounter'); 
- var live = document.getElementById('selectedCounterLive'); 
- var btn = document.getElementById('btnReservePersistent'); 
- var count = selected ? selected.size : 0; 
- if (badge) { 
- if (count > 0) { 
- badge.textContent = String(count); 
- badge.classList.remove('hidden'); 
- } else { 
- badge.textContent = '0'; 
- badge.classList.add('hidden'); 
- } 
- } 
- if (live) { 
- live.textContent = count === 0
- ? 'Sin asientos seleccionados'
- : (count === 1 ? 'Un asiento seleccionado' : (count + ' asientos seleccionados'));
- } 
- if (btn) { 
- btn.disabled = (count === 0); 
- btn.setAttribute('aria-disabled', (count === 0) ? 'true' : 'false'); 
- } 
+ 
+async function routeTo(hash){
+  await ensureTripsCache();
+
+  const segs = getHashSegments(hash);
+  if (!segs.length || normalizeRoute(segs[0]) === 'inicio'){
+    showView('view-choose');
+    await loadTrips();
+    setHash(['Inicio']);
+    return;
+  }
+
+  const tripName = segs[0];
+  const trip = await resolveTripByName(tripName);
+
+  if (!trip){
+    backToChoose();
+    return;
+  }
+
+  CURRENT_TRIP = {
+    fileId: trip.fileId,
+    name: trip.name,
+    sheets: trip.sheets,
+    sheetName: null,
+    hasFloors: !!trip.hasFloors
+  };
+
+  if (segs.length === 1){
+    if (trip.hasFloors){
+      showView('view-floor');
+    } else {
+      CURRENT_TRIP.sheetName = getSheetNameFromFloorLabel(trip, 'asientos');
+      showView('view-home');
+    }
+    return;
+  }
+
+  if (normalizeRoute(segs[1]) === 'mira tu asiento'){
+    showView('view-find');
+    return;
+  }
+
+  if (!trip.hasFloors){
+    if (normalizeRoute(segs[1]) === 'selecciona tu asiento'){
+      CURRENT_TRIP.sheetName = getSheetNameFromFloorLabel(trip, 'asientos');
+      await goSelect();
+      return;
+    }
+    showView('view-home');
+    return;
+  }
+
+  const floorLabel = segs[1];
+  const sheet = getSheetNameFromFloorLabel(trip, floorLabel);
+
+  if (!sheet){
+    showView('view-floor');
+    return;
+  }
+
+  CURRENT_TRIP.sheetName = sheet;
+
+  if (segs[2] && normalizeRoute(segs[2]) === 'selecciona tu asiento'){
+    await goSelect();
+    return;
+  }
+
+  showView('view-floor');
 }
 /* ===== Admin (Easter Egg) ===== */ 
 function showAdminMenu(){ var m = document.getElementById('adminMenu'); if (m) m.classList.remove('hidden'); } 
