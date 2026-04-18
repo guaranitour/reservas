@@ -411,10 +411,6 @@ async function loadTrips(){
 function backToChoose(){ 
  CURRENT_TRIP = { fileId:null, name:null, sheets:[], sheetName:null, hasFloors:false }; 
  STAFF_CONTROL_MULTI = false; STAFF_ACTIVE_SHEET = null; 
- 
-var h = document.getElementById('tripHeader');
-  if (h) h.classList.add('hidden');
-
  showView('view-choose');
  syncAddTripVisibility();
  setHash(['Inicio']); 
@@ -740,18 +736,14 @@ async function chooseFloor(sheetName){
  } 
  } 
  } 
-function updateTripTags(){
-  var wrap = document.getElementById('tripHeader');
-  var title = document.getElementById('tripTitle');
-
-  if (!wrap || !title) return;
-
-  title.textContent = CURRENT_TRIP.name || '—';
-  title.dataset.type = CURRENT_TRIP.hasFloors ? 'Doble piso' : 'Convencional';
-
-  wrap.classList.remove('hidden');
-  syncStaffBadge();
-} 
+function updateTripTags(){ 
+ var tagTrip = document.getElementById('tagTrip'); 
+ var tagTripFloor = document.getElementById('tagTripFloor'); 
+ var text = 'Viaje: ' + (CURRENT_TRIP.name || '—'); 
+ if (tagTrip) tagTrip.textContent = text; 
+ if (tagTripFloor) tagTripFloor.textContent = text; 
+ syncStaffBadge(); 
+ } 
 async function goSelect(){ 
  if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; } 
  showView('view-select'); 
