@@ -185,9 +185,8 @@ function getHashSegments(h){
  } 
  
 async function routeTo(hash){
-  await ensureTripsCache();
-
   const segs = getHashSegments(hash);
+
   if (!segs.length || normalizeRoute(segs[0]) === 'inicio'){
     showView('view-choose');
     await loadTrips();
@@ -211,6 +210,7 @@ async function routeTo(hash){
     hasFloors: !!trip.hasFloors
   };
 
+  // /#/Nombre del viaje
   if (segs.length === 1){
     if (trip.hasFloors){
       showView('view-floor');
@@ -221,11 +221,13 @@ async function routeTo(hash){
     return;
   }
 
+  // /#/Nombre del viaje/Mira tu asiento
   if (normalizeRoute(segs[1]) === 'mira tu asiento'){
     showView('view-find');
     return;
   }
 
+  // Convencional
   if (!trip.hasFloors){
     if (normalizeRoute(segs[1]) === 'selecciona tu asiento'){
       CURRENT_TRIP.sheetName = getSheetNameFromFloorLabel(trip, 'asientos');
@@ -236,6 +238,7 @@ async function routeTo(hash){
     return;
   }
 
+  // Doble piso
   const floorLabel = segs[1];
   const sheet = getSheetNameFromFloorLabel(trip, floorLabel);
 
