@@ -566,68 +566,46 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 }
 
 
-/* ===== PATCH UI REAL: Jerarquía y homogeneización menú doble piso ===== */
+/* ===== PATCH UI: Título de viaje unificado ===== */
 
-/* ---- Bloque principal: Elegir asientos ---- */
-#floorCards::before {
-  content: "Elegir asientos";
-  display: block;
-  font-weight: 900;
-  letter-spacing: .45px;
-  font-size: .85rem;
-  color: #374151;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-}
+.trip-tags { display: none !important; }
 
-#floorCards .card {
-  position: relative;
-  text-align: left;
-  padding: 18px 20px;
-}
-
-#floorCards .card h2 {
-  font-size: 1.05rem;
-  font-weight: 900;
+.trip-header {
   display: flex;
+  justify-content: center;
+  margin: 10px 0 18px;
+}
+
+.trip-title {
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-}
-
-#floorCards .card h2::before {
-  content: "";
-  width: 3px;
-  height: 1.3em;
-  border-radius: 999px;
-  background: rgba(44,123,229,.65);
-}
-
-#floorCards .card::after {
-  content: "›";
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1.6rem;
-  color: #9ca3af;
-}
-
-/* ---- Bloque secundario: Consulta ---- */
-#floorFindCard {
-  margin-top: 22px;
-}
-
-#floorFindCard::before {
-  content: "Consulta";
-  display: block;
+  font-size: 1.05rem;
   font-weight: 900;
-  letter-spacing: .45px;
-  font-size: .75rem;
-  color: #6b7280;
-  margin-bottom: 10px;
-  text-transform: uppercase;
+  letter-spacing: .3px;
 }
 
-#floorFindCard .card h2::before {
-  background: rgba(107,114,128,.6);
+.trip-title::before {
+  content: "F5FA"; /* map icon */
+  font-size: 1.05rem;
+}
+
+/* Etiqueta de tipo de bus (Convencional / Doble piso) */
+.trip-title::after {
+  content: attr(data-type);
+  font-size: .7rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #1e3a8a;
+}
+
+/* Subtítulo común */
+.view-subtitle {
+  text-align: center;
+  font-size: .85rem;
+  font-weight: 700;
+  color: #6b7280;
+  margin-bottom: 14px;
 }
