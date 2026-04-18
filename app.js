@@ -1,6 +1,6 @@
 const CACHE_PREFIX = 'seatapp_'; 
 function setCache(key, value, ttlMs) { try { const payload = { value, expires: Date.now() + ttlMs }; localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(payload)); } catch(e){} } 
-function getCache(key) { try { const raw = localStorage.getItem(CACHE_PREFIX + key); if(!raw) return null; const payload = JSON.parse(raw); if(!payload || typeof payload.expires!== 'number') return null; if(Date.now() > payload.expires){ localStorage.removeItem(CACHE_PREFIX + key); return null;} return payload.value; } catch(e){ return null; } } 
+function getCache(key) { try { const raw = localStorage.getItem(CACHE_PREFIX + key); if(!raw) return null; const payload = JSON.parse(raw); if (!payload || typeof payload.expires !== 'number') return null; if(Date.now() > payload.expires){ localStorage.removeItem(CACHE_PREFIX + key); return null;} return payload.value; } catch(e){ return null; } } 
 function clearCache(key) { try { localStorage.removeItem(CACHE_PREFIX + key); } catch(e){} } 
  const BASE_URL = 'https://script.google.com/macros/s/AKfycbxp22XHzfE8JLdVkePwa6xq4ixw3xhCoxioqplh_BkzMCwLCiYAql52xwmYRnpcN475/exec'; 
  const API_KEY = null; 
