@@ -566,15 +566,17 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 }
 
 
-/* ===== PATCH UI: Menú de opciones con cards de acción ===== */
-.cards .card {
+/* ===== PATCH UI: Homogeneización menú Convencional / Doble piso ===== */
+
+/* Cards de plantas usan misma estética de menu principal */
+.floors .card {
   position: relative;
   text-align: left;
   padding: 18px 20px;
   gap: 6px;
 }
 
-.cards .card h2 {
+.floors .card h2 {
   font-size: 1.05rem;
   font-weight: 900;
   letter-spacing: .2px;
@@ -583,7 +585,7 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   gap: 10px;
 }
 
-.cards .card h2::before {
+.floors .card h2::before {
   content: "";
   width: 3px;
   height: 1.3em;
@@ -592,13 +594,13 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   flex-shrink: 0;
 }
 
-.cards .card p {
+.floors .card p {
   font-size: .9rem;
   color: #6b7280;
   line-height: 1.4;
 }
 
-.cards .card::after {
+.floors .card::after {
   content: "›";
   position: absolute;
   right: 16px;
@@ -606,10 +608,9 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   transform: translateY(-50%);
   font-size: 1.6rem;
   color: #9ca3af;
-  transition: transform .15s ease, color .15s ease;
 }
 
-.cards .card:hover::after {
-  transform: translateY(-50%) translateX(2px);
-  color: var(--primary);
+/* Card secundaria: Mirá tu asiento (doble piso) */
+#floorFindCard .card h2::before {
+  background: rgba(107,114,128,.6); /* gris neutro */
 }
