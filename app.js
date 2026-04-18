@@ -737,7 +737,7 @@ async function chooseFloor(sheetName){
  } 
  } 
 function updateTripTags(){
-  var el = document.getElementById('tripTitle');
+  var el = document.querySelector('.view.active .js-trip-title');
 
   if (!el) '—';  if (!el) return;
   el.dataset.type = CURRENT_TRIP.hasFloors ? 'Doble piso' : 'Convencional';
