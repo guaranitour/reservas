@@ -736,14 +736,14 @@ async function chooseFloor(sheetName){
  } 
  } 
  } 
-function updateTripTags(){ 
- var tagTrip = document.getElementById('tagTrip'); 
- var tagTripFloor = document.getElementById('tagTripFloor'); 
- var text = 'Viaje: ' + (CURRENT_TRIP.name || '—'); 
- if (tagTrip) tagTrip.textContent = text; 
- if (tagTripFloor) tagTripFloor.textContent = text; 
- syncStaffBadge(); 
- } 
+function updateTripTags(){
+  var el = document.getElementById('tripTitle');
+
+  if (!el) '—';  if (!el) return;
+  el.dataset.type = CURRENT_TRIP.hasFloors ? 'Doble piso' : 'Convencional';
+
+  syncStaffBadge();
+} 
 async function goSelect(){ 
  if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; } 
  showView('view-select'); 
