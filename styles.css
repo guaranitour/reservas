@@ -609,34 +609,3 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   color: #6b7280;
   margin-bottom: 14px;
 }
-
-
-/* ===== Header global del viaje ===== */
-.trip-header.global{
-  max-width: 680px;
-  margin: 10px auto 18px;
-  text-align: center;
-}
-.trip-header.hidden{ display:none; }
-.trip-title{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  font-size:1.1rem;
-  font-weight:900;
-}
-.trip-title::after{
-  content: attr(data-type);
-  font-size:.72rem;
-  font-weight:800;
-  padding:4px 10px;
-  border-radius:999px;
-  background:#eef2ff;
-  color:#1e3a8a;
-}
-.trip-subtitle{
-  margin-top:6px;
-  font-size:.9rem;
-  font-weight:600;
-  color:#6b7280;
-}
