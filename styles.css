@@ -609,3 +609,42 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   color: #6b7280;
   margin-bottom: 14px;
 }
+
+
+/* ===== HEADER UNIFICADO DEL VIAJE (menú secundario) ===== */
+.trip-header {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 6px;
+}
+.trip-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: .3px;
+  line-height: 1.25;
+}
+.trip-title::before {
+  content: "📍";
+  font-size: 1.1rem;
+}
+.trip-title::after {
+  content: attr(data-type);
+  font-size: .72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #1e3a8a;
+  white-space: nowrap;
+}
+.view-subtitle {
+  text-align: center;
+  font-size: .9rem;
+  font-weight: 700;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+.trip-tags{ display:none !important; }
