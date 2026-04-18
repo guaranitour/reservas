@@ -27,13 +27,7 @@
  </div> 
  </div> 
  </div> 
-</header>
-
-<div id="tripHeader" class="trip-header global hidden">
-  <div class="trip-title" id="tripTitle"></div>
-  <div class="trip-subtitle">Elegí tu acción</div>
-</div>
- 
+</header> 
 <!-- Staff badge --> 
 <div aria-label="Perfil Staff" class="staff-badge hidden" id="staffBadge">Staff</div> 
 <main class="app" id="app"> 
@@ -56,7 +50,9 @@
  <div style="max-width:680px; margin:0 auto; width:100%;"> 
  <h2 class="view-title">Elegí planta</h2> 
  <!-- Píldora del viaje en vista de plantas --> 
-  
+ <div class="trip-tags"> 
+ <span class="tag" id="tagTripFloor">Viaje: —</span> 
+ </div> 
  <div class="floors" id="floorCards"></div> 
  <div class="cards" id="floorFindCard" style="margin-top:16px;"></div> 
  <div class="actions" style="margin-top:32px; justify-content:center;"> 
@@ -69,7 +65,9 @@
  <section aria-label="Inicio" class="view" id="view-home"> 
  <div class="home-center"> 
  <div style="max-width:560px; width:100%; margin-bottom:12px;"> 
-  
+ <div class="trip-tags"> 
+ <span class="tag" id="tagTrip">Viaje: —</span> 
+ </div> 
  </div> 
  <div class="cards"> 
  <article class="card" onclick="goSelect()" onkeypress="handleEnter(event, goSelect)" role="button" tabindex="0"> 
@@ -211,13 +209,7 @@
  <header> 
  <h3 id="reserveTitle">Confirmar reserva</h3> 
  <button aria-label="Cerrar" class="close" onclick="closeReserveModal()" type="button">x</button> 
- </header>
-
-<div id="tripHeader" class="trip-header global hidden">
-  <div class="trip-title" id="tripTitle"></div>
-  <div class="trip-subtitle">Elegí tu acción</div>
-</div>
- 
+ </header> 
  <div id="reserveBody"></div> 
  <div class="actions" style="margin-top:12px;"> 
  <button class="btn ghost" onclick="closeReserveModal()" type="button">Cancelar</button> 
@@ -232,13 +224,7 @@
  <header> 
  <h3 id="confirmedTitle">¡Reserva confirmada!</h3> 
  <button aria-label="Cerrar" class="close" onclick="goToStartAndCloseConfirmed()" type="button">x</button> 
- </header>
-
-<div id="tripHeader" class="trip-header global hidden">
-  <div class="trip-title" id="tripTitle"></div>
-  <div class="trip-subtitle">Elegí tu acción</div>
-</div>
- 
+ </header> 
  <div id="confirmedBody"></div> 
  <div class="actions" style="margin-top:12px;"> 
  <button class="btn success" onclick="goToStartAndCloseConfirmed()" type="button">Volver a inicio</button> 
@@ -252,13 +238,7 @@
  <header> 
  <h3>Agregar viaje</h3> 
  <button aria-label="Cerrar" class="close" onclick="closeCreateTripModal()" type="button">x</button> 
- </header>
-
-<div id="tripHeader" class="trip-header global hidden">
-  <div class="trip-title" id="tripTitle"></div>
-  <div class="trip-subtitle">Elegí tu acción</div>
-</div>
- 
+ </header> 
  <div id="createTripBody"> 
  <div class="form"> 
  <label class="field"> 
@@ -297,12 +277,6 @@
       <h3>Editar estructura de asientos</h3>
       <button class="close" type="button" aria-label="Cerrar" onclick="closeEditSeatsModal()">x</button>
     </header>
-
-<div id="tripHeader" class="trip-header global hidden">
-  <div class="trip-title" id="tripTitle"></div>
-  <div class="trip-subtitle">Elegí tu acción</div>
-</div>
-
     <div id="editSeatsBody">
       <div class="form">
         <!-- Target sheet (solo si doble piso) -->
