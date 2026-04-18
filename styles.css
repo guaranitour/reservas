@@ -564,3 +564,52 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   font-size: .9rem;
   line-height: 1.45;
 }
+
+
+/* ===== PATCH UI: Menú de opciones con cards de acción ===== */
+.cards .card {
+  position: relative;
+  text-align: left;
+  padding: 18px 20px;
+  gap: 6px;
+}
+
+.cards .card h2 {
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: .2px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cards .card h2::before {
+  content: "";
+  width: 3px;
+  height: 1.3em;
+  border-radius: 999px;
+  background: rgba(44,123,229,.65);
+  flex-shrink: 0;
+}
+
+.cards .card p {
+  font-size: .9rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.cards .card::after {
+  content: "›";
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.6rem;
+  color: #9ca3af;
+  transition: transform .15s ease, color .15s ease;
+}
+
+.cards .card:hover::after {
+  transform: translateY(-50%) translateX(2px);
+  color: var(--primary);
+}
