@@ -566,41 +566,43 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 }
 
 
-/* ===== PATCH UI: Homogeneización menú Convencional / Doble piso ===== */
+/* ===== PATCH UI REAL: Jerarquía y homogeneización menú doble piso ===== */
 
-/* Cards de plantas usan misma estética de menu principal */
-.floors .card {
+/* ---- Bloque principal: Elegir asientos ---- */
+#floorCards::before {
+  content: "Elegir asientos";
+  display: block;
+  font-weight: 900;
+  letter-spacing: .45px;
+  font-size: .85rem;
+  color: #374151;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+#floorCards .card {
   position: relative;
   text-align: left;
   padding: 18px 20px;
-  gap: 6px;
 }
 
-.floors .card h2 {
+#floorCards .card h2 {
   font-size: 1.05rem;
   font-weight: 900;
-  letter-spacing: .2px;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.floors .card h2::before {
+#floorCards .card h2::before {
   content: "";
   width: 3px;
   height: 1.3em;
   border-radius: 999px;
   background: rgba(44,123,229,.65);
-  flex-shrink: 0;
 }
 
-.floors .card p {
-  font-size: .9rem;
-  color: #6b7280;
-  line-height: 1.4;
-}
-
-.floors .card::after {
+#floorCards .card::after {
   content: "›";
   position: absolute;
   right: 16px;
@@ -610,7 +612,22 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   color: #9ca3af;
 }
 
-/* Card secundaria: Mirá tu asiento (doble piso) */
+/* ---- Bloque secundario: Consulta ---- */
+#floorFindCard {
+  margin-top: 22px;
+}
+
+#floorFindCard::before {
+  content: "Consulta";
+  display: block;
+  font-weight: 900;
+  letter-spacing: .45px;
+  font-size: .75rem;
+  color: #6b7280;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
 #floorFindCard .card h2::before {
-  background: rgba(107,114,128,.6); /* gris neutro */
+  background: rgba(107,114,128,.6);
 }
