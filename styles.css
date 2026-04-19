@@ -609,15 +609,15 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   color: #6b7280;
   margin-bottom: 14px;
 }
-/* ===== PATCH UI: Título de viaje en vista convencional ===== */
+/* ===== PATCH DEFINITIVO: título de viaje (bus convencional) ===== */
 
-.trip-header {
+#view-home .trip-header {
   display: flex;
   justify-content: center;
-  margin: 16px 0 22px;
+  margin: 18px 0 24px;
 }
 
-.trip-title {
+#view-home .trip-title {
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -627,18 +627,17 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   color: #111827;
 }
 
-/* Marcador lateral tipo señalador */
-.trip-title::before {
+/* Señalador vertical */
+#view-home .trip-title::before {
   content: "";
   width: 4px;
   height: 1.4em;
   border-radius: 999px;
   background: rgba(99,102,241,.65);
-  display: inline-block;
 }
 
 /* Etiqueta Convencional */
-.trip-title::after {
+#view-home .trip-title::after {
   content: attr(data-type);
   font-size: .7rem;
   font-weight: 800;
@@ -647,4 +646,5 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   background: #eef2ff;
   color: #1e3a8a;
   white-space: nowrap;
-}}
+}
+}
