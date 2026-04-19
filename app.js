@@ -737,21 +737,22 @@ async function chooseFloor(sheetName){
  } 
  } 
 
-function updateTripTags(){
-  var tagTripFloor = document.getElementById('tagTripFloor');
-  var tripTitleHome = document.getElementById('tripTitleHome');
+function updateTripTags() {
+  var tripTitleHome  = document.getElementById('tripTitleHome');
+  var tripTitleFloor = document.getElementById('tripTitleFloor');
 
   var name = CURRENT_TRIP.name || '—';
 
-  // Vista doble piso (se mantiene igual)
-  if (tagTripFloor) {
-    tagTripFloor.textContent = 'Viaje: ' + name;
-  }
-
-  // Vista convencional (nuevo)
+  // Vista convencional
   if (tripTitleHome && !CURRENT_TRIP.hasFloors) {
     tripTitleHome.textContent = name;
     tripTitleHome.dataset.type = 'Convencional';
+  }
+
+  // Vista doble piso
+  if (tripTitleFloor && CURRENT_TRIP.hasFloors) {
+    tripTitleFloor.textContent = name;
+    tripTitleFloor.dataset.type = 'Doble piso';
   }
 
   syncStaffBadge();
