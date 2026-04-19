@@ -787,3 +787,16 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
     border-color: #a5b4fc;
   }
 }
+/* ===== Balance vertical: titulo – tarjetas – boton ===== */
+
+/* Aire debajo de las tarjetas */
+#view-home .cards,
+#view-floor .cards {
+  margin-bottom: 32px;
+}
+
+/* Aire arriba del boton Cambiar viaje */
+#view-home .actions,
+#view-floor .actions {
+  margin-top: 0; /* lo controla cards */
+}
