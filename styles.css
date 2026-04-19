@@ -858,3 +858,12 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
     opacity: 1;
   }
 }
+/* ===== Alinear "Mirá tu asiento" cuando queda sola (desktop) ===== */
+
+@media (min-width: 768px) {
+  #view-floor .floors .card:last-child {
+    grid-column: 1 / -1;   /* ocupa las dos columnas */
+    justify-self: center;  /* se centra horizontalmente */
+    max-width: 480px;      /* mismo ancho visual que las demás cards */
+  }
+}
