@@ -858,10 +858,11 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
     opacity: 1;
   }
 }
-/* ===== Ajuste fino: centrar "Mirá tu asiento" sin romper el grid ===== */
+/* ===== Ajuste exacto: centrar "Mirá tu asiento" entre las dos plantas ===== */
 
 @media (min-width: 768px) {
   #view-floor .floors .card:last-child {
-    justify-self: center; /* solo centra, no cambia el layout */
+    margin-left: calc(50% + 12px);
+    transform: translateX(-50%);
   }
 }
