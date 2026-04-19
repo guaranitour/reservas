@@ -858,11 +858,13 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
     opacity: 1;
   }
 }
-/* ===== Ajuste exacto: centrar "Mirá tu asiento" entre las dos plantas ===== */
+/* ===== FIX DEFINITIVO: Mirá tu asiento en doble piso (desktop) ===== */
 
 @media (min-width: 768px) {
   #view-floor .floors .card:last-child {
-    margin-left: calc(50% + 12px);
-    transform: translateX(-50%);
+    grid-column: 1 / -1;        /* ocupa toda la fila */
+    max-width: 560px;           /* mismo ancho visual del grid */
+    margin-left: auto;
+    margin-right: auto;
   }
 }
