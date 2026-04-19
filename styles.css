@@ -587,8 +587,11 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 }
 
 .trip-title::before {
-  content: "F5FA"; /* map icon */
-  font-size: 1.05rem;
+  content: "";
+  width: 4px;
+  height: 1.4em;
+  border-radius: 999px;
+  background: rgba(99,102,241,.65);
 }
 
 /* Etiqueta de tipo de bus (Convencional / Doble piso) */
