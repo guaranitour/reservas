@@ -737,3 +737,29 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   margin-left: auto;
   margin-right: auto;
 }
+/* ===== FIX DESKTOP: centrar titulo y botón en vista convencional ===== */
+
+/* Contenedor del header (titulo) */
+#view-home .trip-header {
+  justify-content: center;
+  text-align: center;
+}
+
+/* Asegurar que el titulo quede centrado incluso en desktop */
+#view-home .trip-title {
+  justify-content: center;
+  text-align: center;
+}
+
+/* Centrar el botón "Cambiar viaje" */
+#view-home .actions {
+  justify-content: center;
+}
+
+/* Ajuste solo para pantallas medianas/grandes */
+@media (min-width: 768px) {
+  #view-home .home-center > div {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
