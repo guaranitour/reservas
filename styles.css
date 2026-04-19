@@ -859,52 +859,55 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   }
 }
 /* =========================================================
-   CONFIRMACION – Balance final: logro + protagonismo
+   CONFIRMACION – Card de asiento refinada (no “radiación”)
    ========================================================= */
 
-/* --- Título de confirmación más protagonista --- */
-#confirmedTitle {
-  font-size: 1.4rem;
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  color: #065f46;
-}
-
-#confirmedTitle::before {
-  width: 34px;
-  height: 34px;
-  font-size: 1.1rem;
-}
-
-/* --- Contenedor del asiento: vuelve a tener presencia --- */
+/* Card principal del asiento */
 #confirmedBody .assign-row {
-  background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%);
+  background: #ffffff;
   border-radius: 18px;
-  padding: 20px 16px;
-  margin: 12px auto 4px;
-  box-shadow: 0 14px 30px rgba(16,185,129,.22);
+  padding: 22px 18px;
+  margin: 14px auto 6px;
+
+  /* Borde suave de éxito */
+  border: 1.5px solid rgba(16,185,129,.35);
+
+  /* Sombra neutral, elegante (no verde) */
+  box-shadow:
+    0 12px 24px rgba(17,24,39,.12),
+    0 2px 6px rgba(17,24,39,.06);
+
   text-align: center;
-  border: 1px solid rgba(16,185,129,.35);
+  position: relative;
 }
 
-/* Etiqueta superior (“ASIENTO”) */
+/* Halo interno ultra sutil (da “logro”, no brillo) */
+#confirmedBody .assign-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px rgba(16,185,129,.12);
+  pointer-events: none;
+}
+
+/* Etiqueta ASIENTO */
 #confirmedBody .assign-title {
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: .18em;
   text-transform: uppercase;
   color: #047857;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
-/* Número de asiento — protagonista real */
+/* Número de asiento – protagonista limpio */
 #confirmedBody .assign-seat {
-  font-size: 2.8rem;
+  font-size: 2.6rem;
   font-weight: 900;
   letter-spacing: -0.03em;
   color: #047857;
   line-height: 1;
-  margin: 4px 0;
 }
 
 /* Nombre del pasajero */
@@ -912,20 +915,6 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   font-size: 1.05rem;
   font-weight: 700;
   color: #065f46;
+  margin-top: 4px;
   opacity: .95;
-  margin-top: 2px;
-}
-
-/* --- Mensaje informativo: desacoplado del logro --- */
-#confirmedBody .field-label {
-  margin-top: 14px;
-  font-size: .85rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-align: center;
-}
-
-/* --- Botón final respira más --- */
-#confirmedModal .actions {
-  margin-top: 28px;
 }
