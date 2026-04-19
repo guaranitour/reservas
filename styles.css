@@ -800,3 +800,61 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 #view-floor .actions {
   margin-top: 0; /* lo controla cards */
 }
+/* ===== Cards con vida + indicador de acción ===== */
+
+/* Base: más profundidad */
+#view-home .card,
+#view-floor .card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, #ffffff 0%, #fafbff 100%);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+/* Hover / focus: levantar la card */
+@media (hover: hover) {
+  #view-home .card:hover,
+  #view-floor .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(17, 24, 39, 0.14);
+  }
+}
+
+/* Línea sutil lateral (life signal) */
+#view-home .card::before,
+#view-floor .card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(99,102,241,.45),
+    rgba(99,102,241,0)
+  );
+}
+
+/* Indicador "Continuar →" */
+#view-home .card::after,
+#view-floor .card::after {
+  content: "Continuar →";
+  margin-top: 12px;
+  display: block;
+  font-size: .85rem;
+  font-weight: 700;
+  color: #4f46e5;
+  opacity: .85;
+  transition: transform .25s ease, opacity .25s ease;
+}
+
+/* Movimiento sutil de la flecha al hover */
+@media (hover: hover) {
+  #view-home .card:hover::after,
+  #view-floor .card:hover::after {
+    transform: translateX(4px);
+    opacity: 1;
+  }
+}
