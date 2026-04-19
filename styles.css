@@ -859,84 +859,52 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   }
 }
 /* =========================================================
-   MODAL CONFIRMACION - Look de logro / éxito
+   CONFIRMACION - Tarjeta de asiento como badge de logro
    ========================================================= */
 
-/* Fondo del modal un poco más suave */
-#confirmedModal .sheet {
-  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
-}
-
-/* Header de éxito */
-#confirmedModal header {
-  justify-content: center;
-  border-bottom: 1px solid rgba(16,185,129,.25);
-  padding-bottom: 10px;
-}
-
-#confirmedTitle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #047857; /* verde éxito */
-  font-weight: 900;
-}
-
-#confirmedTitle::before {
-  content: "✓";
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  background: #10b981;
-  color: #fff;
-  font-size: 1rem;
-}
-
-/* Bloque principal del asiento */
 #confirmedBody .assign-row {
-  background: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%);
-  border: 1.5px solid rgba(16,185,129,.35);
-  box-shadow: 0 10px 24px rgba(16,185,129,.18);
-  text-align: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 8px 0 0;
 }
 
-/* Asiento destacado */
+/* Contenido central */
 #confirmedBody .assign-title {
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: #065f46;
-}
-
-/* Texto informativo más liviano */
-#confirmedBody .field-label {
-  font-size: .85rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-align: center;
-}
-
-/* Acciones finales */
-#confirmedModal .actions {
-  justify-content: center;
-  margin-top: 24px;
-}
-
-/* Botón Volver a inicio más protagónico */
-#confirmedModal .btn.success {
-  min-width: 220px;
-  font-size: 1rem;
+  font-size: 0.75rem;
   font-weight: 800;
-  border-radius: 999px;
-  box-shadow: 0 8px 20px rgba(16,185,129,.35);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 6px;
 }
 
-/* Hover solo en desktop */
-@media (hover: hover) {
-  #confirmedModal .btn.success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(16,185,129,.45);
-  }
+/* Número de asiento bien protagonista */
+#confirmedBody .assign-title strong,
+#confirmedBody .assign-seat {
+  display: block;
+  font-size: 2.4rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #047857;
+  margin: 2px 0;
+}
+
+/* Nombre del pasajero */
+#confirmedBody .assign-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #065f46;
+  opacity: 0.9;
+}
+
+/* Pequeño separador visual */
+#confirmedBody .assign-row::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 3px;
+  margin: 14px auto 6px;
+  border-radius: 999px;
+  background: rgba(16,185,129,.35);
 }
