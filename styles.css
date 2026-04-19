@@ -651,3 +651,29 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   color: #1e3a8a;
   white-space: nowrap;
 }
+/* ===== FIX REAL: mostrar título de viaje en vista convencional ===== */
+
+/* Evitar que home-center oculte el header */
+#view-home .home-center {
+  place-items: start center;
+}
+
+/* Asegurar visibilidad del header */
+#view-home .trip-header {
+  display: flex !important;
+  justify-content: center;
+  width: 100%;
+  margin: 12px 0 18px;
+}
+
+/* Refuerzo visual del título */
+#view-home .trip-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: .3px;
+  color: #111827;
+  z-index: 1;
+}
