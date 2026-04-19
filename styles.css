@@ -763,3 +763,27 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
     margin-right: auto;
   }
 }
+/* ===== Aire para el botón Cambiar viaje ===== */
+#view-home .actions,
+#view-floor .actions {
+  margin-top: 28px;
+}
+/* ===== Botón Cambiar viaje: más botón, menos píldora ===== */
+#view-home .actions .btn.ghost,
+#view-floor .actions .btn.ghost {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  color: #1e3a8a;
+  font-weight: 700;
+  padding: 12px 20px;
+  border-radius: 12px;
+}
+
+/* Hover (desktop) */
+@media (hover: hover) {
+  #view-home .actions .btn.ghost:hover,
+  #view-floor .actions .btn.ghost:hover {
+    background: #e0e7ff;
+    border-color: #a5b4fc;
+  }
+}
