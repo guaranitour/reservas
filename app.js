@@ -736,14 +736,26 @@ async function chooseFloor(sheetName){
  } 
  } 
  } 
-function updateTripTags(){ 
- var tagTrip = document.getElementById('tagTrip'); 
- var tagTripFloor = document.getElementById('tagTripFloor'); 
- var text = 'Viaje: ' + (CURRENT_TRIP.name || '—'); 
- if (tagTrip) tagTrip.textContent = text; 
- if (tagTripFloor) tagTripFloor.textContent = text; 
- syncStaffBadge(); 
- } 
+
+function updateTripTags(){
+  var tagTripFloor = document.getElementById('tagTripFloor');
+  var tripTitleHome = document.getElementById('tripTitleHome');
+
+  var name = CURRENT_TRIP.name || '—';
+
+  // Vista doble piso (se mantiene igual)
+  if (tagTripFloor) {
+    tagTripFloor.textContent = 'Viaje: ' + name;
+  }
+
+  // Vista convencional (nuevo)
+  if (tripTitleHome && !CURRENT_TRIP.hasFloors) {
+    tripTitleHome.textContent = name;
+    tripTitleHome.dataset.type = 'Convencional';
+  }
+
+  syncStaffBadge();
+} 
 async function goSelect(){ 
  if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; } 
  showView('view-select'); 
