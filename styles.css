@@ -609,3 +609,42 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   color: #6b7280;
   margin-bottom: 14px;
 }
+/* ===== PATCH UI: Título de viaje en vista convencional ===== */
+
+.trip-header {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 22px;
+}
+
+.trip-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: .3px;
+  color: #111827;
+}
+
+/* Marcador lateral tipo señalador */
+.trip-title::before {
+  content: "";
+  width: 4px;
+  height: 1.4em;
+  border-radius: 999px;
+  background: rgba(99,102,241,.65);
+  display: inline-block;
+}
+
+/* Etiqueta Convencional */
+.trip-title::after {
+  content: attr(data-type);
+  font-size: .7rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #1e3a8a;
+  white-space: nowrap;
+}
