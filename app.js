@@ -113,6 +113,7 @@ try { window.API = window.API || {}; if (typeof window.API.apiArchiveTrip !== 'f
  var HIGHLIGHT_CODES = new Set(); var LAST_FOUND_CODES = []; 
  var CONTROL_AUTH = false; var CONTROL_EDIT = false; var EDIT_SRC = null; var EDIT_DST = null; 
  var BUSY = false; 
+var BOOTSTRAPING = true;
  /* Viaje/hoja actual */ 
  var CURRENT_TRIP = { fileId: null, name: null, sheets: [], sheetName: null, hasFloors: false }; 
  /* Persistencia staff */ 
@@ -260,7 +261,13 @@ try { window.API = window.API || {}; if (typeof window.API.apiArchiveTrip !== 'f
 function nextPaint(){ return new Promise(requestAnimationFrame); }
  var bar = document.getElementById('snackbar'); if(!bar) return; bar.textContent = msg; bar.classList.add('show'); setTimeout(function(){ bar.classList.remove('show'); }, 2800); } 
  function showLoading(msg){ var ov = document.getElementById('overlay'); if(!ov) return; ov.querySelector('.loader-text').textContent = msg || 'Cargando…'; ov.setAttribute('aria-hidden','false'); ov.classList.add('show'); } 
- function hideLoading(){ var ov = document.getElementById('overlay'); if(!ov) return; ov.classList.remove('show'); ov.setAttribute('aria-hidden','true'); } 
+function hideLoading(){
+  if (BOOTSTRAPING) return; // ⛔ no ocultar loader durante arranque inicial
+  var ov = document.getElementById('overlay');
+  if(!ov) return;
+  ov.classList.remove('show');
+  ov.setAttribute('aria-hidden','true');
+}
  function normalize(code){ return (code || '').toString().replace(/\u00A0/g,' ').replace(/\s+/g,'').trim().toUpperCase(); } 
  function firstName(full){ var t = (full || '').trim(); if(!t) return ''; var name = t.split(/\s+/)[0]; return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); } 
  function onlyDigits(el){ el.value = el.value.replace(/\D+/g, ''); } 
@@ -1776,11 +1783,12 @@ showLoading('Cargando…');
     if (!ROUTER_DRIVING) routeTo(location.hash);
   }, { passive:true });
 
-  (async function initialRoute(){
-    await routeTo(location.hash);
-    document.body.classList.add('app-ready');
-    hideLoading();
-  })();
+(async function initialRoute(){
+  await routeTo(location.hash);
+  document.body.classList.add('app-ready');
+  BOOTSTRAPING = false; // ✅ fin del arranque
+  hideLoading();        // ahora sí se puede ocultar
+})();
  // Sesión previa 
  if (isStaffSession()) { 
  CONTROL_AUTH = true; 
