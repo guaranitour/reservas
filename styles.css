@@ -918,3 +918,14 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   margin-top: 4px;
   opacity: .95;
 }
+/* Nota aclaratoria debajo del croquis */
+.croquis-note{
+  margin-top: 12px;
+  margin-bottom: 6px;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--muted);
+  line-height: 1.4;
+}
