@@ -1687,6 +1687,8 @@ window.closeCreateTripModal = closeCreateTripModal;
 /* ===== Inicio ===== */ 
 (function(){ 
  function start(){ 
+  document.body.classList.remove('app-ready');  
+showLoading('Cargando…');
  // Quitar nodos de texto sueltos dentro del chip (si existieran)
  var chip = document.querySelector('.brand-chip'); 
  if (chip){ 
@@ -1770,8 +1772,15 @@ window.closeCreateTripModal = closeCreateTripModal;
  // Cargar viajes 
  loadTrips(); 
  // Router hash 
- window.addEventListener('hashchange', function(){ if (!ROUTER_DRIVING) routeTo(location.hash); }, { passive:true }); 
- routeTo(location.hash); 
+  window.addEventListener('hashchange', function(){
+    if (!ROUTER_DRIVING) routeTo(location.hash);
+  }, { passive:true });
+
+  (async function initialRoute(){
+    await routeTo(location.hash);
+    document.body.classList.add('app-ready');
+    hideLoading();
+  })();
  // Sesión previa 
  if (isStaffSession()) { 
  CONTROL_AUTH = true; 
