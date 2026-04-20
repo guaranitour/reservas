@@ -929,3 +929,7 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
   color: var(--muted);
   line-height: 1.4;
 }
+/* Bloqueo visual inicial hasta resolver el router */
+body:not(.app-ready) .view {
+  display: none !important;
+}
