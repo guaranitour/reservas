@@ -2032,3 +2032,7 @@ function renderConfirmedPage(pairs){
     body.innerHTML += `<div class="assign-row"><div class="assign-title">Asiento ${num}</div><div>${p.pasajero}</div></div>`;
   });
 }
+// 🔁 Alias para no romper botones existentes
+function startSelectionModal() {
+  startSelectionPage();
+}
