@@ -1921,7 +1921,7 @@ function showConfirmedModal(pairs){
  openConfirmedModal(); 
 } 
 function goToStartAndCloseConfirmed(){ try{ closeConfirmedModal(); }catch(e){} try{ goTripMenu(); }catch(e){} } 
-function startSelectionModal(){ if (BUSY) return; if (selected.size === 0){ toast('Elegí al menos un asiento'); return; } if (selected.size === 1){ renderSingleFormInModal(); return; } renderMultiFormInModal(); } 
+function startSelectionModal_DEPRECATED(){ if (BUSY) return; if (selected.size === 0){ toast('Elegí al menos un asiento'); return; } if (selected.size === 1){ renderSingleFormInModal(); return; } renderMultiFormInModal(); } 
 function updateAssignVisibility(){ /* modal-only */ } 
 function backToSelect(){ try { closeReserveModal(); } catch(e){} } 
 (function(){ 
@@ -1962,3 +1962,73 @@ setInterval(function(){
     el.classList.toggle('future', info.status === 'future');
   });
 }, 1000);
+
+
+// ===== NUEVO FLUJO SIN MODAL =====
+function startSelectionPage(){
+  if (BUSY) return;
+  if (!selected || selected.size === 0){ toast('Elegí al menos un asiento'); return; }
+  showView('view-reserve');
+  renderReservePage();
+}
+
+function renderReservePage(){
+  const body = document.getElementById('reservePageBody');
+  const title = document.getElementById('reservePageTitle');
+  body.innerHTML = '';
+  const seats = Array.from(selected);
+  if (seats.length === 1){
+    title.textContent = 'Confirmar asiento';
+    const norm = normalize(seats[0]);
+    const num = NUM_LABELS.get(norm) || norm;
+    body.innerHTML = `<div class="form">
+      <h4>Asiento ${num}</h4>
+      <div class="form-grid two">
+        <input id="singleName" placeholder="Nombre y Apellido">
+        <input id="singleCI" placeholder="CI" inputmode="numeric">
+      </div>
+    </div>`;
+  } else {
+    title.textContent = 'Asignar datos a los asientos';
+    const list = document.createElement('div'); list.className='assign-list';
+    seats.forEach(s=>{
+      const n=normalize(s); const num=NUM_LABELS.get(n)||n;
+      list.innerHTML += `<div class="assign-row" data-code="${n}">
+        <div class="assign-title">Asiento ${num}</div>
+        <div class="assign-grid">
+          <input class="assign-name" placeholder="Nombre">
+          <input class="assign-ci" placeholder="CI" inputmode="numeric">
+        </div>
+      </div>`;
+    });
+    body.appendChild(list);
+  }
+}
+
+async function confirmReservationPage(){
+  if (BUSY) return;
+  let pairs=[];
+  if (selected.size===1){
+    pairs.push({asiento: normalize([...selected][0]), pasajero: document.getElementById('singleName').value.trim(), ci: document.getElementById('singleCI').value.trim()});
+  } else {
+    document.querySelectorAll('#reservePageBody .assign-row').forEach(r=>{
+      pairs.push({asiento:r.dataset.code, pasajero:r.querySelector('.assign-name').value.trim(), ci:r.querySelector('.assign-ci').value.trim()});
+    });
+  }
+  BUSY=true; showLoading('Reservando…');
+  try{
+    await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
+    renderConfirmedPage(pairs);
+    showView('view-confirmed');
+    await refreshSelectGrid();
+  }catch(e){ toast('No se pudo reservar'); }
+  finally{ BUSY=false; hideLoading(); }
+}
+
+function renderConfirmedPage(pairs){
+  const body=document.getElementById('confirmedPageBody'); body.innerHTML='';
+  pairs.forEach(p=>{
+    const num=NUM_LABELS.get(p.asiento)||p.asiento;
+    body.innerHTML += `<div class="assign-row"><div class="assign-title">Asiento ${num}</div><div>${p.pasajero}</div></div>`;
+  });
+}
