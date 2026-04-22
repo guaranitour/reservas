@@ -216,6 +216,34 @@
  <div class="hint hidden" id="pdfLinkFallback"></div> 
  </div> 
  </section> 
+
+<!-- ===== Pantalla de Reserva (sin modal) ===== -->
+<section class="view" id="view-reserve">
+  <div class="home-center">
+    <div style="max-width:640px;width:100%;">
+      <h2 class="view-title" id="reservePageTitle">Confirmar reserva</h2>
+      <div id="reservePageBody"></div>
+      <div class="actions" style="margin-top:16px; justify-content:space-between;">
+        <button class="btn ghost" onclick="backToSelect()">Volver</button>
+        <button class="btn success" onclick="confirmReservationPage()">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Pantalla de Confirmación (sin modal) ===== -->
+<section class="view" id="view-confirmed">
+  <div class="home-center">
+    <div style="max-width:560px;width:100%;">
+      <h2 class="view-title">¡Reserva confirmada!</h2>
+      <div id="confirmedPageBody"></div>
+      <div class="actions" style="justify-content:center;margin-top:16px;">
+        <button class="btn success" onclick="goTripMenu()">Volver al inicio</button>
+      </div>
+    </div>
+  </div>
+</section>
+
 </main> 
 <!-- ===== Modal de Reserva ===== --> 
 <div aria-hidden="true" aria-modal="true" class="modal" id="reserveModal" role="dialog"> 
