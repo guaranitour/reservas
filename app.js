@@ -773,7 +773,7 @@ async function goSelect(){
  if (CURRENT_TRIP.hasFloors) setHash(['Selección de asientos', CURRENT_TRIP.name, getFloorLabelFromSheetName(CURRENT_TRIP.sheetName)]); 
  else setHash(['Selección de asientos', CURRENT_TRIP.name]); 
  } 
-function goFind(){ if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; } showView('view-find'); clearFindView(); clearFindViewMulti(); setHash(['Mirar']); } 
+function goFind(){ if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; } showView('view-find'); clearFindView(); clearFindViewMulti(); } 
 function goControl(){ openStaffLogin(); } 
 function goToControlBoard(){ 
  if(!CONTROL_AUTH){ openStaffLogin(); return; } 
@@ -2114,4 +2114,3 @@ function startSelectionModal() {
 function backToSelect() {
   showView('view-select');
 }
-
