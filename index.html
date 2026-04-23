@@ -184,7 +184,14 @@
  <section aria-label="Control interno" class="view" id="view-control"> 
  <!-- Bloque de login con Google --> 
  <div class="form" id="googleSigninBox"> 
-  <!-- Acceso staff no autorizado -->
+ <h4 class="control-title">Acceso staff</h4> 
+ <div id="googleSignIn"></div> 
+ <p class="hint">Acceso exclusivo para el staff (usa tu cuenta autorizada).</p> 
+ <div class="actions"> 
+ <button class="btn ghost" onclick="goHome()" type="button">Inicio</button> 
+ </div> 
+ </div> 
+    <!-- Acceso staff no autorizado -->
 <div class="form hidden staff-denied-box" id="staffDeniedBox">
   <h4 class="control-title">Acceso no autorizado</h4>
 
@@ -198,13 +205,6 @@
     </button>
   </div>
 </div>
- <h4 class="control-title">Acceso staff</h4> 
- <div id="googleSignIn"></div> 
- <p class="hint">Acceso exclusivo para el staff (usa tu cuenta autorizada).</p> 
- <div class="actions"> 
- <button class="btn ghost" onclick="goHome()" type="button">Inicio</button> 
- </div> 
- </div> 
  <!-- Panel de control --> 
  <div class="control-board" hidden id="controlBoard"> 
  <h4 class="control-title">Ocupación por número</h4> 
