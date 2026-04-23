@@ -2007,22 +2007,71 @@ function renderReservePage(){
 
 async function confirmReservationPage(){
   if (BUSY) return;
-  let pairs=[];
-  if (selected.size===1){
-    pairs.push({asiento: normalize([...selected][0]), pasajero: document.getElementById('singleName').value.trim(), ci: document.getElementById('singleCI').value.trim()});
-  } else {
-    document.querySelectorAll('#reservePageBody .assign-row').forEach(r=>{
-      pairs.push({asiento:r.dataset.code, pasajero:r.querySelector('.assign-name').value.trim(), ci:r.querySelector('.assign-ci').value.trim()});
+
+  let pairs = [];
+
+  // ✅ Validación: reserva individual
+  if (selected.size === 1) {
+    const name = document.getElementById('singleName').value.trim();
+    const ci   = document.getElementById('singleCI').value.trim();
+
+    if (!name || !ci) {
+      toast('Completá nombre y CI');
+      return;
+    }
+
+    pairs.push({
+      asiento: normalize([...selected][0]),
+      pasajero: name,
+      ci: ci
     });
+  } 
+  // ✅ Validación: reserva múltiple
+  else {
+    let invalid = false;
+
+    document.querySelectorAll('#reservePageBody .assign-row').forEach(row => {
+      const pasajero = row.querySelector('.assign-name').value.trim();
+      const ci = row.querySelector('.assign-ci').value.trim();
+
+      if (!pasajero || !ci) {
+        invalid = true;
+      }
+
+      pairs.push({
+        asiento: row.dataset.code,
+        pasajero,
+        ci
+      });
+    });
+
+    if (invalid) {
+      toast('Completá los datos de todos los asientos');
+      return;
+    }
   }
-  BUSY=true; showLoading('Reservando…');
-  try{
-    await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs);
+
+  // ✅ Reserva real recién acá
+  BUSY = true;
+  showLoading('Reservando…');
+
+  try {
+    await API.apiReserve(
+      CURRENT_TRIP.fileId,
+      CURRENT_TRIP.sheetName,
+      pairs
+    );
+
     renderConfirmedPage(pairs);
     showView('view-confirmed');
     await refreshSelectGrid();
-  }catch(e){ toast('No se pudo reservar'); }
-  finally{ BUSY=false; hideLoading(); }
+
+  } catch (e) {
+    toast('No se pudo reservar');
+  } finally {
+    BUSY = false;
+    hideLoading();
+  }
 }
 
 function renderConfirmedPage(pairs){
