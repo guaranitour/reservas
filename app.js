@@ -2036,3 +2036,8 @@ function renderConfirmedPage(pairs){
 function startSelectionModal() {
   startSelectionPage();
 }
+// 🔁 Volver desde la pantalla de reserva al croquis
+function backToSelect() {
+  showView('view-select');
+}
+
