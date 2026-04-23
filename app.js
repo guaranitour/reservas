@@ -925,6 +925,696 @@ async function confirmSingle(){
  }catch(err){ toast('No se pudo reservar'); } 
  finally{ hideLoading(); BUSY = false; } 
 } 
+function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } } 
+function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); } 
+function toggleSeat(code, el){ 
+ var key = normalize(code); 
+ var isSel = selected.has(key); 
+ if(isSel){ selected.delete(key); el.classList.remove('seleccionado'); } 
+ else { selected.add(key); el.classList.add('seleccionado'); } 
+ updateAssignVisibility(); 
+ // NUEVO: actualizar badge contador 
+ if (typeof syncSelectedCounter === 'function') { try { syncSelectedCounter(); } catch(e){} } 
+ } 
+async function startSelection(){ 
+ if(BUSY) return; 
+ if(selected.size === 0){ toast('Elegí al menos un asiento'); return; } 
+ if(selected.size === 1){ 
+ var form = document.getElementById('detailsSingle'); 
+ if(form){ form.classList.remove('hidden'); form.scrollIntoView({behavior:'smooth'}); } 
+ var nameInput = document.getElementById('nombreSingle'); if(nameInput) try{ nameInput.focus(); }catch(e){} 
+ return; 
+ } 
+ var assign = document.getElementById('assignList'); assign.innerHTML = ''; 
+ var codes = Array.from(selected); 
+ for(var i=0;i<codes.length;i++){ 
+ var codeNorm = normalize(codes[i]); var num = NUM_LABELS.get(codeNorm) || ''; 
+ var row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm); 
+ var title = document.createElement('div'); title.className = 'assign-title'; title.textContent = 'Asiento ' + (num || codeNorm); 
+ var grid = document.createElement('div'); grid.className = 'assign-grid'; 
+ var nameWrap = document.createElement('label'); nameWrap.className = 'field'; 
+ var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre y Apellido'; 
+ var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Luanita Espada'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name'; 
+ var ciWrap = document.createElement('label'); ciWrap.className = 'field'; 
+ var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento'; 
+ var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; 
+ ciInput.addEventListener('input', function(e){ onlyDigits(e.target); }); 
+ nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput); 
+ ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput); 
+ grid.appendChild(nameWrap); grid.appendChild(ciWrap); 
+ row.appendChild(title); row.appendChild(grid); 
+ assign.appendChild(row); 
+ } 
+ document.getElementById('view-assign').classList.remove('hidden'); 
+ document.getElementById('view-assign').scrollIntoView({behavior:'smooth'}); 
+} 
+async function confirmReservation(){ 
+ if(BUSY) return; 
+ var inputs = document.querySelectorAll('#assignList .assign-row'); 
+ var pairs = []; 
+ for(var i=0;i<inputs.length;i++){ 
+ var row = inputs[i]; 
+ var codeNorm = row.getAttribute('data-code'); 
+ var pasajero = row.querySelector('.assign-name').value.trim(); 
+ var ci = row.querySelector('.assign-ci').value.trim(); 
+ if(!pasajero || !ci){ toast('Faltan datos en ' + codeNorm); return; } 
+ pairs.push({ asiento: codeNorm, pasajero: pasajero, ci: ci }); 
+ } 
+ BUSY = true; showLoading('Reservando…'); 
+ try{ 
+ await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs); 
+ showConfirmedModal(pairs); 
+ document.getElementById('view-assign').classList.add('hidden'); 
+ await refreshSelectGrid(); 
+ }catch(err){ toast('No se pudo reservar'); } 
+ finally{ hideLoading(); BUSY = false; } 
+ } 
+function showReserveFeedbackDetailed(pairs){ 
+ var panel = document.getElementById('reserveFeedback'); var nums = document.getElementById('reserveNums'); nums.innerHTML = ''; 
+ (pairs ||[]).forEach(function(p){ 
+ var norm = normalize(p.asiento); 
+ var num = NUM_LABELS.get(norm); 
+ var pill = document.createElement('span'); pill.className = 'pill'; 
+ pill.textContent = ((typeof num !== 'undefined') ? num : norm) + ' — ' + p.pasajero + ' (' + p.ci + ')'; 
+ nums.appendChild(pill); 
+ }); 
+ panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'}); 
+ } 
+/* ====== Mirá tu asiento (público) ====== */ 
+async function findByCI(){ 
+ if(CURRENT_TRIP.hasFloors && !CURRENT_TRIP.sheetName){ 
+ await findByCIAcrossFloors(); 
+ return; 
+ } 
+ if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; } 
+ var ci = document.getElementById('ciSearch').value.trim(); 
+ if(!ci){ toast('Ingresá tu CI'); return; } 
+ showLoading('Buscando…'); 
+ try{ 
+ var respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci); 
+ var rawCodes = (respSeats.seats ||[]).map(function(s){ return normalize(s); }); 
+ LAST_FOUND_CODES = Array.from(new Set(rawCodes)); 
+ var respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName); 
+ var rows = respRows.rows ||[]; 
+ SEATS = {}; 
+ rows.forEach(function(r){ SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; }); 
+ var nums = computeNumbersForCodes(LAST_FOUND_CODES); 
+ renderFindFeedback(nums); 
+ HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES); 
+ }catch(err){ toast('Error al buscar por CI'); } 
+ finally{ hideLoading(); } 
+ } 
+function computeNumbersForCodes(codes){ 
+ NUM_LABELS = new Map(); 
+ var rows = getRowsToRender(); 
+ var seatNumber = 1; 
+ function isNum(klass){ return (klass === 'libre' || klass === 'ocupado'); } 
+ rows.forEach(function(row){ 
+ ['A','B','C','D'].forEach(function(letter){ 
+ var code = row + letter; 
+ var klass = computeClassFor(code); 
+ var norm = normalize(code); 
+ if(isNum(klass)){ NUM_LABELS.set(norm, seatNumber); seatNumber++; } 
+ }); 
+ }); 
+ return codes.map(function(c){ return NUM_LABELS.get(c); }).filter(function(n){ return typeof n !== 'undefined'; }); 
+ } 
+function renderFindFeedback(nums){ 
+ var panel = document.getElementById('findFeedback'); 
+ var list = document.getElementById('findNums'); 
+ var btn = document.getElementById('btnShowCroquis'); 
+ list.innerHTML = ''; 
+ if(nums.length){ 
+ nums.forEach(function(n){ var pill = document.createElement('span'); pill.className='pill'; pill.textContent = String(n); list.appendChild(pill); }); 
+ panel.classList.remove('hidden'); btn.disabled = false; panel.scrollIntoView({behavior:'smooth'}); 
+ }else{ 
+ panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true; 
+ } 
+ } 
+function showCroquisForCI(){ 
+ showLoading('Cargando croquis…'); 
+ refreshSeats('grid-find', function(){ 
+ hideLoading(); 
+ var firstMarked = document.getElementById('grid-find').querySelector('.seat.mine'); 
+ if (firstMarked) firstMarked.scrollIntoView({ behavior:'smooth', block:'center' }); 
+ else document.getElementById('grid-find').scrollIntoView({ behavior:'smooth', block:'start' }); 
+ toast('Resaltados: ' + HIGHLIGHT_CODES.size); 
+ }); 
+ } 
+function clearFindView(){ 
+ document.getElementById('findFeedback').classList.add('hidden'); 
+ document.getElementById('findNums').innerHTML = ''; 
+ document.getElementById('grid-find').innerHTML = ''; 
+ HIGHLIGHT_CODES = new Set(); 
+ LAST_FOUND_CODES = []; 
+ } 
+/* ====== BÚSQUEDA EN AMBAS PLANTAS ====== */ 
+var MULTI_SHEETS = []; 
+var SEATS_BY_SHEET = new Map(); 
+var HIGHLIGHT_BY_SHEET = new Map(); 
+var NUMS_BY_SHEET = new Map(); 
+async function findByCIAcrossFloors(){ 
+ if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; } 
+ var ci = document.getElementById('ciSearch').value.trim(); 
+ if(!ci){ toast('Ingresá tu CI'); return; } 
+ showLoading('Buscando en ambas plantas…'); 
+ try{ 
+ MULTI_SHEETS = getFloorSheets(); 
+ SEATS_BY_SHEET = new Map(); 
+ HIGHLIGHT_BY_SHEET = new Map(); 
+ NUMS_BY_SHEET = new Map(); 
+ for(var i=0;i<MULTI_SHEETS.length;i++){ 
+ var f = MULTI_SHEETS[i]; 
+ var respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, f.sheetName, ci); 
+ var respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, f.sheetName); 
+ var codesRaw = (respSeats.seats ||[]).map(function(s){ return normalize(s); }); 
+ var codes = Array.from(new Set(codesRaw)); 
+ var rows = respRows.rows ||[]; 
+ var seatsMap = {}; 
+ rows.forEach(function(r){ seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; }); 
+ SEATS_BY_SHEET.set(f.sheetName, seatsMap); 
+ HIGHLIGHT_BY_SHEET.set(f.sheetName, new Set(codes)); 
+ var nums = computeNumbersForCodesWith(seatsMap, codes); 
+ NUMS_BY_SHEET.set(f.sheetName, nums); 
+ } 
+ renderFindFeedbackMulti(); 
+ }catch(err){ 
+ toast('Error al buscar en ambas plantas'); 
+ }finally{ 
+ hideLoading(); 
+ } 
+ } 
+function computeNumbersForCodesWith(seatsMap, codes){ 
+ var rows = getRowsToRenderFromMap(seatsMap); 
+ var seatNumber = 1; 
+ var labels = new Map(); 
+ function isNum(klass){ return (klass === 'libre' || klass === 'ocupado'); } 
+ rows.forEach(function(row){ 
+ ['A','B','C','D'].forEach(function(letter){ 
+ var code = row + letter; 
+ var klass = computeClassForWith(seatsMap, code); 
+ var norm = normalize(code); 
+ if(isNum(klass)){ labels.set(norm, seatNumber); seatNumber++; } 
+ }); 
+ }); 
+ return codes.map(function(c){ return labels.get(c); }).filter(function(n){ return typeof n !== 'undefined'; }); 
+ } 
+function renderFindFeedbackMulti(){ 
+ clearFindView(); 
+ var panel = document.getElementById('multiFeedback'); 
+ var wrap = document.getElementById('multiNums'); 
+ var btn = document.getElementById('btnShowCroquisMulti'); 
+ wrap.innerHTML = ''; 
+ var totalResults = 0; 
+ MULTI_SHEETS.forEach(function(f){ 
+ var nums = NUMS_BY_SHEET.get(f.sheetName) ||[]; 
+ totalResults += nums.length; 
+ var section = document.createElement('div'); 
+ section.className = 'form'; 
+ section.style.marginBottom = '12px'; 
+ var title = document.createElement('h4'); 
+ title.textContent = f.label; 
+ title.style.margin = '0 0 8px 0'; 
+ var list = document.createElement('div'); 
+ list.className = 'nums'; 
+ if(nums.length){ 
+ nums.forEach(function(n){ 
+ var pill = document.createElement('span'); pill.className='pill'; 
+ pill.textContent = String(n); 
+ list.appendChild(pill); 
+ }); 
+ }else{ 
+ var pill2 = document.createElement('span'); pill2.className='pill'; 
+ pill2.textContent = 'Sin asientos'; 
+ list.appendChild(pill2); 
+ } 
+ section.appendChild(title); 
+ section.appendChild(list); 
+ wrap.appendChild(section); 
+ }); 
+ panel.classList.remove('hidden'); 
+ btn.disabled = (totalResults === 0); 
+ panel.scrollIntoView({behavior:'smooth'}); 
+ } 
+async function showCroquisForCIMulti(){ 
+ showLoading('Cargando croquis…'); 
+ var container = document.getElementById('multiCroquis'); 
+ container.innerHTML = ''; 
+ var floorsWithResults = MULTI_SHEETS.filter(function(f){ 
+ var found = NUMS_BY_SHEET.get(f.sheetName) ||[]; 
+ return found.length > 0; 
+ }); 
+ if (!floorsWithResults.length) { 
+ hideLoading(); 
+ toast('Tu CI no tiene asientos en ninguna planta de este viaje.'); 
+ return; 
+ } 
+ for(var i=0;i<floorsWithResults.length;i++){ 
+ var f = floorsWithResults[i]; 
+ var seatsMap = SEATS_BY_SHEET.get(f.sheetName) ||{}; 
+ var highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) || new Set(); 
+ var form = document.createElement('div'); 
+ form.className = 'form'; 
+ form.style.marginBottom = '12px'; 
+ var title = document.createElement('h4'); 
+ title.textContent = f.label; 
+ title.style.margin = '0 0 8px 0'; 
+ var gridId = 'grid-find-' + normalize(f.label).toLowerCase(); 
+ var grid = document.createElement('div'); 
+ grid.id = gridId; 
+ grid.className = 'grid'; 
+ grid.setAttribute('aria-live','polite'); 
+ form.appendChild(title); 
+ form.appendChild(grid); 
+ container.appendChild(form); 
+ buildGridCustom(gridId, seatsMap, highlights); 
+ } 
+ hideLoading(); 
+ var firstMarked = container.querySelector('.seat.mine'); 
+ if (firstMarked) { firstMarked.scrollIntoView({ behavior:'smooth', block:'center' }); } 
+ else { container.scrollIntoView({ behavior:'smooth', block:'start' }); } 
+ } 
+function buildGridCustom(targetId, seatsMap, highlightSet){ 
+ var grid = document.getElementById(targetId); if(!grid) return; 
+ grid.innerHTML = ''; 
+ var rows = getRowsToRenderFromMap(seatsMap); 
+ if(rows.length === 0){ grid.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; } 
+ var seatNumber = 1; 
+ rows.forEach(function(row){ 
+ var rowEl = document.createElement('div'); rowEl.className = 'row'; 
+ var left = document.createElement('div'); left.className = 'block'; 
+ var right = document.createElement('div'); right.className = 'block'; 
+ function renderSeat(letter, container){ 
+ var code = row + letter; 
+ var klass = computeClassForWith(seatsMap, code); 
+ var btn = document.createElement('button'); btn.type='button'; btn.className = 'seat ' + klass; 
+ var isNum = (klass === 'libre' || klass === 'ocupado'); 
+ var norm = normalize(code); 
+ if(isNum){ 
+ btn.textContent = seatNumber; 
+ btn.setAttribute('data-code', code); 
+ btn.setAttribute('aria-label', 'Asiento ' + code + ' ('+seatNumber+') ' + klass); 
+ seatNumber++; 
+ btn.disabled = true; 
+ }else{ 
+ btn.innerHTML = ' '; 
+ btn.setAttribute('aria-label', 'Asiento ' + code + ' inhabilitado/no disponible'); 
+ btn.disabled = true; 
+ } 
+ if(highlightSet.has(norm)){ btn.classList.add('mine'); } 
+ container.appendChild(btn); 
+ } 
+ ['A','B'].forEach(function(l){ renderSeat(l, left); }); 
+ var aisle = document.createElement('div'); aisle.className = 'aisle'; 
+ ['C','D'].forEach(function(l){ renderSeat(l, right); }); 
+ rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right); 
+ grid.appendChild(rowEl); 
+ }); 
+ var first = grid.querySelector('.seat.mine'); 
+ if(first) first.scrollIntoView({behavior:'smooth', block:'center'}); 
+ } 
+function clearFindViewMulti(){ 
+ document.getElementById('multiFeedback').classList.add('hidden'); 
+ document.getElementById('multiNums').innerHTML = ''; 
+ document.getElementById('multiCroquis').innerHTML = ''; 
+ MULTI_SHEETS = []; 
+ SEATS_BY_SHEET = new Map(); 
+ HIGHLIGHT_BY_SHEET = new Map(); 
+ NUMS_BY_SHEET = new Map(); 
+ } 
+/* ====== Control interno (single) ===== */ 
+function renderControlBoard(){ 
+ if(!CONTROL_AUTH){ hideControlBoard(); return; } 
+ STAFF_CONTROL_MULTI = false; STAFF_ACTIVE_SHEET = CURRENT_TRIP.sheetName; 
+ var board = document.getElementById('controlBoard'); 
+ var croquis= document.getElementById('controlCroquis'); 
+ var multi = document.getElementById('controlCroquisMulti'); 
+ var fb = document.getElementById('pdfLinkFallback'); 
+ if (board) board.hidden = false; 
+ if (croquis) croquis.innerHTML = ''; 
+ if (multi) multi.innerHTML = ''; 
+ if (fb) { fb.classList.add('hidden'); fb.innerHTML = ''; } 
+ CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI(); 
+ var btnExp = document.getElementById('btnExportPdf'); if (btnExp) btnExp.textContent = 'Exportar PDF'; 
+ var maxRow = getMaxRow(); if(maxRow === 0){ if(croquis) croquis.innerHTML = '<p class="empty">No hay asientos cargados en la hoja.</p>'; return; } 
+ NUM_LABELS = new Map(); var seatNumber = 1; 
+ for(var row=1; row<=maxRow; row++){ 
+ var rowEl=document.createElement('div'); rowEl.className='row'; 
+ var left=document.createElement('div'); left.className='block'; 
+ var right=document.createElement('div'); right.className='block'; 
+ function renderSeat(letter, container){ 
+ var code = row + letter; 
+ var norm = normalize(code); 
+ var klass= computeClassFor(code); 
+ var isNum= (klass==='libre' || klass==='ocupado'); 
+ var btn=document.createElement('button'); btn.type='button'; btn.className='seat ' + klass; 
+ btn.setAttribute('data-sheet', CURRENT_TRIP.sheetName || ''); 
+ btn.setAttribute('data-code',code); 
+ btn.setAttribute('data-status',klass); 
+ if(isNum){ 
+ var occFull = (SEATS[norm] && SEATS[norm].pasajero) || ''; 
+ var occName = (klass==='ocupado') ? firstName(occFull) : ''; 
+ btn.innerHTML = 
+ '<span class="num">'+seatNumber+'</span>' + 
+ (occName ? '<span class="occ-name">'+occName+'</span>' : '') + 
+ (occFull ? '<span class="occ-full" aria-hidden="true">'+occFull+'</span>' : ''); 
+ btn.setAttribute('data-num',seatNumber); 
+ btn.setAttribute('aria-label','Asiento '+code+' ('+seatNumber+') '+klass + (occName ? (' — Ocupa: '+occName) : '')); 
+ btn.setAttribute('aria-expanded','false'); 
+ btn.disabled = false; 
+ NUM_LABELS.set(norm,seatNumber); 
+ seatNumber++; 
+ }else{ 
+ btn.innerHTML=' '; 
+ btn.setAttribute('aria-label','Asiento '+code+' inhabilitado/no disponible'); 
+ btn.disabled=true; 
+ } 
+ btn.onclick=function(){ 
+ if (CONTROL_EDIT) onControlSeatClick(btn); 
+ else toggleSeatExpand(btn); 
+ }; 
+ container.appendChild(btn); 
+ } 
+ ['A','B'].forEach(function(l){ renderSeat(l,left); }); 
+ var aisle=document.createElement('div'); aisle.className='aisle'; 
+ ['C','D'].forEach(function(l){ renderSeat(l,right); }); 
+ rowEl.appendChild(left); rowEl.appendChild(aisle); rowEl.appendChild(right); 
+ if (croquis) croquis.appendChild(rowEl); 
+ } 
+ if (board) board.scrollIntoView({behavior:'smooth'}); 
+ attachStickyAnimation(); 
+ } 
+function getMaxRow(){ var maxRow = 0; Object.keys(SEATS).forEach(function(code){ var m = code.match(/^(\d+)[A-Z]$/); if(m){ var row = parseInt(m[1],10); if(row > maxRow) maxRow = row; } }); return maxRow || 0; } 
+function attachStickyAnimation(){ 
+ var toolbar = document.getElementById('controlToolbar'); 
+ function onScroll(){ var y=window.scrollY; if(y>24){ if(toolbar) toolbar.classList.add('scrolled'); } else { if(toolbar) toolbar.classList.remove('scrolled'); } } 
+ window.removeEventListener('scroll', onScroll); 
+ window.addEventListener('scroll', onScroll, { passive:true }); 
+ onScroll(); 
+ } 
+function hideControlBoard(){ 
+ var board = document.getElementById('controlBoard'); 
+ if (board) board.hidden = true; 
+ var c1 = document.getElementById('controlCroquis'); 
+ var c2 = document.getElementById('controlCroquisMulti'); 
+ if (c1) c1.innerHTML=''; 
+ if (c2) c2.innerHTML=''; 
+ var fb=document.getElementById('pdfLinkFallback'); 
+ if (fb) { fb.classList.add('hidden'); fb.innerHTML=''; } 
+ hideSeatTooltip(); 
+ CONTROL_EDIT=false; EDIT_SRC=null; EDIT_DST=null; updateEditTags(); syncToolbarUI(); 
+ } 
+function toggleControlEdit(){ 
+ if (!isAdmin()){ toast('No tenés permisos de edición'); return; } 
+ CONTROL_EDIT=!CONTROL_EDIT; 
+ hideSeatTooltip(); 
+ updateEditTags(); syncToolbarUI(); 
+ toast(CONTROL_EDIT ? 'Modo edición activo' : 'Modo edición desactivado'); 
+ } 
+function onControlSeatClick(btn){ 
+ if(!CONTROL_EDIT) return; 
+ var status=(btn.getAttribute('data-status') || 'libre').toLowerCase().trim(); 
+ var num =parseInt(btn.getAttribute('data-num') || '0',10); 
+ var code =btn.getAttribute('data-code'); 
+ var sheet = btn.getAttribute('data-sheet') || CURRENT_TRIP.sheetName || null; 
+ STAFF_ACTIVE_SHEET = sheet; 
+ if(status==='ocupado'){ 
+ var srcEls = document.querySelectorAll('.seat.pick-source'); for(var i=0;i<srcEls.length;i++){ srcEls[i].classList.remove('pick-source'); } 
+ btn.classList.add('pick-source'); EDIT_SRC={num:num,code:code,sheet:sheet}; 
+ }else if(status==='libre'){ 
+ var dstEls = document.querySelectorAll('.seat.pick-target'); for(var j=0;j<dstEls.length;j++){ dstEls[j].classList.remove('pick-target'); } 
+ btn.classList.add('pick-target'); EDIT_DST={num:num,code:code,sheet:sheet}; 
+ }else{ return; } 
+ updateEditTags(); syncToolbarUI(); 
+ } 
+function updateEditTags(){ 
+ var tagSrc=document.getElementById('tagSrc'), tagDst=document.getElementById('tagDst'); 
+ if (tagSrc) tagSrc.textContent='Origen: ' + (EDIT_SRC ? (EDIT_SRC.num + ' • ' + EDIT_SRC.code) : '—'); 
+ if (tagDst) tagDst.textContent='Destino: ' + (EDIT_DST ? (EDIT_DST.num + ' • ' + EDIT_DST.code) : '—'); 
+ } 
+function syncToolbarUI() { 
+ var btnEdit = document.getElementById('btnEditMode'); 
+ var btnMove = document.getElementById('btnMove'); 
+ var btnFree = document.getElementById('btnFree'); 
+ var btnCancel = document.getElementById('btnCancel'); 
+ var btnExport = document.getElementById('btnExportPdf'); 
+ var toolbar = document.getElementById('controlToolbar'); 
+ var tagSrc = document.getElementById('tagSrc'); 
+ var tagDst = document.getElementById('tagDst'); 
+ var admin = isAdmin(); 
+ // Visibilidad base por rol 
+ if (btnEdit) btnEdit.style.display = admin ? '' : 'none'; 
+ if (btnExport) btnExport.style.display = admin ? '' : 'none'; 
+ // Etiquetas Origen/Destino: viewer nunca; admin sólo en modo edición 
+ var showTags = admin && CONTROL_EDIT; 
+ if (tagSrc) tagSrc.style.display = showTags ? '' : 'none'; 
+ if (tagDst) tagDst.style.display = showTags ? '' : 'none'; 
+ // Acciones de edición: sólo admin + modo edición 
+ var showEditActions = admin && CONTROL_EDIT; 
+ if (btnMove) btnMove.style.display = showEditActions ? '' : 'none'; 
+ if (btnFree) btnFree.style.display = showEditActions ? '' : 'none'; 
+ if (btnCancel) btnCancel.style.display = showEditActions ? '' : 'none'; 
+ if (toolbar) toolbar.classList.toggle('editing', CONTROL_EDIT); 
+ // Si no es admin, no sigue lógica de edición 
+ if (!admin) { 
+ return; 
+ } 
+ if (CONTROL_EDIT) { 
+ if (btnEdit) { 
+ btnEdit.classList.add('danger'); 
+ btnEdit.textContent = 'Salir de edición'; 
+ } 
+ var canMove = EDIT_SRC && EDIT_DST; 
+ if (btnMove) btnMove.disabled = !canMove; 
+ if (btnFree) btnFree.disabled = !EDIT_SRC; 
+ if (btnCancel) btnCancel.disabled = false; 
+ } else { 
+ if (btnEdit) { 
+ btnEdit.classList.remove('danger'); 
+ btnEdit.textContent = 'Modo edición'; 
+ } 
+ if (btnMove) btnMove.disabled = true; 
+ if (btnFree) btnFree.disabled = true; 
+ if (btnCancel) btnCancel.disabled = true; 
+ } 
+} 
+function cancelEdit(silent){ 
+ EDIT_SRC=null; EDIT_DST=null; 
+ var srcEls = document.querySelectorAll('.seat.pick-source'); for(var i=0;i<srcEls.length;i++){ srcEls[i].classList.remove('pick-source'); } 
+ var dstEls = document.querySelectorAll('.seat.pick-target'); for(var j=0;j<dstEls.length;j++){ dstEls[j].classList.remove('pick-target'); } 
+ updateEditTags(); syncToolbarUI(); 
+ if(!silent) toast('Edición cancelada.'); 
+ } 
+async function movePassenger(){ 
+ showLoading('Moviendo pasajero…'); 
+ if(!isAdmin()){ hideLoading(); toast('Solo administradores pueden editar'); return; } 
+ if(!EDIT_SRC || !EDIT_DST){ hideLoading(); toast('Selecciona origen (ocupado) y destino (libre).'); return; } 
+ try{ 
+ var sheet = STAFF_CONTROL_MULTI ? EDIT_SRC.sheet : CURRENT_TRIP.sheetName; 
+ var resp=await API.apiMove(CURRENT_TRIP.fileId, sheet, EDIT_SRC.code, EDIT_DST.code); 
+ toast(resp && resp.message ? resp.message : 'Movimiento realizado'); 
+ cancelEdit(true); 
+ await refreshControlBoardSmart(); 
+ }catch(err){ 
+ toast('No se pudo mover al pasajero'); 
+ }finally{ 
+ hideLoading(); 
+ } 
+ } 
+async function freeSelectedSeat(){ 
+ showLoading('Liberando asiento…'); 
+ if(!isAdmin()){ hideLoading(); toast('Solo administradores pueden editar'); return; } 
+ if(!EDIT_SRC){ hideLoading(); toast('Selecciona primero un asiento ocupado (origen) para liberar.'); return; } 
+ try{ 
+ var sheet = STAFF_CONTROL_MULTI ? EDIT_SRC.sheet : CURRENT_TRIP.sheetName; 
+ var resp=await API.apiFree(CURRENT_TRIP.fileId, sheet, EDIT_SRC.code); 
+ toast(resp && resp.message ? resp.message : 'Asiento liberado'); 
+ cancelEdit(true); 
+ await refreshControlBoardSmart(); 
+ }catch(err){ 
+ toast('No se pudo liberar el asiento'); 
+ }finally{ 
+ hideLoading(); 
+ } 
+ } 
+/* ===== Exportar PDFs ===== */ 
+async function doExportPdfSmart(){ 
+ if(!CONTROL_AUTH){ toast('Debes iniciar sesión'); return; } 
+ if(!isAdmin()){ toast('Solo administradores pueden exportar PDF'); return; } 
+ showLoading('Generando PDF…'); 
+ try{ 
+ if (STAFF_CONTROL_MULTI) { 
+ var floors = getFloorSheets(); 
+ var urls = []; 
+ for (var i=0;i<floors.length;i++){ 
+ var f = floors[i]; 
+ var resp = await API.apiExportPdf(CURRENT_TRIP.fileId, f.sheetName); 
+ if(resp && resp.url){ urls.push({ label: f.label, url: resp.url }); } 
+ } 
+ if(urls.length){ 
+ var openedAll = true; 
+ for (var j=0;j<urls.length;j++){ 
+ var w = window.open(urls[j].url,'_blank'); 
+ if(!w) openedAll = false; 
+ } 
+ if(!openedAll){ 
+ var fb=document.getElementById('pdfLinkFallback'); 
+ var listHtml = ''; 
+ for(var k=0;k<urls.length;k++){ 
+ var u = urls[k]; 
+ listHtml += '<li><a href="'+u.url+'" target="_blank" rel="noopener">'+u.label+'</a></li>'; 
+ } 
+ if (fb) { 
+ fb.innerHTML='Tus PDFs están listos:<ul style="margin:8px 0;padding-left:16px;">'+listHtml+'</ul>'; 
+ fb.classList.remove('hidden'); 
+ } 
+ } else { 
+ toast('PDFs listos ('+urls.length+')'); 
+ } 
+ } else { 
+ toast('No se pudo generar los PDFs'); 
+ } 
+ } else { 
+ var sheet = CURRENT_TRIP.sheetName; 
+ var resp2 = await API.apiExportPdf(CURRENT_TRIP.fileId, sheet); 
+ if(resp2 && resp2.url){ 
+ var newWin=window.open(resp2.url,'_blank'); 
+ if(!newWin){ 
+ var fb2=document.getElementById('pdfLinkFallback'); 
+ if (fb2) { 
+ fb2.innerHTML='Tu PDF está listo: <a href="'+resp2.url+'" target="_blank" rel="noopener">Abrir PDF</a>'; 
+ fb2.classList.remove('hidden'); 
+ } 
+ }else{ 
+ toast('PDF listo'); 
+ } 
+ }else{ 
+ toast(resp2 && resp2.message ? resp2.message : 'No se pudo generar el PDF'); 
+ } 
+ } 
+ }catch(err){ 
+ toast('Error al generar PDF'); 
+ }finally{ 
+ hideLoading(); 
+ } 
+ } 
+async function refreshControlBoardSmart(){ 
+ if (STAFF_CONTROL_MULTI) { 
+ await refreshStaffMulti(); 
+ } else { 
+ await refreshSeatsWithSpinner(null, renderControlBoard); 
+ } 
+ } 
+/* ===== Wrapper público ===== */ 
+async function refreshSelectGrid(){ 
+ var opts = await computeGridOptions(); 
+ await refreshSeatsWithSpinner('grid-select', function(){}, opts); 
+ } 
+/* ===== FIX: cablear botones del menú admin ===== */ 
+function wireAdminMenuButtons(){ 
+ var bLogin = document.getElementById('btnAdminLogin'); 
+ var bInicio = document.getElementById('btnAdminControl'); 
+ var bLogout = document.getElementById('btnAdminLogout'); 
+ if (bLogin) bLogin.addEventListener('click', function(){ try { openStaffLogin(); hideAdminMenu(); } catch(e){} }); 
+ if (bInicio) bInicio.addEventListener('click', function(){ try { backToChoose(); hideAdminMenu(); } catch(e){} }); 
+ if (bLogout) bLogout.addEventListener('click', function(){ try { doControlLogout(); hideAdminMenu(); } catch(e){} }); 
+} 
+window.openStaffLogin = openStaffLogin; 
+window.doControlLogout = doControlLogout; 
+window.backToChoose = backToChoose; 
+window.hideAdminMenu = hideAdminMenu; 
+/* ===== GIS: render del botón y manejo de login ===== */ 
+function renderGoogleButton(){ 
+ const box = document.getElementById('googleSignIn'); 
+ if (!box) return; 
+ // FIX: aislar el iframe de Google 
+ box.innerHTML = ''; 
+ box.style.position = 'relative'; 
+ box.style.zIndex = '1'; 
+ if (!(window.google && google.accounts && google.accounts.id)) return; 
+ google.accounts.id.initialize({ 
+ client_id: GOOGLE_CLIENT_ID, 
+ callback: handleCredentialResponse, 
+ cancel_on_tap_outside: true 
+ }); 
+ google.accounts.id.renderButton(box, { 
+ theme: 'outline', 
+ size: 'large', 
+ shape: 'pill', 
+ text: 'signin_with', 
+ logo_alignment: 'left' 
+ }); 
+} 
+async function handleCredentialResponse(resp){ 
+ try{ 
+ const token = resp && resp.credential; 
+ if (!token){ toast('No se recibió token'); return; } 
+ showLoading('Verificando…'); 
+ const out = await API.apiLoginWithToken(token); 
+ if (out && out.ok){ 
+ ID_TOKEN = token; 
+ CONTROL_AUTH = true; 
+ STAFF_ROLE = (out.role || 'viewer'); 
+ STAFF_EMAIL = out.email || ''; 
+ setStaffSession(true); 
+ updateAdminMenu(); 
+ syncStaffBadge(); 
+ syncControlFormVisibility();
+ syncAddTripVisibility();
+ toast('Acceso staff habilitado'); 
+ showView('view-choose'); 
+ await loadTrips(); 
+ hideControlBoard(); 
+ setHash(['Inicio']); 
+ }else{ 
+ CONTROL_AUTH = false; setStaffSession(false); 
+ STAFF_ROLE = null; STAFF_EMAIL = null; ID_TOKEN = null; 
+ updateAdminMenu(); syncStaffBadge(); syncControlFormVisibility(); hideControlBoard();
+ syncAddTripVisibility(); 
+ toast((out && out.message) ? out.message : 'No autorizado'); 
+ } 
+ }catch(e){ 
+ CONTROL_AUTH = false; setStaffSession(false); 
+ STAFF_ROLE = null; STAFF_EMAIL = null; ID_TOKEN = null; 
+ updateAdminMenu(); syncStaffBadge(); syncControlFormVisibility(); hideControlBoard();
+ syncAddTripVisibility(); 
+ toast('Error de verificación'); 
+ }finally{ 
+ hideLoading(); 
+ } 
+ } 
+/* ===== Staff: login / logout ===== */ 
+function openStaffLogin(){ 
+ hideAdminMenu(); 
+ CONTROL_AUTH = false; 
+ setStaffSession(false); 
+ STAFF_ROLE = null; STAFF_EMAIL = null; ID_TOKEN = null; 
+ updateAdminMenu(); 
+ syncStaffBadge(); 
+ syncControlFormVisibility(); 
+ syncAddTripVisibility();
+ hideControlBoard(); 
+ showView('view-control'); 
+ setHash(['Staff']); 
+ // Render del botón Google 
+ function tryRender(){ if (window.google && google.accounts && google.accounts.id){ renderGoogleButton(); } else { setTimeout(tryRender, 400); } } 
+ tryRender(); 
+ } 
+function doControlLogout(){ 
+ CONTROL_AUTH = false; 
+ setStaffSession(false); 
+ STAFF_ROLE = null; STAFF_EMAIL = null; ID_TOKEN = null; 
+ updateAdminMenu(); 
+ syncStaffBadge(); 
+ syncControlFormVisibility(); 
+ syncAddTripVisibility();
+ hideControlBoard(); 
+ toast('Sesión finalizada'); 
+ backToChoose(); 
+ } 
+/* ====== NUEVO: Crear viaje (UI + lógica) ====== */
+function openCreateTripModal(){
+  if(!CONTROL_AUTH || !isAdmin()) { toast('Solo administradores'); return; }
   var m = document.getElementById('createTripModal');
   if(!m) return;
   // Defaults
@@ -1119,6 +1809,165 @@ showLoading('Cargando…');
  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); 
  else start(); 
 })(); 
+function openReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); var bar=document.getElementById('selectActionBar'); if(bar) bar.classList.add('hidden'); } 
+function closeReserveModal(){ var m=document.getElementById('reserveModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); var bar=document.getElementById('selectActionBar'); if(bar) bar.classList.remove('hidden'); } 
+document.addEventListener('keydown', function(ev){ if(ev.key==='Escape') closeReserveModal(); }, { passive:true }); 
+function renderSingleFormInModal(){ 
+ var title = document.getElementById('reserveTitle'); var body = document.getElementById('reserveBody'); var btn = document.getElementById('reserveConfirmBtn'); 
+ if (title){ 
+ var only = Array.from(selected)[0]; var onlyNorm = normalize(only); 
+ var num = NUM_LABELS.get(onlyNorm) || onlyNorm; 
+ title.textContent = 'Asiento ' + num; 
+ } 
+ if (body) { 
+ while (body.firstChild) body.removeChild(body.firstChild); 
+ var form = document.createElement('div'); form.className = 'form'; 
+ var nameWrap = document.createElement('label'); nameWrap.className = 'field'; 
+ var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre y Apellido'; 
+ var nameInput = document.createElement('input'); nameInput.id='nombreSingleModal'; nameInput.type='text'; nameInput.placeholder='Luanita Espada'; nameInput.required=true; nameInput.autocomplete='name'; nameInput.autocapitalize='words'; 
+ nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput); 
+ var ciWrap = document.createElement('label'); ciWrap.className = 'field'; 
+ var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento'; 
+ var ciInput = document.createElement('input'); ciInput.id='ciSingleModal'; ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.autocomplete='off'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); }); 
+ ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput); 
+ form.appendChild(nameWrap); form.appendChild(ciWrap); body.appendChild(form); 
+ } 
+ if (btn) btn.onclick = confirmSingleFromModal; openReserveModal(); try { document.getElementById('nombreSingleModal').focus(); } catch(e){} 
+} 
+function renderMultiFormInModal(){ 
+ var title = document.getElementById('reserveTitle'); var body = document.getElementById('reserveBody'); var btn = document.getElementById('reserveConfirmBtn'); 
+ if (title) title.textContent = 'Asignar datos a tus asientos'; 
+ if (body) { 
+ while (body.firstChild) body.removeChild(body.firstChild); 
+ var listWrap = document.createElement('div'); listWrap.id = 'assignListModal'; listWrap.className = 'assign-list'; 
+ var codes = Array.from(selected); 
+ for (var i = 0; i < codes.length; i++){ 
+ var codeNorm = normalize(codes[i]); var num = NUM_LABELS.get(codeNorm) || ''; 
+ var row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm); 
+ var titleDiv = document.createElement('div'); titleDiv.className = 'assign-title'; titleDiv.textContent = 'Asiento ' + (num || codeNorm); 
+ var grid = document.createElement('div'); grid.className = 'assign-grid'; 
+ var nameWrap = document.createElement('label'); nameWrap.className = 'field'; 
+ var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre y Apellido'; 
+ var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Luanita Espada'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocomplete='name'; nameInput.autocapitalize='words'; 
+ nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput); 
+ var ciWrap = document.createElement('label'); ciWrap.className = 'field'; 
+ var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento'; 
+ var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; ciInput.addEventListener('input', function(e){ onlyDigits(e.target); }); 
+ ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput); 
+ grid.appendChild(nameWrap); grid.appendChild(ciWrap); 
+ row.appendChild(titleDiv); row.appendChild(grid); listWrap.appendChild(row); 
+ } 
+ body.appendChild(listWrap); 
+ } 
+ if (btn) btn.onclick = confirmReservationFromModal; openReserveModal(); 
+} 
+function confirmSingleFromModal(){ 
+ if (BUSY) return; 
+ var name = (document.getElementById('nombreSingleModal')||{}).value || ''; 
+ var ci = (document.getElementById('ciSingleModal')||{}).value || ''; 
+ name = name.trim(); ci = ci.trim(); 
+ if (!name || !ci){ toast('Completá nombre y CI'); return; } 
+ if (selected.size !== 1){ toast('Seleccioná exactamente un asiento'); return; } 
+ var only = Array.from(selected)[0]; 
+ var onlyNorm = normalize(only); 
+ var pairs = [{ asiento: onlyNorm, pasajero: name, ci: ci }]; 
+ var btn = document.getElementById('reserveConfirmBtn'); if (btn) btn.disabled = true; 
+ closeReserveModal(); 
+ BUSY = true; showLoading('Reservando…'); 
+ API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs) 
+ .then(async function(){ showConfirmedModal(pairs); await refreshSelectGrid(); }) 
+ .catch(function(){ toast('No se pudo reservar'); }) 
+ .finally(function(){ hideLoading(); BUSY = false; if (btn) btn.disabled = false; }); 
+} 
+function confirmReservationFromModal(){ 
+ if (BUSY) return; 
+ var inputs = document.querySelectorAll('#assignListModal .assign-row'); 
+ var pairs = []; 
+ for (var i = 0; i < inputs.length; i++){ 
+ var row = inputs[i]; 
+ var codeNorm = row.getAttribute('data-code'); 
+ var pasajero = row.querySelector('.assign-name').value.trim(); 
+ var ci = row.querySelector('.assign-ci').value.trim(); 
+ if (!pasajero || !ci){ toast('Faltan datos en ' + codeNorm); return; } 
+ pairs.push({ asiento: codeNorm, pasajero: pasajero, ci: ci }); 
+ } 
+ var btn = document.getElementById('reserveConfirmBtn'); if (btn) btn.disabled = true; 
+ closeReserveModal(); 
+ BUSY = true; showLoading('Reservando…'); 
+ API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs) 
+ .then(async function(){ showConfirmedModal(pairs); await refreshSelectGrid(); }) 
+ .catch(function(){ toast('No se pudo reservar'); }) 
+ .finally(function(){ hideLoading(); BUSY = false; if (btn) btn.disabled = false; }); 
+} 
+function openConfirmedModal(){ var m=document.getElementById('confirmedModal'); if(!m) return; m.classList.add('show'); m.setAttribute('aria-hidden','false'); try{ var sheet=m.querySelector('.sheet'); if(sheet){ sheet.focus(); } }catch(e){} } 
+function closeConfirmedModal(){ var m=document.getElementById('confirmedModal'); if(!m) return; m.classList.remove('show'); m.setAttribute('aria-hidden','true'); } 
+document.addEventListener('keydown', function(ev){ if(ev.key==='Escape'){ var m=document.getElementById('confirmedModal'); if(m && m.classList.contains('show')) closeConfirmedModal(); } }, { passive:true }); 
+function showConfirmedModal(pairs){ 
+ var body = document.getElementById('confirmedBody'); 
+ if(body){ while(body.firstChild) body.removeChild(body.firstChild); 
+ var panel = document.createElement('div'); panel.className='form'; 
+ var list = document.createElement('div'); list.className='assign-list'; 
+ for (var i=0;i<pairs.length;i++){ var p = pairs[i]; 
+ var row = document.createElement('div'); row.className='assign-row'; 
+ var ttl = document.createElement('div'); ttl.className='assign-title'; 
+ var seatNum = ((typeof NUM_LABELS!=='undefined' && NUM_LABELS && NUM_LABELS.get(p.asiento)) ? NUM_LABELS.get(p.asiento) : p.asiento); 
+ ttl.textContent = 'Asiento ' + seatNum + ': ' + p.pasajero; 
+ row.appendChild(ttl); list.appendChild(row); } 
+ panel.appendChild(list); 
+ var note = document.createElement('div'); note.className='field'; 
+ var span = document.createElement('span'); span.className='field-label'; span.textContent = 'Cualquier cambio o cancelación informar a su agente.'; 
+ note.appendChild(span); panel.appendChild(note); body.appendChild(panel); 
+ } 
+ openConfirmedModal(); 
+} 
+function goToStartAndCloseConfirmed(){ try{ closeConfirmedModal(); }catch(e){} try{ goTripMenu(); }catch(e){} } 
+function startSelectionModal_DEPRECATED(){ if (BUSY) return; if (selected.size === 0){ toast('Elegí al menos un asiento'); return; } if (selected.size === 1){ renderSingleFormInModal(); return; } renderMultiFormInModal(); } 
+function updateAssignVisibility(){ /* modal-only */ } 
+function backToSelect(){ try { closeReserveModal(); } catch(e){} } 
+(function(){ 
+ function setVH(){ 
+ var h = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight; 
+ document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px'); 
+ } 
+ setVH(); 
+ window.addEventListener('resize', setVH, {passive:true}); 
+ if (window.visualViewport){ 
+ window.visualViewport.addEventListener('resize', setVH, {passive:true}); 
+ window.visualViewport.addEventListener('scroll', setVH, {passive:true}); 
+ } 
+ // Auto-scroll focused input into view inside modal 
+ document.addEventListener('focusin', function(ev){ 
+ var m = document.getElementById('reserveModal'); 
+ if (!m || !m.classList.contains('show')) return; 
+ var target = ev.target; 
+ if (target && target.tagName === 'INPUT'){ 
+ try{ target.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){} 
+ } 
+ }, {passive:true}); 
+})(); 
+// === Fin de scripts extraídos del HTML original ===
+
+
+// ===== Cuenta regresiva en tiempo real =====
+setInterval(function(){
+  document.querySelectorAll('.trip-countdown').forEach(function(el){
+    const startAt = el.dataset.startAt;
+    if(!startAt) return;
+
+    const info = getCountdownText(startAt);
+    if(!info) return;
+
+    el.textContent = info.text;
+    el.classList.toggle('live', info.status === 'live');
+    el.classList.toggle('future', info.status === 'future');
+  });
+}, 1000);
+
+
+// ===== NUEVO FLUJO SIN MODAL =====
+function startSelectionPage(){
+  if (BUSY) return;
+  if (!selected || selected.size === 0){ toast('Elegí al menos un asiento'); return; }
   showView('view-reserve');
   renderReservePage();
 }
@@ -1191,3 +2040,4 @@ function startSelectionModal() {
 function backToSelect() {
   showView('view-select');
 }
+
