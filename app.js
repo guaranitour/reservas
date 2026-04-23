@@ -1566,13 +1566,29 @@ async function handleCredentialResponse(resp){
  await loadTrips(); 
  hideControlBoard(); 
  setHash(['Inicio']); 
- }else{ 
- CONTROL_AUTH = false; setStaffSession(false); 
- STAFF_ROLE = null; STAFF_EMAIL = null; ID_TOKEN = null; 
- updateAdminMenu(); syncStaffBadge(); syncControlFormVisibility(); hideControlBoard();
- syncAddTripVisibility(); 
- toast((out && out.message) ? out.message : 'No autorizado'); 
- } 
+}else{
+  CONTROL_AUTH = false;
+  setStaffSession(false); 
+
+  STAFF_ROLE = null;
+  STAFF_EMAIL = null;
+  ID_TOKEN = null; 
+
+  updateAdminMenu();
+  syncStaffBadge();
+  syncControlFormVisibility();
+  hideControlBoard();
+  syncAddTripVisibility();
+
+  // ✅ Mostrar tarjeta de acceso no autorizado
+  showView('view-control');
+
+  const loginBox = document.getElementById('googleSigninBox');
+  const deniedBox = document.getElementById('staffDeniedBox');
+
+  if (loginBox) loginBox.classList.add('hidden');
+  if (deniedBox) deniedBox.classList.remove('hidden');
+}
  }catch(e){ 
  CONTROL_AUTH = false; setStaffSession(false); 
  STAFF_ROLE = null; STAFF_EMAIL = null; ID_TOKEN = null; 
@@ -1584,7 +1600,15 @@ async function handleCredentialResponse(resp){
  } 
  } 
 /* ===== Staff: login / logout ===== */ 
-function openStaffLogin(){ 
+function openStaffLogin(){
+ 
+  // ✅ Reset visual del estado "no autorizado"
+  const deniedBox = document.getElementById('staffDeniedBox');
+  const loginBox = document.getElementById('googleSigninBox');
+
+  if (deniedBox) deniedBox.classList.add('hidden');
+  if (loginBox) loginBox.classList.remove('hidden');
+
  hideAdminMenu(); 
  CONTROL_AUTH = false; 
  setStaffSession(false); 
