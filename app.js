@@ -1568,20 +1568,21 @@ async function handleCredentialResponse(resp){
  setHash(['Inicio']); 
 }else{
   CONTROL_AUTH = false;
-  setStaffSession(false); 
+  setStaffSession(false);
 
   STAFF_ROLE = null;
   STAFF_EMAIL = null;
-  ID_TOKEN = null; 
+  ID_TOKEN = null;
 
   updateAdminMenu();
   syncStaffBadge();
+
+  // ✅ IMPORTANTE: activar la vista ANTES
+  showView('view-control');
+
   syncControlFormVisibility();
   hideControlBoard();
   syncAddTripVisibility();
-
-  // ✅ Mostrar tarjeta de acceso no autorizado
-  showView('view-control');
 
   const loginBox = document.getElementById('googleSigninBox');
   const deniedBox = document.getElementById('staffDeniedBox');
