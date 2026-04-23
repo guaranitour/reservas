@@ -933,3 +933,20 @@ input{border:1px solid #e5e7eb; border-radius:10px; padding:12px; font-size:1rem
 body:not(.app-ready) .view {
   display: none !important;
 }
+/* ===== Staff: Acceso no autorizado ===== */
+.staff-denied-box{
+  border: 1.5px solid rgba(239, 68, 68, .35);   /* rojo suave */
+  background: linear-gradient(
+    180deg,
+    rgba(254, 226, 226, .65),
+    rgba(255, 255, 255, 1)
+  );
+}
+
+.staff-denied-text{
+  font-size: .9rem;
+  font-weight: 600;
+  color: #7f1d1d;
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
