@@ -209,6 +209,10 @@ var BOOTSTRAPING = true;
  return; 
  } 
  if (head.toLowerCase() === 'selección de asientos'){
+  // ✅ Si ya estamos en el croquis, no reiniciar
+if (document.getElementById('view-select')?.classList.contains('active')) {
+  return;
+}
  var tripNameSel = segs[1]; 
  var trSel = await resolveTripByName(tripNameSel); 
  if (!trSel){ toast('No se encontró el viaje "'+tripNameSel+'".'); backToChoose(); return; } 
