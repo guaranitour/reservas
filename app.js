@@ -354,12 +354,7 @@ function updateAdminMenu(){
 
   // Cerrar sesión → solo staff
   bLogout.classList.toggle('hidden', !isAuth); 
-
-  // (esto queda igual, por si lo usás más adelante)
-  var bPublicHome = document.getElementById('btnPublicHome');
-  if (bPublicHome) {
-    bPublicHome.classList.toggle('hidden', CONTROL_AUTH);
-  }
+ 
 }
 function syncStaffBadge(){ var el = document.getElementById('staffBadge'); if (el) el.classList.toggle('hidden', !CONTROL_AUTH); } 
 // ====== GIS: estado Staff (frontend) 
