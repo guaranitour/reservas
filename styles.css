@@ -962,3 +962,14 @@ body:not(.app-ready) .view {
   font-size: 0.95rem;       /* un poco más compactos */
   white-space: nowrap;      /* evita saltos raros */
 }
+/* Menú admin (easter egg del logo) */
+#adminMenu .actions {
+  align-items: center;       /* ✅ centra todos los botones */
+}
+
+#adminMenu .btn-admin {
+  width: 220px;              /* ✅ mismo ancho para todos */
+  padding: 8px 14px;         /* compacto, sin aire excesivo */
+  text-align: center;        /* texto centrado */
+  font-size: 0.95rem;
+}
