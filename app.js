@@ -113,6 +113,7 @@ try { window.API = window.API || {}; if (typeof window.API.apiArchiveTrip !== 'f
  var HIGHLIGHT_CODES = new Set(); var LAST_FOUND_CODES = []; 
  var CONTROL_AUTH = false; var CONTROL_EDIT = false; var EDIT_SRC = null; var EDIT_DST = null; 
  var BUSY = false; 
+var GRID_LOADING = false;
 var BOOTSTRAPING = true;
  /* Viaje/hoja actual */ 
  var CURRENT_TRIP = { fileId: null, name: null, sheets: [], sheetName: null, hasFloors: false }; 
@@ -792,6 +793,7 @@ function goToControlBoard(){
  } 
 /* ====== Datos (una hoja) ====== */ 
 async function refreshSeats(targetId, onDone, gridOptions){ 
+ GRID_LOADING = true;
  var gridEl = targetId ? document.getElementById(targetId) : null; 
  if(gridEl) gridEl.setAttribute('aria-busy','true'); 
  try{ 
@@ -804,7 +806,8 @@ async function refreshSeats(targetId, onDone, gridOptions){
  console.error('refreshSeats error:', err); 
  toast('Error al cargar asientos: ' + (err && err.message ? err.message : 'desconocido')); 
  if(gridEl){ buildGrid(targetId, gridOptions); } 
- }finally{ 
+ }finally{
+  GRID_LOADING = false; // ✅ croquis listo, ya se puede tocar
  if (typeof onDone === 'function') { try { onDone(); } catch(e){} } 
  } 
  } 
@@ -931,7 +934,8 @@ async function confirmSingle(){
 } 
 function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } } 
 function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); } 
-function toggleSeat(code, el){ 
+function toggleSeat(code, el){
+ if (GRID_LOADING) return;
  var key = normalize(code); 
  var isSel = selected.has(key); 
  if(isSel){ selected.delete(key); el.classList.remove('seleccionado'); } 
