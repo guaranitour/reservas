@@ -965,3 +965,9 @@ body:not(.app-ready) .view {
   text-align: center;        /* texto centrado */
   font-size: 0.95rem;
 }
+/* Contenedor del easter egg (menú admin del logo) */
+#adminMenu {
+  width: fit-content;          /* ✅ se ajusta al contenido */
+  min-width: unset;            /* evita anchos heredados */
+  padding: 10px 12px;          /* menos aire alrededor */
+}
