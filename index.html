@@ -19,8 +19,10 @@
  <img alt="Logo" id="heroLogo"/> 
  <!-- Menú admin --> 
  <div aria-label="Acceso staff" aria-modal="false" class="admin-menu hidden" id="adminMenu" role="dialog"> 
- <p class="admin-title">Acceso staff</p> 
+<p class="admin-title">Acceso staff</p>
+
 <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
+
   <!-- 🟩 SOLO PÚBLICO -->
   <button class="btn success btn-admin"
           id="btnPublicHome"
@@ -28,25 +30,23 @@
           type="button">
     Página de inicio
   </button>
-  <!-- 🟦 BLOQUE STAFF (tal cual ahora) -->
+
+  <!-- 🟦 BOTÓN ORIGINAL DE LOGIN (NO SE TOCA) -->
   <button class="btn primary btn-admin"
           id="btnAdminLogin"
           onclick="openStaffLogin()"
           type="button">
-    Acceso staff
-  </button>
-  <button class="btn ghost btn-admin"
-          id="btnAdminControl"
-          onclick="backToChoose(); hideAdminMenu();"
-          type="button">
     Control interno
   </button>
+
+  <!-- 🟥 SOLO STAFF (NO SE TOCA) -->
   <button class="btn danger btn-admin hidden"
           id="btnAdminLogout"
           onclick="doControlLogout()"
           type="button">
     Cerrar sesión staff
   </button>
+
 </div>
  </div> 
  </div> 
