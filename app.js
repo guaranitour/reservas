@@ -208,32 +208,66 @@ var BOOTSTRAPING = true;
  selectTrip(trS); 
  return; 
  } 
- if (head.toLowerCase() === 'selección de asientos'){
-  // ✅ Si ya estamos en el croquis, no reiniciar
-if (document.getElementById('view-select')?.classList.contains('active')) {
+if (head.toLowerCase() === 'selección de asientos') {
+
+  var tripNameSel = segs[1];
+  var trSel = await resolveTripByName(tripNameSel);
+  if (!trSel){
+    toast('No se encontró el viaje "' + tripNameSel + '".');
+    backToChoose();
+    return;
+  }
+
+  const targetHasFloors = !!trSel.hasFloors;
+  const targetFloor = segs[2] || null;
+
+  // ✅ Guard CORRECTO: solo si YA estamos en este mismo croquis
+  if (
+    document.getElementById('view-select')?.classList.contains('active') &&
+    CURRENT_TRIP.fileId === trSel.fileId &&
+    (
+      // Convencional
+      (!targetHasFloors && !targetFloor) ||
+      // Doble piso misma planta
+      (targetHasFloors && targetFloor &&
+        getFloorLabelFromSheetName(CURRENT_TRIP.sheetName) === targetFloor)
+    )
+  ) {
+    return;
+  }
+
+  // ⬇️ recién ahora actualizamos el estado global
+  CURRENT_TRIP = {
+    fileId: trSel.fileId,
+    name: trSel.name,
+    sheets: trSel.sheets,
+    sheetName: null,
+    hasFloors: targetHasFloors
+  };
+
+  updateTripTags();
+
+  if (targetFloor){
+    var sheet = getSheetNameFromFloorLabel(trSel, targetFloor);
+    if (!sheet){
+      toast('No se encontró la planta en "' + trSel.name + '".');
+      selectTrip(trSel);
+      return;
+    }
+    await chooseFloor(sheet);
+    return;
+  }
+
+  if (trSel.hasFloors){
+    selectTrip(trSel);
+  } else {
+    var sheetConv = getSheetNameFromFloorLabel(trSel, 'asientos');
+    CURRENT_TRIP.sheetName = sheetConv;
+    await goSelect();
+  }
+
   return;
 }
- var tripNameSel = segs[1]; 
- var trSel = await resolveTripByName(tripNameSel); 
- if (!trSel){ toast('No se encontró el viaje "'+tripNameSel+'".'); backToChoose(); return; } 
- CURRENT_TRIP = { fileId: trSel.fileId, name: trSel.name, sheets: trSel.sheets, sheetName: null, hasFloors: !!trSel.hasFloors }; 
- updateTripTags(); 
- if (segs[2]){ 
- var floorLbl = segs[2]; 
- var sheet = getSheetNameFromFloorLabel(trSel, floorLbl); 
- if (!sheet){ toast('No se encontró la planta en "'+trSel.name+'".'); selectTrip(trSel); return; } 
- await chooseFloor(sheet); 
- return; 
- } 
- if (trSel.hasFloors){ 
- selectTrip(trSel); 
- }else{ 
- var sheetConv = getSheetNameFromFloorLabel(trSel, 'asientos'); 
- CURRENT_TRIP.sheetName = sheetConv; 
- await goSelect(); 
- } 
- return; 
- } 
  var trPlain = await resolveTripByName(head); 
  if (!trPlain){ 
  backToChoose(); 
