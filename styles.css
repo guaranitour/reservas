@@ -954,3 +954,11 @@ body:not(.app-ready) .view {
   line-height: 1.45;
   margin-bottom: 14px;
 }
+/* Botones del easter egg (menú admin del logo) */
+#adminMenu .btn-admin {
+  width: auto;              /* 🔑 que no se estiren */
+  align-self: flex-start;   /* se ajustan al texto */
+  padding: 8px 14px;        /* menos aire lateral */
+  font-size: 0.95rem;       /* un poco más compactos */
+  white-space: nowrap;      /* evita saltos raros */
+}
