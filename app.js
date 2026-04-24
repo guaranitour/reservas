@@ -737,7 +737,7 @@ async function chooseFloor(sheetName){
  setHash(['Staff', CURRENT_TRIP.name]); 
  } else { 
  if (CURRENT_TRIP.hasFloors) { 
- showView('view-select'); 
+ enterSelectView(); 
  showLoading('Cargando asientos…'); 
  var opts = await computeGridOptions(); 
  refreshSeats('grid-select', function(){ hideLoading(); }, opts); 
@@ -769,9 +769,17 @@ function updateTripTags() {
 
   syncStaffBadge();
 } 
+function enterSelectView(){
+  // ✅ resetear estado SOLO al entrar al croquis
+  selected = new Set();
+  NUM_LABELS = new Map();
+  syncSelectedCounter();
+
+  showView('view-select');
+}
 async function goSelect(){ 
  if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; } 
- showView('view-select'); 
+ enterSelectView(); 
  showLoading('Cargando asientos…'); 
  var opts = await computeGridOptions(); 
  refreshSeats('grid-select', function(){ hideLoading(); }, opts); 
