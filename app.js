@@ -338,22 +338,29 @@ function syncSelectedCounter() {
 function showAdminMenu(){ var m = document.getElementById('adminMenu'); if (m) m.classList.remove('hidden'); } 
 function hideAdminMenu(){ var m = document.getElementById('adminMenu'); if (m) m.classList.add('hidden'); } 
 function toggleAdminMenu(){ var m = document.getElementById('adminMenu'); if (m) m.classList.toggle('hidden'); } 
-function updateAdminMenu(){ 
- var bLogin = document.getElementById('btnAdminLogin'); 
- var bPanel = document.getElementById('btnAdminControl'); 
- var bLogout = document.getElementById('btnAdminLogout'); 
- if(!bLogin || !bPanel || !bLogout) return; 
- var isAuth = CONTROL_AUTH; 
- bLogin.classList.toggle('hidden', isAuth); 
- bPanel.classList.toggle('hidden', !isAuth); 
- bLogout.classList.toggle('hidden', !isAuth); 
- 
-var bPublicHome = document.getElementById('btnPublicHome');
-if (bPublicHome) {
-  // ✅ visible solo si NO es staff
-  bPublicHome.classList.toggle('hidden', CONTROL_AUTH);
+function updateAdminMenu(){
+  var bLogin  = document.getElementById('btnAdminLogin'); 
+  var bPanel  = document.getElementById('btnAdminControl'); 
+  var bLogout = document.getElementById('btnAdminLogout'); 
+  if(!bLogin || !bPanel || !bLogout) return; 
+
+  var isAuth = CONTROL_AUTH; 
+
+  // Control interno → solo público
+  bLogin.classList.toggle('hidden', isAuth); 
+
+  // ✅ Inicio → siempre visible
+  bPanel.classList.remove('hidden'); 
+
+  // Cerrar sesión → solo staff
+  bLogout.classList.toggle('hidden', !isAuth); 
+
+  // (esto queda igual, por si lo usás más adelante)
+  var bPublicHome = document.getElementById('btnPublicHome');
+  if (bPublicHome) {
+    bPublicHome.classList.toggle('hidden', CONTROL_AUTH);
+  }
 }
-} 
 function syncStaffBadge(){ var el = document.getElementById('staffBadge'); if (el) el.classList.toggle('hidden', !CONTROL_AUTH); } 
 // ====== GIS: estado Staff (frontend) 
 const GOOGLE_CLIENT_ID = '273442733710-1eqf1erm1vl9vsad2lb4krennldt1jhf.apps.googleusercontent.com'; 
