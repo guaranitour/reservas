@@ -440,9 +440,9 @@ function selectTrip(tr){
  refreshSeats(null, function(){ renderControlBoard(); hideLoading(); }); 
  return; 
  } 
- if(CURRENT_TRIP.hasFloors){ 
- var floorBox = document.getElementById('floorCards'); if (floorBox) floorBox.innerHTML = ''; 
- var extraBox = document.getElementById('floorFindCard'); if (extraBox) extraBox.innerHTML = ''; 
+if (CURRENT_TRIP.hasFloors) {
+  var floorBox = document.getElementById('floorCards');
+  if (floorBox) floorBox.innerHTML = '';
  var bajaName = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos baja'; }); 
  var altaName = tr.sheets.find(function(s){ return s.toLowerCase() === 'asientos alta'; }); 
  var candidates = []; 
@@ -462,8 +462,12 @@ function selectTrip(tr){
  var el = makeCard(c.label, c.desc ? c.desc : ('Hoja: ' + c.sheetName), function(){ chooseFloor(c.sheetName); }); 
  if (floorBox) floorBox.appendChild(el); 
  }); 
- var findCard = makeCard('Mirá tu asiento', 'Buscá tus asientos por CI en ambas plantas.', function(){ goFind(); }); 
- if (extraBox) extraBox.appendChild(findCard); 
+var findCard = makeCard(
+  'Mirá tu asiento',
+  'Ingresá tu número de documento para ver tus asientos y el croquis del bus.',
+  function(){ goFind(); }
+);
+if (floorBox) floorBox.appendChild(findCard);
  updateTripTags(); 
  showView('view-floor'); 
  setHash([CURRENT_TRIP.name]); 
