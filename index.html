@@ -21,18 +21,25 @@
  <div aria-label="Acceso staff" aria-modal="false" class="admin-menu hidden" id="adminMenu" role="dialog"> 
  <p class="admin-title">Acceso staff</p> 
 <div class="actions" style="display:flex; flex-direction:column; gap:8px;">
-  <button class="btn primary btn-admin"
-          id="btnAdminLogin"
-          onclick="openStaffLogin()"
-          type="button">
-    Control interno
-  </button>
-  <!-- ✅ SOLO PÚBLICO -->
+  <!-- 🟩 SOLO PÚBLICO -->
   <button class="btn success btn-admin"
           id="btnPublicHome"
           onclick="backToChoose(); hideAdminMenu();"
           type="button">
     Página de inicio
+  </button>
+  <!-- 🟦 BLOQUE STAFF (tal cual ahora) -->
+  <button class="btn primary btn-admin"
+          id="btnAdminLogin"
+          onclick="openStaffLogin()"
+          type="button">
+    Acceso staff
+  </button>
+  <button class="btn ghost btn-admin"
+          id="btnAdminControl"
+          onclick="backToChoose(); hideAdminMenu();"
+          type="button">
+    Control interno
   </button>
   <button class="btn danger btn-admin hidden"
           id="btnAdminLogout"
