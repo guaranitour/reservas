@@ -1000,30 +1000,90 @@ function showReserveFeedbackDetailed(pairs){
  }); 
  panel.classList.remove('hidden'); panel.scrollIntoView({behavior:'smooth'}); 
  } 
+function getSheetsToSearch(){
+  // Bus convencional → una sola hoja
+  if (!CURRENT_TRIP.hasFloors) {
+    return [{
+      sheetName: CURRENT_TRIP.sheetName,
+      label: 'Asientos'
+    }];
+  }
+
+  // Bus doble piso → todas las plantas
+  return getFloorSheets();
+}
+async function findByCIInSheets(ci){
+  clearFindView();
+  clearFindViewMulti();
+
+  const sheets = getSheetsToSearch();
+
+  MULTI_SHEETS = sheets;
+  SEATS_BY_SHEET = new Map();
+  HIGHLIGHT_BY_SHEET = new Map();
+  NUMS_BY_SHEET = new Map();
+
+  for (const f of sheets){
+    const respSeats = await API.apiGetSeatsByCi(
+      CURRENT_TRIP.fileId,
+      f.sheetName,
+      ci
+    );
+
+    const respRows = await API.apiGetSeats(
+      CURRENT_TRIP.fileId,
+      f.sheetName
+    );
+
+    const codes = Array.from(
+      new Set((respSeats.seats || []).map(normalize))
+    );
+
+    const seatsMap = {};
+    respRows.rows.forEach(r=>{
+      seatsMap[normalize(r.asiento)] = r;
+    });
+
+    SEATS_BY_SHEET.set(f.sheetName, seatsMap);
+    HIGHLIGHT_BY_SHEET.set(f.sheetName, new Set(codes));
+    NUMS_BY_SHEET.set(
+      f.sheetName,
+      computeNumbersForCodesWith(seatsMap, codes)
+    );
+  }
+
+  // 🔀 Render automático según cantidad de hojas
+  if (sheets.length === 1){
+    const sheet = sheets[0].sheetName;
+    const nums = NUMS_BY_SHEET.get(sheet);
+    renderFindFeedback(nums);
+    HIGHLIGHT_CODES = HIGHLIGHT_BY_SHEET.get(sheet);
+  } else {
+    renderFindFeedbackMulti();
+  }
+}
 /* ====== Mirá tu asiento (público) ====== */ 
-async function findByCI(){ 
- if(CURRENT_TRIP.hasFloors && !CURRENT_TRIP.sheetName){ 
- await findByCIAcrossFloors(); 
- return; 
- } 
- if(!CURRENT_TRIP.fileId || !CURRENT_TRIP.sheetName){ setHash(['Inicio']); showView('view-choose'); return; } 
- var ci = document.getElementById('ciSearch').value.trim(); 
- if(!ci){ toast('Ingresá tu CI'); return; } 
- showLoading('Buscando…'); 
- try{ 
- var respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, ci); 
- var rawCodes = (respSeats.seats ||[]).map(function(s){ return normalize(s); }); 
- LAST_FOUND_CODES = Array.from(new Set(rawCodes)); 
- var respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName); 
- var rows = respRows.rows ||[]; 
- SEATS = {}; 
- rows.forEach(function(r){ SEATS[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; }); 
- var nums = computeNumbersForCodes(LAST_FOUND_CODES); 
- renderFindFeedback(nums); 
- HIGHLIGHT_CODES = new Set(LAST_FOUND_CODES); 
- }catch(err){ toast('Error al buscar por CI'); } 
- finally{ hideLoading(); } 
- } 
+async function findByCI(){
+  if (!CURRENT_TRIP.fileId) {
+    backToChoose();
+    return;
+  }
+
+  const ci = document.getElementById('ciSearch').value.trim();
+  if (!ci) {
+    toast('Ingresá tu CI');
+    return;
+  }
+
+  showLoading('Buscando…');
+  try {
+    await findByCIInSheets(ci);
+  } catch (e) {
+    toast('Error al buscar por CI');
+  } finally {
+    hideLoading();
+  }
+}
 function computeNumbersForCodes(codes){ 
  NUM_LABELS = new Map(); 
  var rows = getRowsToRender(); 
@@ -1073,37 +1133,6 @@ var MULTI_SHEETS = [];
 var SEATS_BY_SHEET = new Map(); 
 var HIGHLIGHT_BY_SHEET = new Map(); 
 var NUMS_BY_SHEET = new Map(); 
-async function findByCIAcrossFloors(){ 
- if(!CURRENT_TRIP.fileId){ setHash(['Inicio']); showView('view-choose'); return; } 
- var ci = document.getElementById('ciSearch').value.trim(); 
- if(!ci){ toast('Ingresá tu CI'); return; } 
- showLoading('Buscando en ambas plantas…'); 
- try{ 
- MULTI_SHEETS = getFloorSheets(); 
- SEATS_BY_SHEET = new Map(); 
- HIGHLIGHT_BY_SHEET = new Map(); 
- NUMS_BY_SHEET = new Map(); 
- for(var i=0;i<MULTI_SHEETS.length;i++){ 
- var f = MULTI_SHEETS[i]; 
- var respSeats = await API.apiGetSeatsByCi(CURRENT_TRIP.fileId, f.sheetName, ci); 
- var respRows = await API.apiGetSeats(CURRENT_TRIP.fileId, f.sheetName); 
- var codesRaw = (respSeats.seats ||[]).map(function(s){ return normalize(s); }); 
- var codes = Array.from(new Set(codesRaw)); 
- var rows = respRows.rows ||[]; 
- var seatsMap = {}; 
- rows.forEach(function(r){ seatsMap[ normalize(r.asiento) ] = { estado: r.estado, pasajero: r.pasajero || '', ci: r.ci || '' }; }); 
- SEATS_BY_SHEET.set(f.sheetName, seatsMap); 
- HIGHLIGHT_BY_SHEET.set(f.sheetName, new Set(codes)); 
- var nums = computeNumbersForCodesWith(seatsMap, codes); 
- NUMS_BY_SHEET.set(f.sheetName, nums); 
- } 
- renderFindFeedbackMulti(); 
- }catch(err){ 
- toast('Error al buscar en ambas plantas'); 
- }finally{ 
- hideLoading(); 
- } 
- } 
 function computeNumbersForCodesWith(seatsMap, codes){ 
  var rows = getRowsToRenderFromMap(seatsMap); 
  var seatNumber = 1; 
