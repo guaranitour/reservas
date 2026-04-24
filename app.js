@@ -347,6 +347,12 @@ function updateAdminMenu(){
  bLogin.classList.toggle('hidden', isAuth); 
  bPanel.classList.toggle('hidden', !isAuth); 
  bLogout.classList.toggle('hidden', !isAuth); 
+ 
+var bPublicHome = document.getElementById('btnPublicHome');
+if (bPublicHome) {
+  // ✅ visible solo si NO es staff
+  bPublicHome.classList.toggle('hidden', CONTROL_AUTH);
+}
 } 
 function syncStaffBadge(){ var el = document.getElementById('staffBadge'); if (el) el.classList.toggle('hidden', !CONTROL_AUTH); } 
 // ====== GIS: estado Staff (frontend) 
