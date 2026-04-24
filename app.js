@@ -851,7 +851,7 @@ function buildGrid(targetId, options){
  var offset = options.offset || 0; 
  var hideMissing = (typeof options.hideMissing==='undefined') ? true : !!options.hideMissing; 
  var grid = document.getElementById(targetId || 'grid-select'); if(!grid) return; 
- grid.innerHTML = ''; grid.removeAttribute('aria-busy'); selected = new Set(); NUM_LABELS = new Map(); 
+ grid.innerHTML = ''; grid.removeAttribute('aria-busy'); 
  // NUEVO: resetear y sincronizar contador de seleccionados 
  if (typeof syncSelectedCounter === 'function') { try { syncSelectedCounter(); } catch(e){} } 
  var rows = getRowsToRender(); 
