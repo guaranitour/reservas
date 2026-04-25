@@ -262,36 +262,7 @@
   </div>
 </section>
 
-</main> 
-<!-- ===== Modal de Reserva ===== --> 
-<div aria-hidden="true" aria-modal="true" class="modal" id="reserveModal" role="dialog"> 
- <div class="backdrop" onclick="closeReserveModal()"></div> 
- <div class="sheet" role="document"> 
- <header> 
- <h3 id="reserveTitle">Confirmar reserva</h3> 
- <button aria-label="Cerrar" class="close" onclick="closeReserveModal()" type="button">x</button> 
- </header> 
- <div id="reserveBody"></div> 
- <div class="actions" style="margin-top:12px;"> 
- <button class="btn ghost" onclick="closeReserveModal()" type="button">Cancelar</button> 
- <button class="btn success" id="reserveConfirmBtn" type="button">Confirmar</button> 
- </div> 
- </div> 
-</div> 
-<!-- Confirmación --> 
-<div aria-hidden="true" aria-labelledby="confirmedTitle" aria-modal="true" class="modal" id="confirmedModal" role="dialog"> 
- <div class="backdrop" onclick="goToStartAndCloseConfirmed()"></div> 
- <div class="sheet" role="document" tabindex="-1"> 
- <header> 
- <h3 id="confirmedTitle">¡Reserva confirmada!</h3> 
- <button aria-label="Cerrar" class="close" onclick="goToStartAndCloseConfirmed()" type="button">x</button> 
- </header> 
- <div id="confirmedBody"></div> 
- <div class="actions" style="margin-top:12px;"> 
- <button class="btn success" onclick="goToStartAndCloseConfirmed()" type="button">Volver a inicio</button> 
- </div> 
- </div> 
-</div> 
+</main>
 <!-- ====== NUEVO: Modal Crear Viaje (Staff Admin) ====== --> 
 <div aria-hidden="true" aria-modal="true" class="modal" id="createTripModal" role="dialog"> 
  <div class="backdrop" onclick="closeCreateTripModal()"></div> 
