@@ -1727,6 +1727,7 @@ function doControlLogout(){
  hideControlBoard(); 
  toast('Sesión finalizada'); 
  backToChoose(); 
+ loadTrips(); // 🔴 fuerza re-render sin botones admin
  } 
 /* ====== NUEVO: Crear viaje (UI + lógica) ====== */
 function openCreateTripModal(){
