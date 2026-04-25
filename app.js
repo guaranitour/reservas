@@ -2202,46 +2202,42 @@ async function confirmReservationPage(){
   let pairs = [];
 
   // ✅ Validación: reserva individual
-  if (selected.size === 1) {
-    const name = document.getElementById('singleName').value.trim();
-    const ci   = document.getElementById('singleCI').value.trim();
 
-    if (!name || !ci) {
-      toast('Completá nombre y CI');
-      return;
-    }
+if (selected.size === 1) {
+  const name = document.getElementById('singleName').value.trim();
+  const ci = document.getElementById('singleCI').value.trim();
 
-    pairs.push({
-      asiento: normalize([...selected][0]),
-      pasajero: name,
-      ci: ci
-    });
-  } 
-  // ✅ Validación: reserva múltiple
-  else {
-    let invalid = false;
-
-    document.querySelectorAll('#reservePageBody .assign-row').forEach(row => {
-      const pasajero = row.querySelector('.assign-name').value.trim();
-      const ci = row.querySelector('.assign-ci').value.trim();
-
-      if (!pasajero || !ci) {
-        invalid = true;
-      }
-
-      pairs.push({
-        asiento: row.dataset.code,
-        pasajero,
-        ci
-      });
-    });
-
-    if (invalid) {
-      toast('Completá los datos de todos los asientos');
-      return;
-    }
+  if (!name || !ci) {
+    toast('Completá nombre y CI para confirmar tu asiento');
+    return;
   }
 
+  pairs.push({
+    asiento: normalize([...selected][0]),
+    pasajero: name,
+    ci: ci
+  });
+}
+  // ✅ Validación: reserva múltiple
+else {
+  let invalid = false;
+  document.querySelectorAll('#reservePageBody .assign-row').forEach(row => {
+    const pasajero = row.querySelector('.assign-name').value.trim();
+    const ci = row.querySelector('.assign-ci').value.trim();
+    if (!pasajero || !ci) {
+      invalid = true;
+    }
+    pairs.push({
+      asiento: row.dataset.code,
+      pasajero,
+      ci
+    });
+  });
+  if (invalid) {
+    toast('Completá los datos de todos los pasajeros antes de confirmar');
+    return;
+  }
+}
   // ✅ Reserva real recién acá
   BUSY = true;
   showLoading('Reservando…');
