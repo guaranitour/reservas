@@ -308,23 +308,23 @@ if (head.toLowerCase() === 'formulario') {
     return;
   }
 
-  // 🔒 Guard: no se puede acceder al formulario sin selección previa
-  if (!selected || selected.size === 0) {
-    toast('Primero debés seleccionar tus asientos');
+// 🔒 Guard: no se puede acceder al formulario sin selección previa
+if (!selected || selected.size === 0) {
+  toast('Primero debés seleccionar tus asientos');
 
-    // restaurar viaje y volver al menú del viaje
-    CURRENT_TRIP = {
-      fileId: trForm.fileId,
-      name: trForm.name,
-      sheets: trForm.sheets,
-      sheetName: null,
-      hasFloors: !!trForm.hasFloors
-    };
+  // reconstruir viaje desde la URL
+  CURRENT_TRIP = {
+    fileId: trForm.fileId,
+    name: trForm.name,
+    sheets: trForm.sheets,
+    sheetName: null,
+    hasFloors: !!trForm.hasFloors
+  };
 
-    // ⛔ NO usar goSelect acá
-    goTripMenu();
-    return;
-  }
+  // ✅ volver al flujo real del viaje
+  selectTrip(trForm);
+  return;
+}
 
   // ✅ Restaurar viaje completo y mostrar formulario
   CURRENT_TRIP = {
