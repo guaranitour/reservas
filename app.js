@@ -299,16 +299,19 @@ if (head.toLowerCase() === 'mira-tu-asiento') {
 if (head.toLowerCase() === 'formulario') {
   var tripNameForm = segs[1];
   var trForm = await resolveTripByName(tripNameForm);
+
   // ❌ Viaje inexistente
   if (!trForm){
     toast('No se encontró el viaje "' + tripNameForm + '".');
     backToChoose();
     return;
   }
+
   // 🔒 Guard: no se puede acceder al formulario sin selección previa
   if (!selected || selected.size === 0) {
     toast('Primero debés seleccionar tus asientos');
-    // Restaurar viaje mínimo para poder volver al croquis
+
+    // Restaurar viaje mínimo para volver al croquis
     CURRENT_TRIP = {
       fileId: trForm.fileId,
       name: trForm.name,
@@ -316,18 +319,20 @@ if (head.toLowerCase() === 'formulario') {
       sheetName: null,
       hasFloors: !!trForm.hasFloors
     };
-   
+
     await goSelect();
     return;
   }
+
   // ✅ Restaurar viaje completo y mostrar formulario
   CURRENT_TRIP = {
     fileId: trForm.fileId,
     name: trForm.name,
     sheets: trForm.sheets,
-    sheetName: CURRENT_TRIP.sheetName, // mantiene la hoja/planta si venía del flujo normal
+    sheetName: CURRENT_TRIP.sheetName,
     hasFloors: !!trForm.hasFloors
   };
+
   updateTripTags();
   showView('view-reserve');
   renderReservePage();
