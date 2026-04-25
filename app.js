@@ -294,6 +294,29 @@ if (head.toLowerCase() === 'mira-tu-asiento') {
   showView('view-find');
 
   return;
+ 
+// ✅ Ruta: Formulario (antes de confirmar)
+if (head.toLowerCase() === 'formulario') {
+  var tripNameForm = segs[1];
+  var trForm = await resolveTripByName(tripNameForm);
+  if (!trForm){
+    toast('No se encontró el viaje "' + tripNameForm + '".');
+    backToChoose();
+    return;
+  }
+  // Restaurar viaje
+  CURRENT_TRIP = {
+    fileId: trForm.fileId,
+    name: trForm.name,
+    sheets: trForm.sheets,
+    sheetName: CURRENT_TRIP.sheetName, // importante mantener la hoja
+    hasFloors: !!trForm.hasFloors
+  };
+  updateTripTags();
+  // ✅ Mostrar formulario
+  showView('view-reserve');
+  renderReservePage();
+  return;
 }
  var trPlain = await resolveTripByName(head); 
  if (!trPlain){ 
@@ -2114,6 +2137,8 @@ function startSelectionPage(){
   if (!selected || selected.size === 0){ toast('Elegí al menos un asiento'); return; }
   showView('view-reserve');
   renderReservePage();
+  // ✅ NUEVO: hash del formulario
+  setHash(['Formulario', CURRENT_TRIP.name]);
 }
 
 function renderReservePage(){
