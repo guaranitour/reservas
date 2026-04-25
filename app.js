@@ -268,6 +268,33 @@ if (head.toLowerCase() === 'selección de asientos') {
 
   return;
 }
+  // ✅ Ruta: Mira tu asiento
+if (head.toLowerCase() === 'mira-tu-asiento') {
+  var tripNameFind = segs[1];
+
+  var trFind = await resolveTripByName(tripNameFind);
+  if (!trFind){
+    toast('No se encontró el viaje "' + tripNameFind + '".');
+    backToChoose();
+    return;
+  }
+
+  // Setear viaje actual
+  CURRENT_TRIP = {
+    fileId: trFind.fileId,
+    name: trFind.name,
+    sheets: trFind.sheets,
+    sheetName: null,
+    hasFloors: !!trFind.hasFloors
+  };
+
+  updateTripTags();
+  clearFindView();
+  clearFindViewMulti();
+  showView('view-find');
+
+  return;
+}
  var trPlain = await resolveTripByName(head); 
  if (!trPlain){ 
  backToChoose(); 
