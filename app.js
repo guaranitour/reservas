@@ -311,7 +311,7 @@ if (head.toLowerCase() === 'formulario') {
   if (!selected || selected.size === 0) {
     toast('Primero debés seleccionar tus asientos');
 
-    // Restaurar viaje mínimo para volver al croquis
+    // restaurar viaje y volver al menú del viaje
     CURRENT_TRIP = {
       fileId: trForm.fileId,
       name: trForm.name,
@@ -320,7 +320,8 @@ if (head.toLowerCase() === 'formulario') {
       hasFloors: !!trForm.hasFloors
     };
 
-    await goSelect();
+    // ⛔ NO usar goSelect acá
+    goTripMenu();
     return;
   }
 
