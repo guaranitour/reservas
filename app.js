@@ -294,6 +294,7 @@ if (head.toLowerCase() === 'mira-tu-asiento') {
   showView('view-find');
 
   return;
+ }
  
 // ✅ Ruta: Formulario (antes de confirmar)
 if (head.toLowerCase() === 'formulario') {
