@@ -1058,8 +1058,8 @@ async function confirmSingle(){
  }catch(err){ toast('No se pudo reservar'); } 
  finally{ hideLoading(); BUSY = false; } 
 } 
-function updateAssignVisibility(){ if(selected.size > 1){ document.getElementById('view-assign').classList.remove('hidden'); } else { document.getElementById('view-assign').classList.add('hidden'); } } 
-function backToSelect(){ document.getElementById('view-assign').classList.add('hidden'); } 
+function updateAssignVisibility(){ var el = document.getElementById('view-assign'); if(!el) return; if(selected.size > 1){ el.classList.remove('hidden'); } else { el.classList.add('hidden'); } } 
+function backToSelect(){ showView('view-select'); } 
 function toggleSeat(code, el){
  if (GRID_LOADING) return;
  var key = normalize(code); 
@@ -1070,41 +1070,16 @@ function toggleSeat(code, el){
  // NUEVO: actualizar badge contador 
  if (typeof syncSelectedCounter === 'function') { try { syncSelectedCounter(); } catch(e){} } 
  } 
-async function startSelection(){ 
- if(BUSY) return; 
- if(selected.size === 0){ toast('Elegí al menos un asiento'); return; } 
- if(selected.size === 1){ 
- var form = document.getElementById('detailsSingle'); 
- if(form){ form.classList.remove('hidden'); form.scrollIntoView({behavior:'smooth'}); } 
- var nameInput = document.getElementById('nombreSingle'); if(nameInput) try{ nameInput.focus(); }catch(e){} 
- return; 
- } 
- var assign = document.getElementById('assignList'); assign.innerHTML = ''; 
- var codes = Array.from(selected); 
- for(var i=0;i<codes.length;i++){ 
- var codeNorm = normalize(codes[i]); var num = NUM_LABELS.get(codeNorm) || ''; 
- var row = document.createElement('div'); row.className = 'assign-row'; row.setAttribute('data-code', codeNorm); 
- var title = document.createElement('div'); title.className = 'assign-title'; title.textContent = 'Asiento ' + (num || codeNorm); 
- var grid = document.createElement('div'); grid.className = 'assign-grid'; 
- var nameWrap = document.createElement('label'); nameWrap.className = 'field'; 
- var nameLabel = document.createElement('span'); nameLabel.className = 'field-label'; nameLabel.textContent = 'Nombre y Apellido'; 
- var nameInput = document.createElement('input'); nameInput.type='text'; nameInput.placeholder='Luanita Espada'; nameInput.required=true; nameInput.className='assign-name'; nameInput.autocapitalize='words'; nameInput.autocomplete='name'; 
- var ciWrap = document.createElement('label'); ciWrap.className = 'field'; 
- var ciLabel = document.createElement('span'); ciLabel.className = 'field-label'; ciLabel.textContent = 'Número de documento'; 
- var ciInput = document.createElement('input'); ciInput.type='text'; ciInput.placeholder='Ej.: 12345678'; ciInput.required=true; ciInput.className='assign-ci'; ciInput.inputMode='numeric'; ciInput.pattern='[0-9]*'; 
- ciInput.addEventListener('input', function(e){ onlyDigits(e.target); }); 
- nameWrap.appendChild(nameLabel); nameWrap.appendChild(nameInput); 
- ciWrap.appendChild(ciLabel); ciWrap.appendChild(ciInput); 
- grid.appendChild(nameWrap); grid.appendChild(ciWrap); 
- row.appendChild(title); row.appendChild(grid); 
- assign.appendChild(row); 
- } 
- document.getElementById('view-assign').classList.remove('hidden'); 
- document.getElementById('view-assign').scrollIntoView({behavior:'smooth'}); 
+function startSelection(){
+  if(BUSY) return;
+  if(!selected || selected.size === 0){ toast('Elegí al menos un asiento'); return; }
+  showView('view-reserve');
+  renderReservePage();
+  setHash(['Formulario', CURRENT_TRIP.name]);
 } 
 async function confirmReservation(){ 
  if(BUSY) return; 
- var inputs = document.querySelectorAll('#assignList .assign-row'); 
+ var inputs = document.querySelectorAll('#reservePageBody .assign-row'); 
  var pairs = []; 
  for(var i=0;i<inputs.length;i++){ 
  var row = inputs[i]; 
@@ -1118,7 +1093,6 @@ async function confirmReservation(){
  try{ 
  await API.apiReserve(CURRENT_TRIP.fileId, CURRENT_TRIP.sheetName, pairs); 
  showConfirmedModal(pairs); 
- document.getElementById('view-assign').classList.add('hidden'); 
  await refreshSelectGrid(); 
  }catch(err){ toast('No se pudo reservar'); } 
  finally{ hideLoading(); BUSY = false; } 
