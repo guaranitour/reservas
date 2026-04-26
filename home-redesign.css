@@ -254,6 +254,11 @@
   color: #059669;
 }
 
+.action-card-icon.floor-alta-icon {
+  background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+  color: #7c3aed;
+}
+
 .action-card-icon svg {
   width: 26px;
   height: 26px;

@@ -183,9 +183,72 @@ function _redesignHomeCards() {
     if (id === 'view-home') {
       requestAnimationFrame(_redesignHomeCards);
     }
+    if (id === 'view-floor') {
+      requestAnimationFrame(_redesignFloorCards);
+    }
     if (id === 'view-choose') {
-      // Re-aplicar si las tarjetas se recargaron
       setTimeout(_redesignTripCards, 100);
     }
   };
 })();
+
+/* ── Rediseñar cards de planta (Planta baja / Planta alta / Ver mi asiento) ── */
+function _redesignFloorCards() {
+  var box = document.getElementById('floorCards');
+  if (!box || box.dataset.redesigned) return;
+  box.dataset.redesigned = '1';
+
+  // Íconos por tipo de planta
+  var icons = {
+    baja: {
+      svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18"/><path d="M8 6V4M16 6V4"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="16.5" cy="19" r="1.5"/></svg>',
+      cls: 'select-icon'
+    },
+    alta: {
+      svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M3 8h18"/><circle cx="7.5" cy="21" r="1.5"/><circle cx="16.5" cy="21" r="1.5"/></svg>',
+      cls: 'floor-alta-icon'
+    },
+    find: {
+      svg: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>',
+      cls: 'find-icon'
+    }
+  };
+
+  Array.from(box.querySelectorAll('.card')).forEach(function(card, i) {
+    if (card.dataset.redesigned) return;
+    card.dataset.redesigned = '1';
+
+    var h2       = card.querySelector('h2');
+    var p        = card.querySelector('p');
+    var title    = h2 ? h2.textContent.trim() : '';
+    var desc     = p  ? p.textContent.trim()  : '';
+    var onclick  = card.onclick;
+    var onkeypress = card.onkeypress;
+
+    // Elegir ícono según título
+    var iconKey = 'baja';
+    if (title.toLowerCase().indexOf('alta') >= 0)  iconKey = 'alta';
+    if (title.toLowerCase().indexOf('mirá') >= 0 ||
+        title.toLowerCase().indexOf('mira') >= 0 ||
+        title.toLowerCase().indexOf('ver')  >= 0)  iconKey = 'find';
+
+    card.className = 'action-card';
+    card.style.animationDelay = (0.06 + i * 0.1) + 's';
+    card.innerHTML =
+      '<div class="action-card-icon ' + icons[iconKey].cls + '">' +
+        icons[iconKey].svg +
+      '</div>' +
+      '<div class="action-card-body">' +
+        '<div class="action-card-title">' + title + '</div>' +
+        '<div class="action-card-desc">'  + desc  + '</div>' +
+      '</div>' +
+      '<div class="action-card-arrow">' + _arrowSvg() + '</div>';
+
+    card.onclick     = onclick;
+    card.onkeypress  = onkeypress;
+  });
+
+  // Convertir el contenedor .floors en .action-cards para usar el mismo estilo
+  box.className = 'action-cards';
+}
+
