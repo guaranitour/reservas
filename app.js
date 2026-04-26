@@ -1717,8 +1717,7 @@ async function handleCredentialResponse(resp){
  if (out && out.ok){ 
  ID_TOKEN = token; 
  CONTROL_AUTH = true;
- CONTROL_AUTH = true;
-window.__WA_CONTROL_AUTH = true;  // ← agregá esta línea
+ window.__WA_CONTROL_AUTH = true;
  STAFF_ROLE = (out.role || 'viewer'); 
  STAFF_EMAIL = out.email || ''; 
  setStaffSession(true); 
@@ -1733,6 +1732,7 @@ window.__WA_CONTROL_AUTH = true;  // ← agregá esta línea
  setHash(['Inicio']); 
 }else{
   CONTROL_AUTH = false;
+  window.__WA_CONTROL_AUTH = false;
   setStaffSession(false);
 
   STAFF_ROLE = null;
@@ -1756,7 +1756,7 @@ window.__WA_CONTROL_AUTH = true;  // ← agregá esta línea
   if (deniedBox) deniedBox.classList.remove('hidden');
 }
  }catch(e){ 
- CONTROL_AUTH = false; setStaffSession(false); 
+ CONTROL_AUTH = false; window.__WA_CONTROL_AUTH = false; setStaffSession(false);
  STAFF_ROLE = null; STAFF_EMAIL = null; ID_TOKEN = null; 
  updateAdminMenu(); syncStaffBadge(); syncControlFormVisibility(); hideControlBoard();
  syncAddTripVisibility(); 
@@ -1776,7 +1776,8 @@ function openStaffLogin(){
   if (loginBox) loginBox.classList.remove('hidden');
 
  hideAdminMenu(); 
- CONTROL_AUTH = false; 
+ CONTROL_AUTH = false;
+ window.__WA_CONTROL_AUTH = false;
  setStaffSession(false); 
  STAFF_ROLE = null; STAFF_EMAIL = null; ID_TOKEN = null; 
  updateAdminMenu(); 
@@ -1791,7 +1792,8 @@ function openStaffLogin(){
  tryRender(); 
  } 
 function doControlLogout(){ 
- CONTROL_AUTH = false; 
+ CONTROL_AUTH = false;
+ window.__WA_CONTROL_AUTH = false;
  setStaffSession(false); 
  STAFF_ROLE = null; STAFF_EMAIL = null; ID_TOKEN = null; 
  updateAdminMenu(); 
@@ -1982,7 +1984,8 @@ showLoading('Cargando…');
 })();
  // Sesión previa 
  if (isStaffSession()) { 
- CONTROL_AUTH = true; 
+ CONTROL_AUTH = true;
+ window.__WA_CONTROL_AUTH = true;
  updateAdminMenu(); 
  syncStaffBadge(); 
  syncControlFormVisibility();
