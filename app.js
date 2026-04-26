@@ -1716,7 +1716,9 @@ async function handleCredentialResponse(resp){
  const out = await API.apiLoginWithToken(token); 
  if (out && out.ok){ 
  ID_TOKEN = token; 
- CONTROL_AUTH = true; 
+ CONTROL_AUTH = true;
+ CONTROL_AUTH = true;
+window.__WA_CONTROL_AUTH = true;  // ← agregá esta línea
  STAFF_ROLE = (out.role || 'viewer'); 
  STAFF_EMAIL = out.email || ''; 
  setStaffSession(true); 
