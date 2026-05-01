@@ -13,7 +13,6 @@
 <link href="styles.css" rel="stylesheet"/> 
 <link href="styles-structure-additions.css" rel="stylesheet"/> 
 <link href="croquis-redesign.css" rel="stylesheet"/> 
-<link href="find-redesign.css" rel="stylesheet"/>
 <script async defer src="https://accounts.google.com/gsi/client"></script> 
 </head> 
 <body> 
@@ -163,39 +162,53 @@
  </div> 
  </div> 
  </section> 
- <!-- Mirá tu asiento --> 
- <section aria-label="Mirá tu asiento" class="view" id="view-find"> 
- <form class="form" id="findForm" onsubmit="event.preventDefault(); findByCI();"> 
- <div class="form-row"> 
- <label for="ciSearch">Número de documento del pasajero</label> 
- <input autocomplete="off" enterkeyhint="search" id="ciSearch" inputmode="numeric" pattern="[0-9]*" placeholder="Ej.: 12345678" required type="text"/> 
- </div> 
- <div class="actions"> 
- <button class="btn primary" type="submit">Buscar</button> 
- <button class="btn ghost" onclick="goTripMenu()" type="button">Inicio</button> 
- </div> 
- </form> 
- <div class="feedback hidden" id="findFeedback"> 
- <h4>Asientos para tu CI</h4> 
- <div class="nums" id="findNums"></div> 
- <div class="actions"> 
- <button class="btn primary" id="btnShowCroquis" onclick="showCroquisForCI()" type="button">Ver croquis</button> 
- </div> 
- </div> 
- <div aria-busy="true" aria-live="polite" class="grid" id="grid-find"></div> 
-  <p class="croquis-note">
-  El croquis es referencial. La ubicación exacta de los asientos puede variar según la unidad.
-</p>
- <div class="feedback hidden" id="multiFeedback"> 
- <h4>Asientos por planta</h4> 
- <div id="multiNums"></div> 
- <div class="actions"> 
- <button class="btn primary" id="btnShowCroquisMulti" onclick="showCroquisForCIMulti()" type="button">Ver croquis</</button> 
- </div> 
- </div> 
- <div id="multiCroquis"></div> 
- </section> 
- <!-- Control interno --> 
+ <!-- Mirá tu asiento -->
+ <section aria-label="Mirá tu asiento" class="view" id="view-find">
+   <div class="home-center">
+     <div class="find-wrap">
+
+       <!-- Búsqueda -->
+       <div class="find-search-card">
+         <label class="find-search-label" for="ciSearch">Número de documento</label>
+         <div class="find-search-row">
+           <input id="ciSearch" type="text" inputmode="numeric" pattern="[0-9]*"
+             placeholder="Ej.: 12345678" autocomplete="off" enterkeyhint="search"/>
+           <button class="btn primary" type="button" onclick="findByCI()">Buscar</button>
+         </div>
+       </div>
+
+       <!-- Área visual de resultados (renderizada por find-redesign.js) -->
+       <div id="findResultArea"></div>
+
+       <!-- IDs requeridos por app.js — ocultos -->
+       <div id="findFeedback"   style="display:none" aria-hidden="true">
+         <div id="findNums"></div>
+         <button id="btnShowCroquis" onclick="showCroquisForCI()" type="button" disabled></button>
+       </div>
+       <div id="multiFeedback"  style="display:none" aria-hidden="true">
+         <div id="multiNums"></div>
+         <button id="btnShowCroquisMulti" onclick="showCroquisForCIMulti()" type="button" disabled></button>
+       </div>
+       <div id="multiCroquis"   style="display:none" aria-hidden="true"></div>
+       <div id="grid-find" class="grid" aria-live="polite" style="display:none"></div>
+       <p id="findCroquisNote" class="croquis-note" style="display:none">
+         El croquis es referencial. La ubicación exacta puede variar según la unidad.
+       </p>
+
+       <!-- Volver -->
+       <div style="max-width:480px;margin:8px auto 0;">
+         <button type="button" class="btn ghost btn-icon" onclick="goTripMenu()" style="width:100%">
+           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+             <path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>
+           </svg>
+           Volver al inicio
+         </button>
+       </div>
+
+     </div>
+   </div>
+ </section> <!-- Control interno --> 
  <section aria-label="Control interno" class="view" id="view-control"> 
  <!-- Bloque de login con Google --> 
  <div class="form" id="googleSigninBox"> 
@@ -379,8 +392,7 @@
 <script src="app.js"></script> 
 <script src="reserve-redesign.js"></script>
 <script src="home-redesign.js"></script>
-<script src="find-redesign.js"></script>
 <script src="whatsapp-mode.js"></script>
-<script src="edit-seats.js"></script>
+<script src="edit-seats.js"></script> 
 </body> 
 </html>
