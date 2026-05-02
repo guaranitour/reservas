@@ -2048,6 +2048,37 @@ showLoading('Cargando…');
  syncStaffBadge(); 
  syncControlFormVisibility();
  syncAddTripVisibility();
+ // Renovar token de Google silenciosamente en segundo plano
+ function trySilentRenew() {
+   if (!(window.google && google.accounts && google.accounts.id)) {
+     setTimeout(trySilentRenew, 400);
+     return;
+   }
+   google.accounts.id.initialize({
+     client_id: GOOGLE_CLIENT_ID,
+     callback: function(resp) {
+       if (resp && resp.credential) {
+         ID_TOKEN = resp.credential;
+         // Verificar con el backend silenciosamente
+         API.apiLoginWithToken(resp.credential).then(function(out) {
+           if (out && out.ok) {
+             STAFF_ROLE  = out.role  || STAFF_ROLE;
+             STAFF_EMAIL = out.email || STAFF_EMAIL;
+           } else {
+             // Token rechazado — cerrar sesión
+             doControlLogout();
+           }
+         }).catch(function() {
+           // Sin conexión — dejamos la sesión visual activa,
+           // las acciones que requieran token fallarán individualmente
+         });
+       }
+     },
+     cancel_on_tap_outside: true
+   });
+   google.accounts.id.prompt();
+ }
+ trySilentRenew();
  } else { 
  updateAdminMenu(); 
  syncStaffBadge(); 
