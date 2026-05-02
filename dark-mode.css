@@ -1,0 +1,300 @@
+/* =============================================
+   DARK MODE — Destino Guaraní
+   Se activa automáticamente cuando el sistema
+   del usuario tiene modo oscuro activado.
+   ============================================= */
+
+@media (prefers-color-scheme: dark) {
+
+  /* ── Variables base ── */
+  :root {
+    --bg:      #0f1117;
+    --card:    #1a1d27;
+    --text:    #f1f5f9;
+    --muted:   #94a3b8;
+    --shadow:  0 8px 20px rgba(0,0,0,.35);
+    --brandA:  rgba(44,123,229,.12);
+    --brandB:  rgba(16,185,129,.08);
+    --staff-bg:     #2d2008;
+    --staff-border: #78350f;
+    --staff-text:   #fde68a;
+  }
+
+  /* ── Body y fondo ── */
+  body { background: var(--bg); color: var(--text); }
+
+  /* ── Logo negro → blanco en dark mode ── */
+  .brand-chip img {
+    filter: invert(1) drop-shadow(0 3px 8px rgba(0,0,0,.4));
+  }
+
+  /* ── Chip del logo ── */
+  .brand-chip {
+    background: rgba(255,255,255,.06);
+    border-color: rgba(255,255,255,.10);
+  }
+
+  /* ── Hero gradient ── */
+  .hero {
+    background: linear-gradient(180deg, rgba(44,123,229,.10) 0%, rgba(16,185,129,.06) 45%, transparent 100%);
+  }
+
+  /* ── Cards genéricas ── */
+  .card {
+    background: var(--card);
+    border: 1.5px solid rgba(255,255,255,.06);
+  }
+
+  .card:hover {
+    box-shadow: 0 10px 24px rgba(0,0,0,.4);
+  }
+
+  /* ── Formularios ── */
+  .form {
+    background: var(--card);
+    border: 1px solid rgba(255,255,255,.06);
+  }
+
+  input, textarea, select {
+    background: #23283a;
+    border-color: rgba(255,255,255,.10);
+    color: var(--text);
+  }
+
+  input::placeholder { color: #475569; }
+
+  input:focus {
+    border-color: #3b82f6;
+    background: #1e2335;
+    box-shadow: 0 0 0 4px rgba(59,130,246,.15);
+  }
+
+  /* ── Botones ── */
+  .btn.ghost {
+    border-color: rgba(255,255,255,.12);
+    color: var(--text);
+  }
+
+  .btn.ghost:hover {
+    background: rgba(255,255,255,.07);
+    border-color: rgba(255,255,255,.2);
+  }
+
+  /* ── Admin menu ── */
+  .admin-menu {
+    background: #1e2335;
+    border-color: rgba(255,255,255,.08);
+    box-shadow: 0 12px 28px rgba(0,0,0,.5);
+  }
+
+  .admin-menu::before {
+    border-bottom-color: #1e2335;
+  }
+
+  /* ── Legend / badges ── */
+  .legend {
+    background: var(--card);
+    border-color: rgba(255,255,255,.06);
+  }
+
+  .badge.inhabilitado,
+  .badge.inexistente {
+    background: #23283a;
+    color: #64748b;
+  }
+
+  .badge.inhabilitado::before,
+  .badge.inexistente::before {
+    background: #475569;
+  }
+
+  /* ── Asientos ── */
+  .seat.libre {
+    background: linear-gradient(145deg, #052e16, #064e2a);
+    color: #6ee7b7;
+    border-color: rgba(16,185,129,.25);
+  }
+
+  .seat.ocupado {
+    background: linear-gradient(145deg, #3b0a0a, #5b1010);
+    color: #fca5a5;
+    border-color: rgba(239,68,68,.2);
+  }
+
+  .seat.seleccionado {
+    background: linear-gradient(145deg, #0c1a3d, #1e3a6e);
+    color: #93c5fd;
+    border-color: rgba(59,130,246,.35);
+    box-shadow: 0 3px 14px rgba(59,130,246,.25);
+  }
+
+  .seat.inhabilitado,
+  .seat.inexistente {
+    background: #1a1d27;
+    color: #374151;
+    border-color: rgba(255,255,255,.04);
+  }
+
+  /* ── Croquis note ── */
+  .croquis-note {
+    background: #1a1d27;
+    border-color: rgba(255,255,255,.05);
+    color: var(--muted);
+  }
+
+  /* ── Trip cards (home redesign) ── */
+  .trip-card {
+    background: var(--card);
+    border-color: rgba(255,255,255,.06);
+  }
+
+  .trip-card:hover {
+    border-color: rgba(44,123,229,.3);
+    box-shadow: 0 8px 28px rgba(0,0,0,.4);
+  }
+
+  .trip-bus-icon {
+    background: linear-gradient(135deg, rgba(44,123,229,.18), rgba(16,185,129,.12));
+    border-color: rgba(44,123,229,.2);
+  }
+
+  .trip-bus-icon.floors-icon {
+    background: linear-gradient(135deg, rgba(139,92,246,.18), rgba(236,72,153,.1));
+    border-color: rgba(139,92,246,.22);
+  }
+
+  .trip-pill {
+    background: #1e2a4a;
+    color: #93c5fd;
+  }
+
+  .trip-pill.doble {
+    background: #2d1f4e;
+    color: #c4b5fd;
+  }
+
+  /* ── Action cards (home / floor) ── */
+  .action-card {
+    background: var(--card);
+    border-color: rgba(255,255,255,.06);
+  }
+
+  .action-card:hover {
+    border-color: rgba(44,123,229,.3);
+    box-shadow: 0 8px 28px rgba(0,0,0,.4);
+  }
+
+  .action-card-icon.select-icon {
+    background: linear-gradient(135deg, rgba(37,99,235,.2), rgba(109,40,217,.12));
+  }
+
+  .action-card-icon.find-icon {
+    background: linear-gradient(135deg, rgba(5,150,105,.2), rgba(6,182,212,.12));
+  }
+
+  .action-card-icon.floor-alta-icon {
+    background: linear-gradient(135deg, rgba(109,40,217,.2), rgba(124,58,237,.12));
+  }
+
+  /* ── Reserve cards ── */
+  .reserve-card {
+    background: var(--card);
+    border-color: rgba(255,255,255,.06);
+  }
+
+  .reserve-card:focus-within {
+    border-color: rgba(59,130,246,.3);
+    box-shadow: 0 4px 24px rgba(59,130,246,.12);
+  }
+
+  .reserve-seat-badge {
+    background: linear-gradient(135deg, rgba(44,123,229,.18), rgba(16,185,129,.1));
+    border-color: rgba(44,123,229,.2);
+  }
+
+  .reserve-field-label { color: #94a3b8; }
+
+  .reserve-field input {
+    background: #23283a;
+    border-color: rgba(255,255,255,.10);
+    color: var(--text);
+  }
+
+  .reserve-field input:focus {
+    border-color: #3b82f6;
+    background: #1e2335;
+  }
+
+  .reserve-field input.field-error {
+    background: #2d1515;
+    border-color: #ef4444;
+  }
+
+  /* ── Confirmed cards ── */
+  .confirmed-card {
+    background: var(--card);
+    border-color: rgba(16,185,129,.2);
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+
+  .confirmed-card-icon {
+    background: linear-gradient(135deg, rgba(5,150,105,.2), rgba(16,185,129,.12));
+  }
+
+  .confirmed-hint {
+    background: #1a1d27;
+    color: var(--muted);
+  }
+
+  /* ── Find cards ── */
+  .find-search-card {
+    background: var(--card);
+    border-color: rgba(255,255,255,.06);
+  }
+
+  .find-search-row input {
+    background: #23283a;
+    border-color: rgba(255,255,255,.10);
+    color: var(--text);
+  }
+
+  .find-search-row input:focus {
+    background: #1e2335;
+    border-color: #3b82f6;
+  }
+
+  .find-card {
+    background: var(--card);
+    border-color: rgba(16,185,129,.2);
+    box-shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+
+  .find-card-badge {
+    background: linear-gradient(135deg, rgba(5,150,105,.2), rgba(16,185,129,.12));
+  }
+
+  .find-empty-icon {
+    background: #23283a;
+    color: #475569;
+  }
+
+  /* ── Staff badge y access denied ── */
+  .staff-badge {
+    background: var(--staff-bg);
+    border-color: var(--staff-border);
+    color: var(--staff-text);
+  }
+
+  .staff-denied-box {
+    background: linear-gradient(180deg, rgba(127,29,29,.4), rgba(26,29,39,1));
+    border-color: rgba(239,68,68,.25);
+  }
+
+  .staff-denied-text { color: #fca5a5; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #2d3348; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3d4560; }
+}
