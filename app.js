@@ -1207,18 +1207,65 @@ function computeNumbersForCodes(codes){
  }); 
  return codes.map(function(c){ return NUM_LABELS.get(c); }).filter(function(n){ return typeof n !== 'undefined'; }); 
  } 
-function renderFindFeedback(nums){ 
- var panel = document.getElementById('findFeedback'); 
- var list = document.getElementById('findNums'); 
- var btn = document.getElementById('btnShowCroquis'); 
- list.innerHTML = ''; 
- if(nums.length){ 
- nums.forEach(function(n){ var pill = document.createElement('span'); pill.className='pill'; pill.textContent = String(n); list.appendChild(pill); }); 
- panel.classList.remove('hidden'); btn.disabled = false; panel.scrollIntoView({behavior:'smooth'}); 
- }else{ 
- panel.classList.remove('hidden'); list.innerHTML = '<span class="pill">Sin asientos</span>'; btn.disabled = true; 
- } 
- } 
+function renderFindFeedback(nums){
+  var area = document.getElementById('findResultArea');
+  if (!area) return;
+  area.innerHTML = '';
+
+  var sheet      = CURRENT_TRIP.sheetName;
+  var seatsMap   = SEATS_BY_SHEET.get(sheet) || {};
+  var highlights = HIGHLIGHT_BY_SHEET.get(sheet) || new Set();
+  var pasajero   = '';
+  highlights.forEach(function(code){
+    if (!pasajero && seatsMap[code] && seatsMap[code].pasajero) pasajero = seatsMap[code].pasajero;
+  });
+
+  var seatSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18"/><path d="M8 6V4M16 6V4"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="16.5" cy="19" r="1.5"/></svg>';
+  var emptySvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v4M11 16h.01"/></svg>';
+
+  if (!nums || !nums.length) {
+    area.innerHTML =
+      '<div class="find-empty">' +
+        '<div class="find-empty-icon">' + emptySvg + '</div>' +
+        '<div class="find-empty-title">No encontramos tu asiento</div>' +
+        '<div class="find-empty-sub">No hay asientos registrados para ese documento en este viaje. Verificá el número e intentá de nuevo.</div>' +
+      '</div>';
+    return;
+  }
+
+  var resultsDiv = document.createElement('div');
+  resultsDiv.className = 'find-results';
+  nums.forEach(function(num){
+    var card = document.createElement('div');
+    card.className = 'find-card';
+    card.innerHTML =
+      '<div class="find-card-badge">' + seatSvg + '</div>' +
+      '<div class="find-card-info">' +
+        '<div class="find-card-num">Asiento ' + num + '</div>' +
+        (pasajero ? '<div class="find-card-name">' + pasajero + '</div>' : '') +
+      '</div>';
+    resultsDiv.appendChild(card);
+  });
+  area.appendChild(resultsDiv);
+
+  var croquisWrap = document.createElement('div');
+  croquisWrap.className = 'find-croquis-wrap';
+  croquisWrap.innerHTML = '<div class="find-croquis-title">Tu ubicación en el bus</div>';
+
+  var grid = document.getElementById('grid-find');
+  if (grid) { grid.style.display = ''; croquisWrap.appendChild(grid); }
+  var note = document.getElementById('findCroquisNote');
+  if (note) { note.style.display = ''; croquisWrap.appendChild(note); }
+  area.appendChild(croquisWrap);
+
+  showLoading('Cargando croquis…');
+  refreshSeats('grid-find', function(){
+    hideLoading();
+    var mine = document.getElementById('grid-find').querySelector('.seat.mine');
+    if (mine) mine.scrollIntoView({ behavior:'smooth', block:'center' });
+    else croquisWrap.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+} 
 function showCroquisForCI(){ 
  showLoading('Cargando croquis…'); 
  refreshSeats('grid-find', function(){ 
@@ -1229,13 +1276,16 @@ function showCroquisForCI(){
  toast('Resaltados: ' + HIGHLIGHT_CODES.size); 
  }); 
  } 
-function clearFindView(){ 
- document.getElementById('findFeedback').classList.add('hidden'); 
- document.getElementById('findNums').innerHTML = ''; 
- document.getElementById('grid-find').innerHTML = ''; 
- HIGHLIGHT_CODES = new Set(); 
- LAST_FOUND_CODES = []; 
- } 
+function clearFindView(){
+  var area = document.getElementById('findResultArea');
+  var grid = document.getElementById('grid-find');
+  var note = document.getElementById('findCroquisNote');
+  if (area) area.innerHTML = '';
+  if (grid) { grid.innerHTML = ''; grid.style.display = 'none'; }
+  if (note) note.style.display = 'none';
+  HIGHLIGHT_CODES = new Set();
+  LAST_FOUND_CODES = [];
+} 
 /* ====== BÚSQUEDA EN AMBAS PLANTAS ====== */ 
 var MULTI_SHEETS = []; 
 var SEATS_BY_SHEET = new Map(); 
@@ -1256,43 +1306,78 @@ function computeNumbersForCodesWith(seatsMap, codes){
  }); 
  return codes.map(function(c){ return labels.get(c); }).filter(function(n){ return typeof n !== 'undefined'; }); 
  } 
-function renderFindFeedbackMulti(){ 
- clearFindView(); 
- var panel = document.getElementById('multiFeedback'); 
- var wrap = document.getElementById('multiNums'); 
- var btn = document.getElementById('btnShowCroquisMulti'); 
- wrap.innerHTML = ''; 
- var totalResults = 0; 
- MULTI_SHEETS.forEach(function(f){ 
- var nums = NUMS_BY_SHEET.get(f.sheetName) ||[]; 
- totalResults += nums.length; 
- var section = document.createElement('div'); 
- section.className = 'form'; 
- section.style.marginBottom = '12px'; 
- var title = document.createElement('h4'); 
- title.textContent = f.label; 
- title.style.margin = '0 0 8px 0'; 
- var list = document.createElement('div'); 
- list.className = 'nums'; 
- if(nums.length){ 
- nums.forEach(function(n){ 
- var pill = document.createElement('span'); pill.className='pill'; 
- pill.textContent = String(n); 
- list.appendChild(pill); 
- }); 
- }else{ 
- var pill2 = document.createElement('span'); pill2.className='pill'; 
- pill2.textContent = 'Sin asientos'; 
- list.appendChild(pill2); 
- } 
- section.appendChild(title); 
- section.appendChild(list); 
- wrap.appendChild(section); 
- }); 
- panel.classList.remove('hidden'); 
- btn.disabled = (totalResults === 0); 
- panel.scrollIntoView({behavior:'smooth'}); 
- } 
+function renderFindFeedbackMulti(){
+  clearFindView();
+  var area = document.getElementById('findResultArea');
+  if (!area) return;
+  area.innerHTML = '';
+
+  var seatSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18"/><path d="M8 6V4M16 6V4"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="16.5" cy="19" r="1.5"/></svg>';
+  var emptySvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v4M11 16h.01"/></svg>';
+
+  var totalResults = 0;
+  MULTI_SHEETS.forEach(function(f){ totalResults += (NUMS_BY_SHEET.get(f.sheetName)||[]).length; });
+
+  if (!totalResults) {
+    area.innerHTML =
+      '<div class="find-empty">' +
+        '<div class="find-empty-icon">' + emptySvg + '</div>' +
+        '<div class="find-empty-title">No encontramos tu asiento</div>' +
+        '<div class="find-empty-sub">No hay asientos registrados para ese documento en este viaje. Verificá el número e intentá de nuevo.</div>' +
+      '</div>';
+    return;
+  }
+
+  var resultsDiv = document.createElement('div');
+  resultsDiv.className = 'find-results';
+
+  MULTI_SHEETS.forEach(function(f){
+    var nums       = NUMS_BY_SHEET.get(f.sheetName) || [];
+    var seatsMap   = SEATS_BY_SHEET.get(f.sheetName) || {};
+    var highlights = HIGHLIGHT_BY_SHEET.get(f.sheetName) || new Set();
+    if (!nums.length) return;
+
+    var pasajero = '';
+    highlights.forEach(function(code){
+      if (!pasajero && seatsMap[code] && seatsMap[code].pasajero) pasajero = seatsMap[code].pasajero;
+    });
+
+    var sectionTitle = document.createElement('div');
+    sectionTitle.className   = 'find-result-section-title';
+    sectionTitle.textContent = f.label;
+    resultsDiv.appendChild(sectionTitle);
+
+    nums.forEach(function(num){
+      var card = document.createElement('div');
+      card.className = 'find-card';
+      card.innerHTML =
+        '<div class="find-card-badge">' + seatSvg + '</div>' +
+        '<div class="find-card-info">' +
+          '<div class="find-card-num">Asiento ' + num + '</div>' +
+          (pasajero ? '<div class="find-card-name">' + pasajero + '</div>' : '') +
+          '<div class="find-card-floor">' + f.label + '</div>' +
+        '</div>';
+      resultsDiv.appendChild(card);
+    });
+  });
+
+  area.appendChild(resultsDiv);
+
+  var croquisWrap = document.createElement('div');
+  croquisWrap.className = 'find-croquis-wrap';
+  croquisWrap.innerHTML = '<div class="find-croquis-title">Tu ubicación en el bus</div>';
+
+  var multiContainer = document.getElementById('multiCroquis');
+  if (multiContainer) { multiContainer.style.display = ''; croquisWrap.appendChild(multiContainer); }
+
+  var note = document.createElement('p');
+  note.className   = 'croquis-note';
+  note.textContent = 'El croquis es referencial. La ubicación exacta puede variar según la unidad.';
+  croquisWrap.appendChild(note);
+  area.appendChild(croquisWrap);
+
+  showCroquisForCIMulti();
+} 
 async function showCroquisForCIMulti(){ 
  showLoading('Cargando croquis…'); 
  var container = document.getElementById('multiCroquis'); 
@@ -1370,14 +1455,14 @@ function buildGridCustom(targetId, seatsMap, highlightSet){
  var first = grid.querySelector('.seat.mine'); 
  if(first) first.scrollIntoView({behavior:'smooth', block:'center'}); 
  } 
-function clearFindViewMulti(){ 
- document.getElementById('multiFeedback').classList.add('hidden'); 
- document.getElementById('multiNums').innerHTML = ''; 
- document.getElementById('multiCroquis').innerHTML = ''; 
- MULTI_SHEETS = []; 
- SEATS_BY_SHEET = new Map(); 
- HIGHLIGHT_BY_SHEET = new Map(); 
- NUMS_BY_SHEET = new Map(); 
+function clearFindViewMulti(){
+  var multiContainer = document.getElementById('multiCroquis');
+  if (multiContainer) { multiContainer.innerHTML = ''; multiContainer.style.display = 'none'; }
+  MULTI_SHEETS = [];
+  SEATS_BY_SHEET = new Map();
+  HIGHLIGHT_BY_SHEET = new Map();
+  NUMS_BY_SHEET = new Map();
+} 
  } 
 /* ====== Control interno (single) ===== */ 
 function renderControlBoard(){ 
