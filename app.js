@@ -1463,7 +1463,6 @@ function clearFindViewMulti(){
   HIGHLIGHT_BY_SHEET = new Map();
   NUMS_BY_SHEET = new Map();
 } 
- } 
 /* ====== Control interno (single) ===== */ 
 function renderControlBoard(){ 
  if(!CONTROL_AUTH){ hideControlBoard(); return; } 
