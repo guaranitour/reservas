@@ -276,6 +276,8 @@
     document.removeEventListener('click', seatToggleHandler, true);
     const { single, multi } = nowContainerEls();
     setSeatCursor(single, false); setSeatCursor(multi, false);
+    // Eliminar botones — del DOM
+    document.querySelectorAll('.row-del-btn').forEach(function(btn){ btn.remove(); });
     hideGlobalBar();
     stopObserving();
     tweakToolbarButton(false);
