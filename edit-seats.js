@@ -105,16 +105,12 @@
     if (!bar){
       bar = document.createElement('div');
       bar.id = 'structureBar';
-      bar.className = 'form';
-      bar.style.marginTop = '8px';
       bar.innerHTML = (
-        '<div class="actions" style="justify-content:space-between;flex-wrap:wrap;gap:8px">'
-        + '<div class="hint" style="color:#6b7280;line-height:1.3">Modo estructura activo: tocá un asiento para <strong>habilitar/inhabilitar</strong>. Si está ocupado te voy a preguntar si querés forzar. </div>'
-        + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-        + '  <button type="button" class="btn primary" id="btnAddRowStructure">Agregar fila +</button>'
+        '<div class="structure-hint">Modo estructura activo: tocá un asiento para <strong>habilitar/inhabilitar</strong>. Si está ocupado te voy a preguntar si querés forzar.</div>'
+        + '<div class="structure-actions">'
+        + '  <button type="button" class="btn primary" id="btnAddRowStructure">+ Agregar fila</button>'
         + '  <button type="button" class="btn ghost" id="btnAdvancedStructure">Opciones avanzadas</button>'
         + '  <button type="button" class="btn danger" id="btnExitStructure">Salir</button>'
-        + '</div>'
         + '</div>'
       );
       board.insertBefore(bar, board.firstChild.nextSibling);
@@ -143,19 +139,6 @@
         del.className = 'row-del-btn';
         del.textContent = '–';
         del.title = 'Eliminar fila';
-        // style
-        del.style.position = 'absolute';
-        del.style.right = '-6px';
-        del.style.top = '50%';
-        del.style.transform = 'translateY(-50%)';
-        del.style.border = '1px solid #e5e7eb';
-        del.style.background = '#fff';
-        del.style.color = '#111827';
-        del.style.borderRadius = '999px';
-        del.style.width = '28px';
-        del.style.height = '28px';
-        del.style.boxShadow = '0 2px 8px rgba(17,24,39,.12)';
-        del.style.cursor = 'pointer';
         del.addEventListener('click', function(ev){ onDeleteRowClick(ev, rowEl, root); });
         rowEl.appendChild(del);
       });
