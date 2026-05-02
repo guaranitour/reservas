@@ -25,13 +25,14 @@
 
   /* ── Logo negro → blanco en dark mode ── */
   .brand-chip img {
-    filter: invert(1) drop-shadow(0 3px 8px rgba(0,0,0,.4));
+    filter: invert(1) brightness(1.15) drop-shadow(0 2px 8px rgba(255,255,255,.15));
   }
 
-  /* ── Chip del logo ── */
+  /* ── Chip del logo — más visible en dark ── */
   .brand-chip {
-    background: rgba(255,255,255,.06);
-    border-color: rgba(255,255,255,.10);
+    background: rgba(255,255,255,.10);
+    border-color: rgba(255,255,255,.16);
+    box-shadow: 0 8px 24px rgba(0,0,0,.5);
   }
 
   /* ── Hero gradient ── */
