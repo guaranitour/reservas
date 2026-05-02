@@ -1,0 +1,114 @@
+/* =============================================
+   MENÚ HERRAMIENTAS — Panel staff
+   ============================================= */
+
+.tools-menu-wrap {
+  position: relative;
+}
+
+/* ── Dropdown ── */
+.tools-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 240px;
+  background: var(--card);
+  border: 1.5px solid rgba(17,24,39,.08);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(17,24,39,.16), 0 2px 8px rgba(17,24,39,.08);
+  z-index: 60;
+  overflow: hidden;
+  padding: 6px;
+
+  /* Animación de entrada */
+  transform-origin: top left;
+  animation: tools-drop-in .2s cubic-bezier(.34,1.3,.64,1) both;
+}
+
+.tools-dropdown.hidden {
+  display: none;
+}
+
+@keyframes tools-drop-in {
+  from { opacity: 0; transform: scale(.92) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Items del menú ── */
+.tools-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background .15s ease;
+}
+
+.tools-item:hover {
+  background: rgba(17,24,39,.05);
+}
+
+.tools-item:active {
+  background: rgba(17,24,39,.09);
+}
+
+/* Ícono */
+.tools-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tools-icon-pdf    { background: #dbeafe; color: #1d4ed8; }
+.tools-icon-edit   { background: #d1fae5; color: #065f46; }
+.tools-icon-struct { background: #f3e8ff; color: #6d28d9; }
+
+/* Texto */
+.tools-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tools-item-label {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.tools-item-desc {
+  font-size: .75rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+/* ── Dark mode ── */
+@media (prefers-color-scheme: dark) {
+  .tools-dropdown {
+    background: #1e2335;
+    border-color: rgba(255,255,255,.08);
+    box-shadow: 0 12px 32px rgba(0,0,0,.5);
+  }
+
+  .tools-item:hover  { background: rgba(255,255,255,.07); }
+  .tools-item:active { background: rgba(255,255,255,.12); }
+
+  .tools-icon-pdf    { background: rgba(29,78,216,.2);  color: #93c5fd; }
+  .tools-icon-edit   { background: rgba(6,95,70,.25);   color: #6ee7b7; }
+  .tools-icon-struct { background: rgba(109,40,217,.2); color: #c4b5fd; }
+}
+
+/* ── Reducir motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .tools-dropdown { animation: none !important; }
+}
