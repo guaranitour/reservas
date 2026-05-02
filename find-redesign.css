@@ -3,6 +3,11 @@
    ============================================= */
 
 /* ── Formulario de búsqueda ── */
+#view-find .home-center {
+  align-items: flex-start;
+  padding-top: 12px;
+}
+
 .find-wrap {
   width: 100%;
   max-width: 480px;
@@ -15,7 +20,23 @@
   border: 1.5px solid rgba(17,24,39,.06);
   box-shadow: 0 2px 16px rgba(17,24,39,.07);
   padding: 20px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+}
+
+/* Botón volver — discreto, sin borde de card */
+#view-find .btn.ghost.btn-icon {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: .88rem;
+  font-weight: 600;
+  justify-content: center;
+  padding: 10px;
+}
+
+#view-find .btn.ghost.btn-icon:hover {
+  background: rgba(17,24,39,.05);
+  color: var(--text);
 }
 
 .find-search-label {
