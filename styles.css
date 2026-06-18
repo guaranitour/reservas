@@ -976,3 +976,26 @@ body:not(.app-ready) .view {
   min-width: unset;            /* evita anchos heredados */
   padding: 10px 12px;          /* menos aire alrededor */
 }
+
+/* ── Píldora BYC ─────────────────────────────────── */
+.byc-pill {
+  display: block;
+  margin: 14px auto 0;
+  max-width: 680px;
+  padding: 10px 16px;
+  background: #fff8e1;
+  border: 1.5px solid #f9a825;
+  border-radius: 999px;
+  color: #e65100;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  line-height: 1.4;
+  transition: background 0.18s, transform 0.12s;
+}
+.byc-pill:hover,
+.byc-pill:active {
+  background: #fff3cd;
+  transform: scale(0.98);
+}
