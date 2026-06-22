@@ -1,4 +1,4 @@
-// lista-pdf.js — Genera PDF 'Lista de Pasajeros' con diseño de plantilla oficial
+// lista-pdf.js — PDF 'Lista de Pasajeros' con diseño de plantilla oficial
 // Requiere pdfmake (cargado antes de este script)
 
 (function() {
@@ -64,6 +64,62 @@ function buildSeatList() {
   return entries;
 }
 
+// Construye el contenido de una hoja: header + tabla de filas + footer
+function buildPageContent(seats, fromNum, toNum, isFirstPage) {
+  var COL_BORDER = '#222222';
+  var colWidths = [22, 80, 160, 55, 60, 60, 60];
+
+  // Fila de encabezados de tabla
+  var tableBody = [];
+  var hdrLabels = ['', 'Documento', 'Nombre y apellido', 'Abonado', 'Por abonar', '', ''];
+  tableBody.push(hdrLabels.map(function(txt) {
+    return {
+      text: txt, fontSize: 7.5, bold: true, alignment: 'center',
+      fillColor: '#dce6f1', border: [true, true, true, true], margin: [1, 2, 1, 2]
+    };
+  }));
+
+  for (var n = fromNum; n <= toNum; n++) {
+    var seat = null;
+    for (var k = 0; k < seats.length; k++) { if (seats[k].num === n) { seat = seats[k]; break; } }
+    var ci     = seat ? seat.ci : '';
+    var nombre = seat ? seat.pasajero : '';
+    tableBody.push([
+      { text: String(n), fontSize: 9, bold: true, alignment: 'left',   border: [true,true,true,true], margin: [2,1,1,1] },
+      { text: ci,        fontSize: 8,              alignment: 'center', border: [true,true,true,true], margin: [2,1,2,1] },
+      { text: nombre,    fontSize: 8,              alignment: 'left',   border: [true,true,true,true], margin: [3,1,2,1] },
+      { text: '', border: [true,true,true,true] },
+      { text: '', border: [true,true,true,true] },
+      { text: '', border: [true,true,true,true] },
+      { text: '', border: [true,true,true,true] }
+    ]);
+  }
+
+  return [
+    // Header
+    { image: _HEADER_IMG, width: 539, margin: [0, 0, 0, 8] },
+
+    // Tabla
+    {
+      table: { widths: colWidths, headerRows: 1, body: tableBody },
+      layout: {
+        hLineWidth: function() { return 0.5; },
+        vLineWidth: function() { return 0.5; },
+        hLineColor: function() { return COL_BORDER; },
+        vLineColor: function() { return COL_BORDER; },
+        paddingLeft:   function() { return 0; },
+        paddingRight:  function() { return 0; },
+        paddingTop:    function() { return 0; },
+        paddingBottom: function() { return 0; }
+      },
+      margin: [0, 0, 0, 8]
+    },
+
+    // Footer
+    { image: _FOOTER_IMG, width: 539, margin: [0, 0, 0, 0] }
+  ];
+}
+
 window.doExportListaPdf = function() {
   if (typeof pdfMake === 'undefined') {
     alert('pdfmake no cargó. Recargá la página e intentá de nuevo.');
@@ -74,61 +130,32 @@ window.doExportListaPdf = function() {
     return;
   }
 
-  var seats = buildSeatList();
+  var seats    = buildSeatList();
   var tripName = (typeof CURRENT_TRIP !== 'undefined' && CURRENT_TRIP.name) ? CURRENT_TRIP.name : '';
-  var totalSeats = seats.length > 0 ? seats[seats.length - 1].num : 30;
+  var total    = seats.length > 0 ? seats[seats.length - 1].num : 0;
+  if (total === 0) { if (typeof toast === 'function') toast('No hay asientos cargados'); return; }
 
-  var COL_BORDER = '#222222';
-  var colWidths = [22, 80, 160, 55, 60, 60, 60];
+  var ROWS_PER_PAGE = 35;
+  var content = [];
 
-  // Header row
-  var tableBody = [];
-  var hdrLabels = ['', 'Documento', 'Nombre y apellido', 'Abonado', 'Por abonar', '', ''];
-  tableBody.push(hdrLabels.map(function(txt) {
-    return { text: txt, fontSize: 7.5, bold: true, alignment: 'center',
-             fillColor: '#dce6f1', border: [true, true, true, true], margin: [1, 2, 1, 2] };
-  }));
+  var page = 1;
+  var from = 1;
+  while (from <= total) {
+    var to = Math.min(from + ROWS_PER_PAGE - 1, total);
 
-  for (var n = 1; n <= totalSeats; n++) {
-    var seat = null;
-    for (var k = 0; k < seats.length; k++) { if (seats[k].num === n) { seat = seats[k]; break; } }
-    var ci = seat ? seat.ci : '';
-    var nombre = seat ? seat.pasajero : '';
-    tableBody.push([
-      { text: String(n), fontSize: 9, bold: true, alignment: 'left',   border: [true,true,true,true], margin: [2,1,1,1] },
-      { text: ci,        fontSize: 8,              alignment: 'center', border: [true,true,true,true], margin: [2,1,2,1] },
-      { text: nombre,    fontSize: 8,              alignment: 'left',   border: [true,true,true,true], margin: [3,1,2,1] },
-      { text: '',        border: [true,true,true,true] },
-      { text: '',        border: [true,true,true,true] },
-      { text: '',        border: [true,true,true,true] },
-      { text: '',        border: [true,true,true,true] }
-    ]);
+    // Salto de página entre hojas (no en la primera)
+    if (page > 1) {
+      content.push({ text: '', pageBreak: 'before' });
+    }
+
+    var pageContent = buildPageContent(seats, from, to, page === 1);
+    for (var i = 0; i < pageContent.length; i++) {
+      content.push(pageContent[i]);
+    }
+
+    from = to + 1;
+    page++;
   }
-
-  var content = [
-    { image: _HEADER_IMG, width: 539, margin: [0, 0, 0, 10] }
-  ];
-
-  if (tripName) {
-    content.push({ text: tripName, fontSize: 9, bold: true, color: '#1a3a5c', margin: [0, 0, 0, 6] });
-  }
-
-  content.push({
-    table: { widths: colWidths, headerRows: 1, body: tableBody },
-    layout: {
-      hLineWidth: function() { return 0.5; },
-      vLineWidth: function() { return 0.5; },
-      hLineColor: function() { return COL_BORDER; },
-      vLineColor: function() { return COL_BORDER; },
-      paddingLeft:   function() { return 0; },
-      paddingRight:  function() { return 0; },
-      paddingTop:    function() { return 0; },
-      paddingBottom: function() { return 0; }
-    },
-    margin: [0, 0, 0, 10]
-  });
-
-  content.push({ image: _FOOTER_IMG, width: 539, margin: [0, 4, 0, 0] });
 
   var docDef = {
     pageSize: 'A4',
